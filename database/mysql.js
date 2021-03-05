@@ -11,20 +11,9 @@ var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password,
         max: dbConf.pool.max,
         min: dbConf.pool.min,
         idle: dbConf.pool.idle,
-    }
+    },
+    timezone: dbConf.timezone
 })
-
-// sequelize.authenticate()
-// .then(() =>{
-//     console.log('Connection has been established successfully.')
-
-// })
-// .catch (error => {
-//     console.error('Unable to connect to the database:', error)
-// })
-var generateId = function(){
-    return 10001
-}
 
 module.exports = {
     defineModel: function(name, attributes) {
@@ -47,14 +36,6 @@ module.exports = {
             allowNull: false,
             autoIncrement: true,
         };
-        attrs.createdAt = {
-            type: DataTypes.BIGINT,
-            allowNull: false,
-        };
-        attrs.updatedAt = {
-            type: DataTypes.BIGINT,
-            allowNull: false,
-        };
         attrs.version = {
             type: DataTypes.BIGINT,
             allowNull: false,
@@ -62,19 +43,12 @@ module.exports = {
         };
         return sequelize.define(name, attrs, {
             tableName: name,
-            timestamps: false,
+            timestamps: true,
             hooks: {
                 beforeValidate: function (obj) {
-                    let now = Date.now();
-                    if (obj.isNewRecord) {
-                        if (!obj.id) {
-                            obj.id = generateId();
-                        }
-                        obj.createdAt = now;
-                        obj.updatedAt = now;
+                    if (!obj.version) {
                         obj.version = 0;
                     } else {
-                        obj.updatedAt = Date.now();
                         obj.version++;
                     }
                 }
@@ -83,7 +57,7 @@ module.exports = {
     },
 
     sync: async function(){
-        await sequelize.sync({alter:true})
+        await sequelize.sync()
     },
 
     dataTypes: DataTypes
