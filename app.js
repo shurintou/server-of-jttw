@@ -1,54 +1,42 @@
-const WebSocket = require('ws');
+var express = require("express");
+var bodyParser = require('body-parser');
+var register = require('./routers/register')
+var app = express();
+const conf = require('./config/config-development')
+const models = require('./common/models')
 
-const wss = new WebSocket.Server({
-  port: 8081,
-  perMessageDeflate: {
-    zlibDeflateOptions: {
-      // See zlib defaults.
-      chunkSize: 1024,
-      memLevel: 7,
-      level: 3
-    },
-    zlibInflateOptions: {
-      chunkSize: 10 * 1024
-    },
-    // Other options settable:
-    clientNoContextTakeover: true, // Defaults to negotiated value.
-    serverNoContextTakeover: true, // Defaults to negotiated value.
-    serverMaxWindowBits: 10, // Defaults to negotiated value.
-    // Below options specified as default values.
-    concurrencyLimit: 10, // Limits zlib concurrency for perf.
-    threshold: 1024 // Size (in bytes) below which messages
-    // should not be compressed.
-  }
+/* 配置config */
+var port = conf.port
+const frontOrigin = conf.frontOrigin
+const APIRoot = conf.APIRoot
+
+/* 解析JSON */
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: true}));
+
+/* 允许跨域 */
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', frontOrigin)
+    res.header('Access-Control-Allow-Headers', 'Authorization,X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method' )
+    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, PUT, DELETE')
+    res.header('Allow', 'GET, POST, PATCH, OPTIONS, PUT, DELETE')
+    next();
 });
 
-wss.on('connection', function connection(ws) {
-  console.log('tcp serve is on')
-  ws.on('message', function incoming(data) {
-    let jsText =JSON.parse(data).text
-    if(jsText==='ping'){
-      sendJson(ws,{'text': 'pong'})
-    }
-    else{
-      Broadcast({'id': new Date().toString(), 'text': jsText})
-    }
-  });
-});
+/* API */
+app.use(APIRoot, register)
 
-wss.on('close', function close() {
-  console.log('tcp serve is off')
-});
 
-const Broadcast = function(data){
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-      sendJson(client,data)
-    }
-  });
+app.listen(port, () => {
+    console.log(`Example app listening at http://localhost:${port}`)
+})
+
+
+/* DAO */
+async function asd(){
+  var InvitationCode = models.invitationCode
+  await InvitationCode.create(
+    { invitation_code: "asderq"},
+  );
 }
-
-const sendJson = function(ws,data){
-  ws.send(JSON.stringify(data));
-}
-
+asd()
