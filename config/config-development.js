@@ -9,7 +9,8 @@ module.exports = {
         max: 10,
         min: 0,
         idle: 30000
-      }
+      },
+      timezone: '+09:00'
   },
   port: 3000,
   frontOrigin: 'http://localhost:8080',

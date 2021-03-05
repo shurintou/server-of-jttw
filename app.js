@@ -36,7 +36,7 @@ app.listen(port, () => {
 async function asd(){
   var InvitationCode = models.invitationCode
   await InvitationCode.create(
-    { invitation_code: "asderq"},
+    { invitation_code: "gsdbc"},
   );
 }
 asd()
