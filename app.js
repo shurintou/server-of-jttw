@@ -1,5 +1,4 @@
 var express = require("express");
-var bodyParser = require('body-parser');
 var register = require('./routers/register')
 var app = express();
 const conf = require('./config/config-development')
@@ -11,8 +10,10 @@ const frontOrigin = conf.frontOrigin
 const APIRoot = conf.APIRoot
 
 /* 解析JSON */
-app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: true}));
+// app.use(bodyParser.json());
+app.use(express.json);
+// app.use(bodyParser.urlencoded({extended: true}));
+app.use(express.urlencoded({extended: true}));
 
 /* 允许跨域 */
 app.use((req, res, next) => {
