@@ -15,4 +15,4 @@ for (let f of js_files) {
     module.exports[name] = require('../models/' + f);
 }
 
-db.sync().then(console.log('all tables has been updated'));
+db.sync().then(console.log('all tables have been updated'));
