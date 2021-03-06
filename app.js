@@ -1,6 +1,6 @@
 var express = require("express");
 var app = express();
-const conf = require('./config/config-development')
+const conf = require('./config/index')
 const routers = require('./common/routers')
 
 /* 配置config */
