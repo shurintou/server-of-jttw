@@ -2,16 +2,15 @@ var express = require("express");
 var register = require('./routers/register')
 var app = express();
 const conf = require('./config/config-development')
-const models = require('./common/models')
 
 /* 配置config */
-var port = conf.port
+const port = conf.port
 const frontOrigin = conf.frontOrigin
 const APIRoot = conf.APIRoot
 
 /* 解析JSON */
 // app.use(bodyParser.json());
-app.use(express.json);
+app.use(express.json());
 // app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.urlencoded({extended: true}));
 
@@ -32,12 +31,3 @@ app.listen(port, () => {
     console.log(`Example app listening at http://localhost:${port}`)
 })
 
-
-/* DAO */
-async function asd(){
-  var InvitationCode = models.invitationCode
-  await InvitationCode.create(
-    { invitation_code: "gsdbc"},
-  );
-}
-asd()

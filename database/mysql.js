@@ -18,31 +18,28 @@ var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password,
 module.exports = {
     defineModel: function(name, attributes) {
         var attrs = {};
-        for (let key in attributes) {
-            let value = attributes[key];
-            if (typeof value === 'object' && value['type']) {
-                value.allowNull = value.allowNull || false;
-                attrs[key] = value;
-            } else {
-                attrs[key] = {
-                    type: DataTypes[value],
-                    allowNull: false
-                };
-            }
-        }
         attrs.id = {
             type: DataTypes.INTEGER(11),
             primaryKey: true,
             allowNull: false,
             autoIncrement: true,
         };
+        for (let key in attributes) {
+            let value = attributes[key];
+            if (typeof value === 'object' && value['type']) {
+                value.allowNull = value.allowNull || false;
+                attrs[key] = value;
+            } 
+            else {
+                attrs[key] = {type: DataTypes[value], allowNull: false };
+            }
+        }
         attrs.version = {
             type: DataTypes.BIGINT,
             allowNull: false,
             defaultValue: 0
         };
         return sequelize.define(name, attrs, {
-            tableName: name,
             timestamps: true,
             hooks: {
                 beforeValidate: function (obj) {
