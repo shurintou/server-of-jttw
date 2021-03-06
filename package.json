@@ -12,10 +12,12 @@
     "sequelize": "^6.5.0",
     "ws": "^7.4.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev":"node-dev app.js",
+    "dev": "cross-env NODE_ENV=development node-dev app.js",
     "start": "node app.js"
   },
   "author": "",
