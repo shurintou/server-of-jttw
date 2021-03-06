@@ -13,7 +13,7 @@ module.exports = {
       timezone: '+09:00'
   },
   port: 3000,
-  frontOrigin: 'http://localhost:8080',
+  frontOrigin: 'http://192.168.11.11:8080',
   APIRoot: '/rest/v1',
 };
 
