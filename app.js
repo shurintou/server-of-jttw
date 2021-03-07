@@ -1,33 +1,39 @@
 var express = require("express");
+var session = require('express-session')
 var app = express();
-const conf = require('./config/index')
 const routers = require('./common/routers')
+const routerInterceptor = require('./common/routerInterceptor')
+let RedisStore = require('connect-redis')(session)
+let redisClient = require('./database/redis')
 
 /* 配置config */
+const conf = require('./config/')
 const port = conf.port
-const frontOrigin = conf.frontOrigin
-const APIRoot = conf.APIRoot
+var sess = conf.session
+/*************/
 
 /* 解析JSON */
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
+/************/
 
-/* 允许跨域 */
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', frontOrigin)
-    res.header('Access-Control-Allow-Headers', 'Authorization,X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method' )
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PATCH, PUT, DELETE')
-    res.header('Allow', 'GET, POST, PATCH, OPTIONS, PUT, DELETE')
-    next();
-});
+/* session */
+if (app.get('env') === 'production') {
+  app.set('trust proxy', 1) // trust first proxy
+  sess.cookie.secure = true // serve secure cookies
+}
+sess.store = new RedisStore({ client: redisClient }),
+app.use(session(sess))
+app.use('*', routerInterceptor)//拦截器
+/**********/
 
-/* API */
+/* API*(路由) */
 Object.keys(routers).forEach(key => {
-    app.use(APIRoot, routers[key])
+    app.use(conf.APIRoot, routers[key])//给路由增加根路径
 })
+/*******/
 
-
-app.listen(port, () => {
-    console.log(`Example app listening at http://localhost:${port}`)
-})
+/* 启动服务器 */
+app.listen(port, () => { console.log(`Example app listening at http://localhost:${port}`) })
+/*************/
 

@@ -1,6 +1,6 @@
 
 const {Sequelize, DataTypes} = require('sequelize');
-const conf = require('../config/index');
+const conf = require('../config/');
 const dbConf = conf.mysql
 
 var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password, {
