@@ -23,7 +23,8 @@ module.exports = {
     name: 'journey_to_the_west',
     secret: 'journey to the west !',
     cookie: {
-       maxAge: 3600000// 1 hour
+       maxAge: 3600000,// 1 hour
+       secure: false,
     },
     resave: false,
     saveUninitialized: false
