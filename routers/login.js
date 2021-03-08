@@ -9,6 +9,9 @@ router.post('/login', function (req, res) {
         if(result.code === 200){
             req.session.username = req.body.username
         }
+        else if(result.code === 409){
+            req.session.destroy( () => {} )
+        }
         res.status(200).json({code: result.code,  message: result.message})
     })
     .catch(err => {
