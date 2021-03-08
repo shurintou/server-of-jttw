@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const loginService = require('../service/loginService')
+const loginService = require('../services/loginService')
 
 router.post('/login', function (req, res) {
     loginService.login(req.body)
