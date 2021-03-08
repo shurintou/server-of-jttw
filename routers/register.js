@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-const registerService = require('../service/registerService')
+const registerService = require('../services/registerService')
 
 
 router.post('/register', function (req, res) {
