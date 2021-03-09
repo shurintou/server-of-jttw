@@ -25,6 +25,7 @@ module.exports = {
     cookie: {
        maxAge: 3600000,// 1 hour
        secure: false,
+       httpOnly: false, //为true的话前端获取不到cookie
     },
     resave: false,
     saveUninitialized: false
