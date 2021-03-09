@@ -9,11 +9,15 @@ module.exports = function(req, res, next){
         next()
     }
     else{
-        if(req.sesson){
+        if(req.session.username){
+            if(req._parsedUrl.path.indexOf('/authorization') !== -1 ){
+                res.status(200).json({code: 200,  message: ''})
+                return
+            }
             next()
         }
         else{
-            res.status(401).end()
+            res.status(200).json({code: 401,  message: ''})
         }
     }
 }
