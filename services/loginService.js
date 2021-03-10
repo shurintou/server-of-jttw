@@ -12,7 +12,7 @@ module.exports = {
             else{
                 if(accounts[0].password === data.password){
                     /* store.all是回调函数形式的异步，所以用Promise包裹一层使得其能够同步执行 */
-                    return await storeWrapper(data)
+                    return await storeWrapper(data, accounts[0])
                 }
                 else{
                     return Promise.resolve({code: 406, message: '密码不正确，请重新输入'})
@@ -25,7 +25,7 @@ module.exports = {
     }
 }
 
-function storeWrapper(data){
+function storeWrapper(data, account){
     return new Promise((resolve, reject) => {
         /* 通过验证能够登录，但须确认有没有重复session */
         store.all(function(err, sessions){
@@ -43,7 +43,7 @@ function storeWrapper(data){
                  return resolve({code: 409, message: '请勿重复登录'})
                }
                else{
-                 return resolve({code: 200, message: ''})
+                 return resolve({code: 200, message: '', id: account.id})
                }
             }
         })
