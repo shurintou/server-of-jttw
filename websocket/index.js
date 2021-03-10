@@ -29,13 +29,13 @@ wss.on('connection', function connection(ws, req) {
             if(!session){
                 ws.close(1000, '账号信息已过期，请重新登录')
                 return 
-            } 
+            }
             let jsText = JSON.parse(data)
             if(jsText.text === 'ping'){
                 sendJson(ws, {'text': 'pong'})
             }
             else{
-                 Broadcast(jsText)
+                Broadcast(jsText)
             } 
         })
     });

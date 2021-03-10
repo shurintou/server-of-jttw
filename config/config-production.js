@@ -8,6 +8,6 @@ module.exports = {
             secure: true
         },
         resave: false,
-        saveUninitialized: false
+        saveUninitialized: true
     },
 }
