@@ -10,8 +10,8 @@ module.exports = {
             else{
                 const Account = models.account
                 var accounts = await Account.findAll({where:{id : req.session.userId}})
-                accounts[0].password = ''
-                return Promise.resolve({code: 200, message: '登录成功', account: accounts[0]})
+                var account = accounts[0]
+                return Promise.resolve({code: 200, message: '登录成功', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
             }
         }
         catch(e){
