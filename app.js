@@ -20,7 +20,7 @@ if (app.get('env') === 'production') {
   app.set('trust proxy', 1) // trust first proxy
 }
 app.use(session)
-app.use('*', routerInterceptor)//拦截器
+app.use('/', routerInterceptor)//拦截器
 /**********/
 
 /* websocket */

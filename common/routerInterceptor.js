@@ -10,14 +10,10 @@ module.exports = function(req, res, next){
     }
     else{
         if(req.session.username){
-            if(req._parsedUrl.path.indexOf('/authorization') !== -1 ){
-                res.status(200).json({code: 200,  message: ''})
-                return
-            }
             next()
         }
         else{
-            res.status(200).json({code: 401,  message: ''})
+            res.status(200).json({code: 401,  message: '账号信息已过期，请重新登录'})
         }
     }
 }
