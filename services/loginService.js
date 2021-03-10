@@ -45,8 +45,7 @@ function storeWrapper(data, account){
                  return resolve({code: 409, message: '请勿重复登录'})
                }
                else{
-                 account.password = ''
-                 return resolve({code: 200, message: '登录成功', account: account})
+                 return resolve({code: 200, message: '登录成功', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
                }
             }
         })
