@@ -28,7 +28,7 @@ module.exports = {
        httpOnly: false, //为true的话前端获取不到cookie
     },
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: false
   },
   httpHeaders:{
     allowHeaders:  'Authorization,X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method',
