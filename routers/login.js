@@ -8,6 +8,7 @@ router.post('/login', function (req, res) {
         /* code为200则登录成功，设置session */
         if(result.code === 200){
             req.session.username = req.body.username
+            req.session.id = result.id
         }
         else if(result.code === 409){
             req.session.destroy( () => {} )
