@@ -1,5 +1,6 @@
 const models = require('../common/models')
 const store = require('../common/session').store
+const wss = require('../websocket/')
 
 module.exports = {
     login: async function(req){
