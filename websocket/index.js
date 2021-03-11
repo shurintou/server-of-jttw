@@ -42,7 +42,7 @@ const interval = setInterval(function checkConnections() {
       store.destroy(key, function(){})
     }
   });
-}, 4000);
+}, 60000);
 
   
 wss.on('connection', function connection(ws, req) {
