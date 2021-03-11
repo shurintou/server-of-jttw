@@ -3,7 +3,7 @@ var router = express.Router();
 const loginService = require('../services/loginService')
 
 router.post('/login', function (req, res) {
-    loginService.login(req.body)
+    loginService.login(req)
     .then(result => {
         /* code为200则登录成功，设置session */
         if(result.code === 200){
