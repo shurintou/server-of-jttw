@@ -26,6 +26,9 @@ const wss = new WebSocket.Server({
 
   
 wss.on('connection', function connection(ws, req) {
+    ws.nickname = req.session.nickname
+    ws.username = req.session.username
+    ws.userId = req.session.userId
     ws.on('message', function incoming(data) {
         store.get(req.sessionID, function(error, session){
             if(!session){
@@ -33,12 +36,13 @@ wss.on('connection', function connection(ws, req) {
                 return 
             }
             let jsText = JSON.parse(data)
+            /* heartbeat */
             if(jsText.type === 'ping'){
                 ws.send(JSON.stringify({'type': 'pong'}));
                 return
             }
-            jsText.nickname = req.session.nickname
-            jsText.userId = req.session.userId
+            jsText.nickname = ws.nickname
+            jsText.userId = ws.userId
             if(jsText.type === 'player_loc'){
                 playerLocHandler(jsText , wss, ws)
                 return
