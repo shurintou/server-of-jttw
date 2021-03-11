@@ -36,12 +36,13 @@ function storeWrapper(data, account){
             }
             else{
                var times = 0
+               console.log('length', sessions.length)
                for(var i = 0; i < sessions.length; i++){
                     if(sessions[i].username === data.username){
                         times = times + 1 
                     }
                }
-               if(times > 1){
+               if(times === 1){
                  return resolve({code: 409, message: '请勿重复登录'})
                }
                else{

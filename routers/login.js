@@ -14,6 +14,7 @@ router.post('/login', function (req, res) {
         }
         else if(result.code === 409){
             req.session.destroy( () => {} )
+            res.status(200).json({code: result.code, message: result.message})
         }
     })
     .catch(err => {
@@ -23,7 +24,7 @@ router.post('/login', function (req, res) {
 
 router.delete('/logout', function(req, res){
     loginService.logout(req)
-    res.status(200).json({message: ''})
+    res.status(200).json({code: 200, message: ''})
 })
 
 
