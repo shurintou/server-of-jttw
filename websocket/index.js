@@ -2,6 +2,8 @@ const WebSocket = require('ws');
 const store = require('../common/session').store
 const chatHandler = require('./chatHandler')
 const playerLocHandler = require('./playerLocHandler')
+const redis = require('../database/redis')
+const conf = require('../config/')
 
 
 const wss = new WebSocket.Server({
@@ -41,6 +43,11 @@ wss.on('connection', function connection(ws, req) {
                 ws.send(JSON.stringify({'type': 'pong'}));
                 return
             }
+            /* reset the expire of the session */
+            var sessId = 'sess:' + req.sessionID
+            redis.ttl(sessId, function(error, ttl){
+              redis.pexpire(sessId, conf.session.cookie.maxAge)
+            })
             jsText.nickname = ws.nickname
             jsText.userId = ws.userId
             if(jsText.type === 'player_loc'){
