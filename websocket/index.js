@@ -1,5 +1,7 @@
 const WebSocket = require('ws');
 const store = require('../common/session').store
+const chatHandler = require('./chatHandler')
+const playerLocHandler = require('./playerLocHandler')
 
 
 const wss = new WebSocket.Server({
@@ -31,32 +33,27 @@ wss.on('connection', function connection(ws, req) {
                 return 
             }
             let jsText = JSON.parse(data)
-            if(jsText.text === 'ping'){
-                sendJson(ws, {'text': 'pong'})
+            if(jsText.type === 'ping'){
+                ws.send(JSON.stringify({'type': 'pong'}));
+                return
             }
-            else{
-                Broadcast(jsText)
+            jsText.nickname = req.session.nickname
+            jsText.userId = req.session.userId
+            if(jsText.type === 'player_loc'){
+                playerLocHandler(jsText , wss, ws)
+                return
+            }
+            if(jsText.type === 'chat'){
+                chatHandler(jsText, wss)
+                return
             } 
         })
     });
 });
   
-  wss.on('close', function close() {
-    console.log('tcp serve is off')
-  });
-  
-  function Broadcast(data){
-    wss.clients.forEach(function each(client) {
-      if (client.readyState === WebSocket.OPEN) {
-        sendJson(client,data)
-      }
-    });
-  }
-  
-  function sendJson(ws,data){
-    ws.send(JSON.stringify(data));
-  }
-  
+wss.on('close', function close() {
+  console.log('tcp serve is off')
+});
 
-  module.exports = wss
+module.exports = wss
   
