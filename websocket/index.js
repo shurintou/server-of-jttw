@@ -44,10 +44,7 @@ wss.on('connection', function connection(ws, req) {
                 return
             }
             /* reset the expire of the session */
-            var sessId = 'sess:' + req.sessionID
-            redis.ttl(sessId, function(error, ttl){
-              redis.pexpire(sessId, conf.session.cookie.maxAge)
-            })
+            redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
             jsText.nickname = ws.nickname
             jsText.userId = ws.userId
             if(jsText.type === 'player_loc'){
