@@ -1,4 +1,5 @@
 const models = require('../common/models')
+const errors = require('../common/errors')
 
 module.exports = {
     register: async function(data){
@@ -7,10 +8,10 @@ module.exports = {
             const Account = models.account
             var invitationCodes = await InvitationCode.findAll({where: {invitation_code: data.invitationCode}})
             if(invitationCodes.length === 0){
-                return Promise.resolve({code: 406, message: '邀请码不存在，请重新输入'})
+                return Promise.resolve(errors.INVITATIONCODE_NOT_FOUND)
             }
             else if(invitationCodes[0].is_used){
-                return Promise.resolve({code: 406, message: '邀请码已使用，请重新输入'})
+                return Promise.resolve(errors.INVITATIONCODE_USED)
             }
             else{
                 var accounts = await Account.findAll({where:{username : data.username}})
@@ -22,7 +23,7 @@ module.exports = {
                     return Promise.resolve({code: 200 , message: ''})
                 }
                 else{
-                    return Promise.resolve({code: 406 , message: '用户名已使用，请重新输入'})
+                    return Promise.resolve(errors.USERNAME_USED)
                 }
             }
         }

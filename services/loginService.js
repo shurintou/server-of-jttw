@@ -1,6 +1,8 @@
 const models = require('../common/models')
 const store = require('../common/session').store
 const wss = require('../websocket/')
+const errors = require('../common/errors')
+
 
 module.exports = {
     login: async function(req){
@@ -8,7 +10,7 @@ module.exports = {
             const Account = models.account
             var accounts = await Account.findAll({where:{username : req.body.username}})
             if(accounts.length === 0){
-                return Promise.resolve({code: 406, message: '用户名不存在，请重新输入'})
+                return Promise.resolve(errors.USERNAME_NOT_FOUND)
             }
             else{
                 if(accounts[0].password === req.body.password){
@@ -16,7 +18,7 @@ module.exports = {
                     return await storeWrapper(req, accounts[0])
                 }
                 else{
-                    return Promise.resolve({code: 406, message: '密码不正确，请重新输入'})
+                    return Promise.resolve(errors.WRONG_PASSWORD)
                 }
             }
         }
@@ -43,10 +45,10 @@ function storeWrapper(req, account){
                     }
                }
                if(times > 0){
-                 return resolve({code: 409, message: '请勿重复登录'})
+                 return resolve()
                }
                else{
-                 return resolve({code: 200, message: '登录成功', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
+                 return resolve({code: 200, message: '', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
                }
             }
         })

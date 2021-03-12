@@ -4,6 +4,7 @@ const chatHandler = require('./chatHandler')
 const playerLocHandler = require('./playerLocHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
+const errors = require('../common/errors')
 
 
 const wss = new WebSocket.Server({
@@ -61,7 +62,7 @@ wss.on('connection', function connection(ws, req) {
     ws.on('message', function incoming(data) {
         store.get(req.sessionID, function(error, session){
             if(!session){
-                ws.close(1000, '账号信息已过期，请重新登录')
+                ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
                 return 
             }
             ws.isAlive = true
