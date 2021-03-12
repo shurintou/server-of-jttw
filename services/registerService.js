@@ -16,7 +16,9 @@ module.exports = {
             else{
                 var accounts = await Account.findAll({where:{username : data.username}})
                 if(accounts.length === 0){
+                    const Record = models.record
                     var newAccount = await Account.create({username: data.username, password: data.password})
+                    await Record.create({accountId: newAccount.id})
                     invitationCodes[0].is_used = true
                     invitationCodes[0].player_id = newAccount.id
                     await invitationCodes[0].save()

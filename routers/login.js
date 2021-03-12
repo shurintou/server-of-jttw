@@ -15,8 +15,13 @@ router.post('/login', function (req, res) {
             req.session.destroy( () => {} )
             res.status(200).json({code: result.code, message: result.message})
         }
+        else{
+            req.session.destroy( () => {} )
+            res.status(200).json({code: result.code, message: result.message})
+        }
     })
     .catch(err => {
+        req.session.destroy( () => {} )
         res.status(err.code? err.code:500).json({message: err.message})
     })
 });

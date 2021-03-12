@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const store = require('../common/session').store
+const playerListHandler = require('./playerListHandler')
 const chatHandler = require('./chatHandler')
 const playerLocHandler = require('./playerLocHandler')
 const redis = require('../database/redis')
@@ -74,8 +75,8 @@ wss.on('connection', function connection(ws, req) {
             redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
             jsText.nickname = ws.nickname
             jsText.userId = ws.userId
-            if(jsText.type === 'player_loc'){
-                playerLocHandler(jsText , wss, ws)
+            if(jsText.type === 'playerList'){
+                playerListHandler.modify(jsText, wss, req)
                 return
             }
             if(jsText.type === 'chat'){
