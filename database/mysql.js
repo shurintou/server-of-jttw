@@ -34,22 +34,8 @@ module.exports = {
                 attrs[key] = {type: DataTypes[value], allowNull: false };
             }
         }
-        attrs.version = {
-            type: DataTypes.BIGINT,
-            allowNull: false,
-            defaultValue: 0
-        };
         return sequelize.define(name, attrs, {
             timestamps: true,
-            hooks: {
-                beforeValidate: function (obj) {
-                    if (!obj.version) {
-                        obj.version = 0;
-                    } else {
-                        obj.version++;
-                    }
-                }
-            }
         });
     },
 
