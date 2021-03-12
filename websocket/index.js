@@ -4,7 +4,6 @@ const chatHandler = require('./chatHandler')
 const playerLocHandler = require('./playerLocHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
-const connections_sessions = {}
 
 
 const wss = new WebSocket.Server({
@@ -36,13 +35,22 @@ const interval = setInterval(function checkConnections() {
       return
     }
     ws.isAlive = false;
-  });
-  Object.keys(connections_sessions).forEach( key => {
-    if(!connections_sessions[key]){
-      store.destroy(key, function(){})
-    }
-  });
-}, 60000);
+  }) 
+  try{
+    store.all( function(err, sessions){
+      for(let i = 0; i < sessions.length; i++){
+         redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
+            if( res < 3000 ){
+                redis.del('sess:' + sessions[i].sessionID)
+            }
+         })
+      }
+    }) 
+  }
+  catch(err){
+    console.log(err)
+  }  
+}, 6000);
 
   
 wss.on('connection', function connection(ws, req) {
@@ -50,7 +58,6 @@ wss.on('connection', function connection(ws, req) {
     ws.username = req.session.username
     ws.userId = req.session.userId
     ws.sessionID = req.sessionID
-    connections_sessions[req.sessionID] = ws
     ws.on('message', function incoming(data) {
         store.get(req.sessionID, function(error, session){
             if(!session){
