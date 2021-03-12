@@ -8,8 +8,8 @@ module.exports = db.defineModel('invitationCode',
     },
     is_used: 
     {
-       type: db.dataTypes.BOOLEAN,
-       defaultValue: false
+        type: db.dataTypes.BOOLEAN,
+        defaultValue: false
     },
     player_id:
     {
