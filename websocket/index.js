@@ -41,17 +41,15 @@ const interval = setInterval(function checkConnections() {
     store.all( function(err, sessions){
       for(let i = 0; i < sessions.length; i++){
          redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
-            if( res < 3000 ){
+            if( res < 2700 ){
                 redis.del('sess:' + sessions[i].sessionID)
             }
          })
       }
     }) 
   }
-  catch(err){
-    console.log(err)
-  }  
-}, 6000);
+  catch(err){}  
+}, 60000);
 
   
 wss.on('connection', function connection(ws, req) {
