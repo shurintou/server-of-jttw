@@ -1,4 +1,5 @@
 var conf = require('../config/')
+const errors = require('./errors')
 
 module.exports = function(req, res, next){
     res.header('Access-Control-Allow-Origin', conf.frontOrigin)
@@ -13,7 +14,7 @@ module.exports = function(req, res, next){
             next()
         }
         else{
-            res.status(200).json({code: 401,  message: '账号信息已过期，请重新登录'})
+            res.status(200).json(errors.SESSION_TIMEOUT)
         }
     }
 }
