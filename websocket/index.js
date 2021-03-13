@@ -5,7 +5,8 @@ const chatHandler = require('./chatHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
-const wss = new WebSocket.Server(conf.ws.config);
+const wss = new WebSocket.Server(conf.ws.config)
+const logoutHandler = require('./logoutHandler')
 
 /* 定期清除失活的连接和session */  
 const interval = setInterval(function checkConnections() {
@@ -28,6 +29,7 @@ const interval = setInterval(function checkConnections() {
         })
     }
   }) 
+  logoutHandler(wss)
 }, conf.ws.checkPeriod);
 
   
