@@ -12,7 +12,6 @@ module.exports = {
     sessionHandler: function( req, account){
         req.session.username = account.username
         req.session.userId = account.id
-        req.session.nickname = account.nickname
         req.session.sessionID = req.sessionID
     }
 }
