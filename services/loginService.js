@@ -1,6 +1,7 @@
 const models = require('../common/models')
 const store = require('../common/session').store
-const wss = require('../websocket/')
+const redis = require('../database/redis')
+const conf = require('../config/')
 const errors = require('../common/errors')
 
 
@@ -41,11 +42,20 @@ function storeWrapper(req, account){
                var times = 0
                for(var i = 0; i < sessions.length; i++){
                     if(sessions[i].username === req.body.username){
-                        times = times + 1 
+                        var sessionId = 'sess:' + sessions[i].sessionID
+                        redis.ttl(sessionId, function(err , res){
+                            if(res < conf.ws.deadTtl){
+                                redis.del(sessionId)
+                            }
+                            else{
+                                redis.expire(sessionId , conf.ws.deadTtl + 1 )
+                            }
+                        }) 
+                        times = times + 1
                     }
                }
                if(times > 0){
-                 return resolve()
+                 return resolve(errors.DUBLICATE_ACCESS)
                }
                else{
                  return resolve({code: 200, message: '', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})

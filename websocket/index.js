@@ -7,26 +7,7 @@ const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
 
-
-const wss = new WebSocket.Server({
-    clientTracking: true,
-    noServer: true,
-    perMessageDeflate: {
-      zlibDeflateOptions: {
-        chunkSize: 1024,
-        memLevel: 7,
-        level: 3
-      },
-      zlibInflateOptions: {
-        chunkSize: 10 * 1024
-      },
-      clientNoContextTakeover: true, 
-      serverNoContextTakeover: true, 
-      serverMaxWindowBits: 10, 
-      concurrencyLimit: 10, 
-      threshold: 1024, 
-    }
-  });
+const wss = new WebSocket.Server(conf.ws.config);
 
 /* 定期清除失活的连接和session */  
 const interval = setInterval(function checkConnections() {
@@ -42,7 +23,7 @@ const interval = setInterval(function checkConnections() {
     store.all( function(err, sessions){
       for(let i = 0; i < sessions.length; i++){
          redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
-            if( res < 2700 ){
+            if( res < conf.ws.deadTtl ){
                 redis.del('sess:' + sessions[i].sessionID)
             }
          })
@@ -50,7 +31,7 @@ const interval = setInterval(function checkConnections() {
     }) 
   }
   catch(err){}  
-}, 60000);
+}, conf.ws.checkPeriod);
 
   
 wss.on('connection', function connection(ws, req) {
@@ -65,6 +46,7 @@ wss.on('connection', function connection(ws, req) {
             }
             ws.isAlive = true
             let jsText = JSON.parse(data)
+            jsText.userId = ws.userId
             /* heartbeat */
             if(jsText.type === 'ping'){
                 ws.send(JSON.stringify({'type': 'pong'}));
@@ -72,7 +54,6 @@ wss.on('connection', function connection(ws, req) {
             }
             /* reset the expire of the session */
             redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
-            jsText.userId = ws.userId
             if(jsText.type === 'playerList'){
                 playerListHandler.modify(jsText, wss, req)
                 return

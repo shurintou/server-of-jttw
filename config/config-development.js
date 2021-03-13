@@ -34,6 +34,29 @@ module.exports = {
     allowHeaders:  'Authorization,X-API-KEY, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Request-Method',
     allowMethods: 'GET, POST, OPTIONS, PATCH, PUT, DELETE',
     allowCredentials: 'true',
+  },
+  ws:{
+    deadTtl: 2700,
+    checkPeriod: 60000,
+    config: {
+      clientTracking: true,
+      noServer: true,
+      perMessageDeflate: {
+        zlibDeflateOptions: {
+          chunkSize: 1024,
+          memLevel: 7,
+          level: 3
+        },
+        zlibInflateOptions: {
+          chunkSize: 10 * 1024
+        },
+        clientNoContextTakeover: true, 
+        serverNoContextTakeover: true, 
+        serverMaxWindowBits: 10, 
+        concurrencyLimit: 10, 
+        threshold: 1024, 
+      }
+    },
   }
 };
 
