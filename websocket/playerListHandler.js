@@ -7,7 +7,7 @@ module.exports = {
         JSON.stringify({
             id: req.session.userId,
             username: req.session.username,
-            nickname: req.session.nickname,
+            nickname: data.nickname,
             player_loc: data.player_loc,
             player_status: data.player_status,
             avatar_id : data.avatar_id

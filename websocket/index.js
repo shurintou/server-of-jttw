@@ -54,7 +54,6 @@ const interval = setInterval(function checkConnections() {
 
   
 wss.on('connection', function connection(ws, req) {
-    ws.nickname = req.session.nickname
     ws.username = req.session.username
     ws.userId = req.session.userId
     ws.sessionID = req.sessionID
@@ -73,7 +72,6 @@ wss.on('connection', function connection(ws, req) {
             }
             /* reset the expire of the session */
             redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
-            jsText.nickname = ws.nickname
             jsText.userId = ws.userId
             if(jsText.type === 'playerList'){
                 playerListHandler.modify(jsText, wss, req)
