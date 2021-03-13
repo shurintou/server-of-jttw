@@ -4,6 +4,7 @@ const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
 const logoutHandler = require('../websocket/logoutHandler')
+const wss = require('../websocket/')
 
 
 module.exports = {
@@ -31,7 +32,7 @@ module.exports = {
 
     logout: function(req){
         store.destroy(req.sessionID, function(){
-            logoutHandler()
+            logoutHandler(wss)
         })
     }
 }

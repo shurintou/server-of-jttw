@@ -1,9 +1,8 @@
 const redis = require('../database/redis')
 const store = require('../common/session').store
-const wss = require('./')
 const WebSocket = require('ws');
 
-module.exports= function(){
+module.exports= function(wss){
     /* 1，获取redis中playerList列表 */
     redis.smembers('playerList', function(err, list){
         if (err) {return console.error('error redis response - ' + err)}
