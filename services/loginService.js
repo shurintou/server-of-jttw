@@ -3,6 +3,7 @@ const store = require('../common/session').store
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
+const logoutHandler = require('../websocket/logoutHandler')
 
 
 module.exports = {
@@ -28,7 +29,11 @@ module.exports = {
         }
     },
 
-    logout: function(req){store.destroy(req.sessionID, function(){})}
+    logout: function(req){
+        store.destroy(req.sessionID, function(){
+            logoutHandler()
+        })
+    }
 }
 
 function storeWrapper(req, account){
