@@ -12,12 +12,16 @@ module.exports = {
             player_status: data.player_status,
             avatar_id : data.avatar_id
         }), 
-        function(err, res){
+        function(err){
+            if (err) {return console.error('error redis response - ' + err)}
             redis.sadd('playerList', 'player' + req.session.userId,
-            function(err, res){
+            function(err){
+                if (err) {return console.error('error redis response - ' + err)}
                 redis.smembers('playerList', 
                 function(err, list){
+                    if (err) {return console.error('error redis response - ' + err)}
                     redis.mget(list, function(err, playerList){
+                        if (err) {return console.error('error redis response - ' + err)}
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({type: 'playerList', data: playerList}));

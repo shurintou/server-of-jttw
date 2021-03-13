@@ -2,7 +2,6 @@ const WebSocket = require('ws');
 const store = require('../common/session').store
 const playerListHandler = require('./playerListHandler')
 const chatHandler = require('./chatHandler')
-const playerLocHandler = require('./playerLocHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
@@ -19,18 +18,17 @@ const interval = setInterval(function checkConnections() {
     }
     ws.isAlive = false;
   }) 
-  try{
-    store.all( function(err, sessions){
-      for(let i = 0; i < sessions.length; i++){
-         redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
-            if( res < conf.ws.deadTtl ){
-                redis.del('sess:' + sessions[i].sessionID)
-            }
-         })
-      }
-    }) 
-  }
-  catch(err){}  
+  store.all( function(err, sessions){
+    if (err) {return console.error('error redis response - ' + err)}
+    for(let i = 0; i < sessions.length; i++){
+        redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
+          if (err) {return console.error('error redis response - ' + err)}
+          if( res < conf.ws.deadTtl ){
+              redis.del('sess:' + sessions[i].sessionID)
+          }
+        })
+    }
+  }) 
 }, conf.ws.checkPeriod);
 
   
@@ -39,7 +37,8 @@ wss.on('connection', function connection(ws, req) {
     ws.userId = req.session.userId
     ws.sessionID = req.sessionID
     ws.on('message', function incoming(data) {
-        store.get(req.sessionID, function(error, session){
+        store.get(req.sessionID, function(err, session){
+            if (err) {return console.error('error redis response - ' + err)}
             if(!session){
                 ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
                 return 
