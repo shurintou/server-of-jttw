@@ -37,6 +37,7 @@ module.exports = {
   },
   ws:{
     deadTtl: 2700,
+    forceLogoutTtl: 3000, //当时间低于这个数说明一段时间没有操作，可以被挤号
     checkPeriod: 60000,
     config: {
       clientTracking: true,
