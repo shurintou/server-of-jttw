@@ -31,15 +31,17 @@ module.exports= function(wss){
                 redis.smembers('playerList', 
                 function(err, list){
                     if (err) {return console.error('error redis response - ' + err)}
-                    redis.mget(list, function(err, playerList){
-                        if (err) {return console.error('error redis response - ' + err)}
-                        /* 4，广播 */
-                        wss.clients.forEach(function each(client) {
-                            if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({type: 'playerList', data: playerList}));
-                            }
-                        });
-                    })
+                    if (list.length > 0){
+                        redis.mget(list, function(err, playerList){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            /* 4，广播 */
+                            wss.clients.forEach(function each(client) {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({type: 'playerList', data: playerList}));
+                                }
+                            });
+                        })
+                    }
                 })
             })
         })
