@@ -5,7 +5,6 @@ const chatHandler = require('./chatHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
-
 const wss = new WebSocket.Server(conf.ws.config);
 
 /* 定期清除失活的连接和session */  
@@ -54,7 +53,7 @@ wss.on('connection', function connection(ws, req) {
             /* reset the expire of the session */
             redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
             if(jsText.type === 'playerList'){
-                playerListHandler.modify(jsText, wss, req)
+                playerListHandler(jsText, wss, req)
                 return
             }
             if(jsText.type === 'chat'){

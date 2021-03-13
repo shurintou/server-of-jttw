@@ -1,8 +1,7 @@
 const redis = require('../database/redis')
 const WebSocket = require('ws');
 
-module.exports = {
-    modify: function(data ,wss, req){
+module.exports = function(data ,wss, req){
         redis.set('player' + req.session.userId,
         JSON.stringify({
             id: req.session.userId,
@@ -31,5 +30,4 @@ module.exports = {
                 })
             })
         })
-    }
 }
