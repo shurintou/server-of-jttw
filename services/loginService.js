@@ -44,6 +44,7 @@ function storeWrapper(req, account){
                     if(sessions[i].username === req.body.username){
                         var sessionId = 'sess:' + sessions[i].sessionID
                         redis.ttl(sessionId, function(err , res){
+                            if (err) {return console.error('error redis response - ' + err)}                            
                             if(res < conf.ws.deadTtl){
                                 redis.del(sessionId)
                             }
