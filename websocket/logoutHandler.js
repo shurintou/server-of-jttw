@@ -12,7 +12,7 @@ module.exports= function(wss){
         store.all( function(err, sessions){
             if (err) {return console.error('error redis response - ' + err)}
             sessions.forEach( session => {
-                livePlayer.push('player' + session.userId)
+                livePlayer.push('player:' + session.userId)
             })
             list.forEach( item => {
                 var isLive = false
@@ -24,6 +24,7 @@ module.exports= function(wss){
                 }
                 if(!isLive){
                     removePlayer.push(item)
+                    redis.del(item)
                 }
             })
             /* 3，对应删除失活session的player */
