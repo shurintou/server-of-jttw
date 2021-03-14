@@ -59,7 +59,7 @@ wss.on('connection', function connection(ws, req) {
                 return
             }
             if(jsText.type === 'chat'){
-                chatHandler(jsText, wss)
+                chatHandler(jsText, wss, req)
                 return
             } 
         })
