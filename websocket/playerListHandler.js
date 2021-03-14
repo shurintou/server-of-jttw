@@ -2,7 +2,7 @@ const redis = require('../database/redis')
 const WebSocket = require('ws');
 
 module.exports = function(data ,wss, req){
-        redis.set('player' + req.session.userId,
+        redis.set('player:' + req.session.userId,
         JSON.stringify({
             id: req.session.userId,
             username: req.session.username,
@@ -13,7 +13,7 @@ module.exports = function(data ,wss, req){
         }), 
         function(err){
             if (err) {return console.error('error redis response - ' + err)}
-            redis.sadd('playerList', 'player' + req.session.userId,
+            redis.sadd('playerList', 'player:' + req.session.userId,
             function(err){
                 if (err) {return console.error('error redis response - ' + err)}
                 redis.smembers('playerList', 
