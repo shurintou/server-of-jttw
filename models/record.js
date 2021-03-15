@@ -40,7 +40,7 @@ const Record = db.defineModel('record',
         defaultValue: 0
     },
     /* 最多牌时一共多少副牌 */
-    max_card_accounts:
+    max_card_amount:
     {
         type: db.dataTypes.INTEGER(11),
         defaultValue: 0
@@ -52,7 +52,7 @@ const Record = db.defineModel('record',
         defaultValue: 0
     },
     /* 最少牌时一共多少副牌 */
-    min_card_accounts:
+    min_card_amount:
     {
         type: db.dataTypes.INTEGER(11),
         defaultValue: 0
