@@ -5,7 +5,8 @@ const errors = require('../common/errors')
 module.exports = {
     authorization: async function(req){
         try{
-            if(await storeWrapper(req).result){
+            var checkResult = await storeWrapper(req)
+            if(checkResult.result){
                 return Promise.resolve(errors.SESSION_TIMEOUT)
             }
             else{
@@ -24,8 +25,9 @@ module.exports = {
 function storeWrapper(req){
     return new Promise((resolve, reject) => {
         store.get(req.sessionID, function(error, session){
-            if(!session || error){
-                return reject({result: true})
+            if(error)return reject({message: error})
+            if(!session){
+                return resolve({result: true})
             }
             else{
                 return resolve({result: false})
