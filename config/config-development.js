@@ -16,6 +16,9 @@ module.exports = {
       host: '127.0.0.1',
       port: 6379,
   },
+  redisCache:{
+      expire: 900,
+  },
   port: 3000,
   frontOrigin: 'http://192.168.11.11:8080',
   APIRoot: '/rest/v1',
