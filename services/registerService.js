@@ -28,12 +28,12 @@ module.exports = {
                     return Promise.resolve({code: 200 , message: ''})
                 }
                 else{
-                    await t.rollback()
                     return Promise.resolve(errors.USERNAME_USED)
                 }
             }
         }
         catch(e){
+            await t.rollback()
             return Promise.reject({message: e})
         }
        
