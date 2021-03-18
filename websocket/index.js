@@ -21,10 +21,10 @@ const interval = setInterval(function checkConnections() {
   store.all( function(err, sessions){
     if (err) {return console.error('error redis response - ' + err)}
     for(let i = 0; i < sessions.length; i++){
-        redis.ttl('sess:' + sessions[i].sessionID, function(err, res){
+        redis.ttl(conf.redisCache.sessionPrefix + sessions[i].sessionID, function(err, res){
           if (err) {return console.error('error redis response - ' + err)}
           if( res < conf.ws.deadTtl ){
-              redis.del('sess:' + sessions[i].sessionID)
+              redis.del(conf.redisCache.sessionPrefix + sessions[i].sessionID)
           }
         })
     }
@@ -53,7 +53,7 @@ wss.on('connection', function connection(ws, req) {
                 return
             }
             /* reset the expire of the session */
-            redis.pexpire( 'sess:' + req.sessionID , conf.session.cookie.maxAge)
+            redis.pexpire( conf.redisCache.sessionPrefix + req.sessionID , conf.session.cookie.maxAge)
             if(jsText.type === 'playerList'){
                 playerListHandler(jsText, wss, req)
                 return
