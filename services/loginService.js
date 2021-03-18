@@ -49,7 +49,7 @@ function storeWrapper(req, account){
                var sessionId = ''  //已经登录的sessionID
                for(var i = 0; i < sessions.length; i++){
                     if(sessions[i].username === req.body.username){
-                        sessionId = 'sess:' + sessions[i].sessionID
+                        sessionId = conf.redisCache.sessionPrefix + sessions[i].sessionID
                         hasLogin = true
                         break
                     }
