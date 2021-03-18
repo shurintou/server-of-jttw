@@ -16,11 +16,11 @@ module.exports = {
                     const Record = models.record
                     var records = await Record.findAll({where:{ accountId : req.params.id }})
                     var record = records[0]
-                    redis.set(recordId, JSON.stringify(record, null, 4), function(err){
+                    redis.multi()
+                    .set(recordId, JSON.stringify(record, null, 4))
+                    .expire(recordId, conf.redisCache.expire)
+                    .exec( function(err){
                         if (err) {return console.error('error redis response - ' + err)}
-                        redis.expire(recordId, conf.redisCache.expire, function(err){
-                            if (err) {return console.error('error redis response - ' + err)}
-                        })
                     })
                     return Promise.resolve({code: 200, message: '', record: record.toJSON()})
                 }

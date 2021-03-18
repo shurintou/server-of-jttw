@@ -43,6 +43,8 @@ module.exports = {
         await sequelize.sync()
     },
 
+    sequelize: sequelize,
+
     dataTypes: DataTypes
 
 }
