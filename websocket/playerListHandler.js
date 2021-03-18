@@ -1,9 +1,10 @@
 const redis = require('../database/redis')
 const WebSocket = require('ws');
+const conf = require('../config/')
 
 module.exports = function(data ,wss, req){
         /* 1，设置玩家最新信息，覆盖掉旧信息 */
-        redis.set('player:' + req.session.userId,
+        redis.set(conf.redisCache.playerPrefix + req.session.userId,
         JSON.stringify({
             id: req.session.userId,
             username: req.session.username,
@@ -15,7 +16,7 @@ module.exports = function(data ,wss, req){
         function(err){
             if (err) {return console.error('error redis response - ' + err)}
             /* 2，向playerList中添加该玩家，因为是set类型所以不会重复。返回结果是1则代表新上线，否则是刷新信息 */
-            redis.sadd('playerList', 'player:' + req.session.userId,
+            redis.sadd('playerList', conf.redisCache.playerPrefix + req.session.userId,
             function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
                 if (res === 1){

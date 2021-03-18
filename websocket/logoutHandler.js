@@ -1,6 +1,7 @@
 const redis = require('../database/redis')
 const store = require('../common/session').store
 const WebSocket = require('ws');
+const conf = require('../config/')
 
 module.exports= function(wss){
     /* 1，获取redis中playerList列表 */
@@ -12,7 +13,7 @@ module.exports= function(wss){
         store.all( function(err, sessions){
             if (err) {return console.error('error redis response - ' + err)}
             sessions.forEach( session => {
-                livePlayer.push('player:' + session.userId)
+                livePlayer.push(conf.redisCache.playerPrefix + session.userId)
             })
             list.forEach( item => {
                 var isLive = false

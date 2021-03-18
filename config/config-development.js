@@ -18,6 +18,7 @@ module.exports = {
   },
   redisCache:{
       expire: 900,
+      playerPrefix: 'player:',
       sessionPrefix: 'sess:',
       gameRoomPrefix: 'room:',
   },
