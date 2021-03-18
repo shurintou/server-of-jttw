@@ -7,6 +7,7 @@ const conf = require('../config/')
 const errors = require('../common/errors')
 const wss = new WebSocket.Server(conf.ws.config)
 const logoutHandler = require('./logoutHandler')
+const gameRoomListHandler = require('./gameRoomListHandler')
 
 /* 定期清除失活的连接和session */  
 const interval = setInterval(function checkConnections() {
@@ -56,6 +57,10 @@ wss.on('connection', function connection(ws, req) {
             redis.pexpire( conf.redisCache.sessionPrefix + req.sessionID , conf.session.cookie.maxAge)
             if(jsText.type === 'playerList'){
                 playerListHandler(jsText, wss, req)
+                return
+            }
+            if(jsText.type === 'gameRoomList'){
+                gameRoomListHandler(jsText, wss, ws)
                 return
             }
             if(jsText.type === 'chat'){
