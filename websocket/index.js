@@ -6,34 +6,9 @@ const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
 const wss = new WebSocket.Server(conf.ws.config)
-const logoutHandler = require('./logoutHandler')
 const gameRoomListHandler = require('./gameRoomListHandler')
+const clearHandler = require('./clearHandler')
 
-/* 定期清除失活的连接和session */  
-const interval = setInterval(function checkConnections() {
-  wss.clients.forEach(function each(ws) {
-    if (ws.isAlive === false){
-      ws.terminate()
-      store.destroy(ws.sessionID, function(){})
-      return
-    }
-    ws.isAlive = false;
-  }) 
-  store.all( function(err, sessions){
-    if (err) {return console.error('error redis response - ' + err)}
-    for(let i = 0; i < sessions.length; i++){
-        redis.ttl(conf.redisCache.sessionPrefix + sessions[i].sessionID, function(err, res){
-          if (err) {return console.error('error redis response - ' + err)}
-          if( res < conf.ws.deadTtl ){
-              redis.del(conf.redisCache.sessionPrefix + sessions[i].sessionID)
-          }
-        })
-    }
-  }) 
-  logoutHandler(wss)
-}, conf.ws.checkPeriod);
-
-  
 wss.on('connection', function connection(ws, req) {
     ws.username = req.session.username
     ws.userId = req.session.userId
@@ -74,6 +49,8 @@ wss.on('connection', function connection(ws, req) {
 wss.on('close', function close() {
   clearInterval(interval)
 });
+
+clearHandler(wss)  
 
 module.exports = wss
   
