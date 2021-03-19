@@ -1,5 +1,6 @@
 const models = require('../common/models')
-const store = require('../common/session').store
+const redis = require('../database/redis')
+const conf = require('../config/')
 const errors = require('../common/errors')
 
 module.exports = {
@@ -24,7 +25,7 @@ module.exports = {
 
 function storeWrapper(req){
     return new Promise((resolve, reject) => {
-        store.get(req.sessionID, function(error, session){
+        redis.get(conf.redisCache.sessionPrefix + req.sessionID, function(error, session){
             if(error)return reject({message: error})
             if(!session){
                 return resolve({result: true})

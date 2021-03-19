@@ -1,5 +1,4 @@
 const WebSocket = require('ws');
-const store = require('../common/session').store
 const playerListHandler = require('./playerListHandler')
 const chatHandler = require('./chatHandler')
 const redis = require('../database/redis')
@@ -14,7 +13,7 @@ wss.on('connection', function connection(ws, req) {
     ws.userId = req.session.userId
     ws.sessionID = req.sessionID
     ws.on('message', function incoming(data) {
-        store.get(req.sessionID, function(err, session){
+        redis.get(conf.redisCache.sessionPrefix + req.sessionID, function(err, session){
             if (err) {return console.error('error redis response - ' + err)}
             if(!session){
                 ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
