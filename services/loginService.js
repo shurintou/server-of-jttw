@@ -30,11 +30,7 @@ module.exports = {
         }
     },
 
-    logout: function(req){
-        store.destroy(req.sessionID, function(){
-            logoutHandler(wss)
-        })
-    }
+    logout: function(req){ logoutHandler(wss, req) }
 }
 
 function storeWrapper(req, account){

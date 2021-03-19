@@ -3,7 +3,17 @@ const WebSocket = require('ws');
 const conf = require('../config/')
 
 module.exports = function(data ,wss, req){
-        /* 1，设置玩家最新信息，覆盖掉旧信息 */
+    /* 1，检查该key是否存在，不存在则是新上线，否则是刷新信息 */
+    redis.exists(conf.redisCache.playerPrefix + req.session.userId, function(err, res){
+        if (err) {return console.error('error redis response - ' + err)}
+        if(res === 0){
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN && client.username !== req.session.username) {
+                    client.send(JSON.stringify({type: 'system', player_loc: 0 , text: '玩家 ' + data.nickname + ' 上线了'}))
+                }
+            })
+        }
+        /* 2，设置玩家最新信息，覆盖掉旧信息 */
         redis.set(conf.redisCache.playerPrefix + req.session.userId,
         JSON.stringify({
             id: req.session.userId,
@@ -15,32 +25,20 @@ module.exports = function(data ,wss, req){
         }), 
         function(err){
             if (err) {return console.error('error redis response - ' + err)}
-            /* 2，向playerList中添加该玩家，因为是set类型所以不会重复。返回结果是1则代表新上线，否则是刷新信息 */
-            redis.sadd('playerList', conf.redisCache.playerPrefix + req.session.userId,
-            function(err, res){
+            /* 3，获取所有player玩家，发送广播 */
+            redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
                 if (err) {return console.error('error redis response - ' + err)}
-                if (res === 1){
-                    wss.clients.forEach(function each(client) {
-                        if (client.readyState === WebSocket.OPEN && client.username !== req.session.username) {
-                            client.send(JSON.stringify({type: 'system', player_loc: 0 , text: '玩家 ' + data.nickname + ' 上线了'}))
-                        }
-                    });
-                }
-                /* 3，获取所有playerList中玩家，发送广播 */
-                redis.smembers('playerList', 
-                function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
-                    if (list.length > 0){
-                        redis.mget(list, function(err, playerList){
-                            if (err) {return console.error('error redis response - ' + err)}
-                            wss.clients.forEach(function each(client) {
-                                if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'playerList', data: playerList}));
-                                }
-                            });
+                if (list.length > 0){
+                    redis.mget(list, function(err, playerList){
+                        if (err) {return console.error('error redis response - ' + err)}
+                        wss.clients.forEach(function each(client) {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({type: 'playerList', data: playerList}));
+                            }
                         })
-                    }
-                })
+                    })
+                }
             })
         })
+    })
 }

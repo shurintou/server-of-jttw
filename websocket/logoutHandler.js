@@ -1,64 +1,33 @@
 const redis = require('../database/redis')
-const store = require('../common/session').store
 const WebSocket = require('ws');
 const conf = require('../config/')
 
-module.exports= function(wss){
-    /* 1，获取redis中playerList列表 */
-    redis.smembers('playerList', function(err, list){
+module.exports= function(wss, data){
+    var userId = data.session ? data.session.userId: data.userId
+    redis.get(conf.redisCache.playerPrefix + userId, function(err, res){
         if (err) {return console.error('error redis response - ' + err)}
-        var livePlayer = []
-        var removePlayer = []
-        /* 2，获取redis中sess:命名空间下失活的session */
-        store.all( function(err, sessions){
+        redis.del(conf.redisCache.sessionPrefix + data.sessionID, function(err){
             if (err) {return console.error('error redis response - ' + err)}
-            sessions.forEach( session => {
-                livePlayer.push(conf.redisCache.playerPrefix + session.userId)
-            })
-            list.forEach( item => {
-                var isLive = false
-                for(let i=0 ; i < livePlayer.length; i++ ){
-                    if(item === livePlayer[i]){
-                        isLive = true
-                        break
-                    }
-                }
-                if(!isLive){
-                    redis.get(item, function(err, res){
-                        if (err) {return console.error('error redis response - ' + err)}
-                        wss.clients.forEach(function each(client) {
-                            if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({type: 'system', player_loc: 0 , text: '玩家 ' + JSON.parse(res).nickname + ' 下线了'}))
-                                if(res.player_loc > 0){
-                                    client.send(JSON.stringify({type: 'system', player_loc: res.player_loc , text: '玩家 ' + JSON.parse(res).nickname + ' 退出了房间'}))
-                                }
-                            }
-                        });
-                        redis.del(item)
-                    })
-                    /* 3，把1和2的结果对比，获取playerList中应该删除的玩家 */
-                    removePlayer.push(item)
-                }
-            })
-            /* 4，删除player */
-            redis.srem('playerList', removePlayer, function(){
-                redis.smembers('playerList', 
-                function(err, list){
+            redis.del(conf.redisCache.playerPrefix + userId, function(err){
+                if (err) {return console.error('error redis response - ' + err)}
+                redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
                     if (err) {return console.error('error redis response - ' + err)}
                     if (list.length > 0){
                         redis.mget(list, function(err, playerList){
                             if (err) {return console.error('error redis response - ' + err)}
-                            /* 5，广播 */
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
                                     client.send(JSON.stringify({type: 'playerList', data: playerList}));
+                                    client.send(JSON.stringify({type: 'system', player_loc: 0 , text: '玩家 ' + JSON.parse(res).nickname + ' 下线了'}))
+                                    if(res.player_loc > 0){
+                                        client.send(JSON.stringify({type: 'system', player_loc: res.player_loc , text: '玩家 ' + JSON.parse(res).nickname + ' 退出了房间'}))
+                                    }
                                 }
-                            });
+                            })
                         })
                     }
                 })
             })
         })
     })
-    
 }
