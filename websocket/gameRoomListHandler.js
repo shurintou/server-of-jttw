@@ -159,6 +159,12 @@ module.exports = function(data ,wss, ws){
                     ws.send(JSON.stringify({type: 'system', player_loc: 0 , text: '房间已满，无法进入'}))
                     return
                 }
+                if(room.needPassword){
+                    if(data.password !== room.password){
+                        ws.send(JSON.stringify({type: 'system', player_loc: 0 , text: '密码不正确，无法进入'}))
+                        return
+                    }
+                }
                 room.playerList[freeSeatIndex] = {id: ws.userId, cards: 0, ready: false}
                 redis.set(roomId, JSON.stringify(room), function(err){
                     if (err) {return console.error('error redis response - ' + err)}
