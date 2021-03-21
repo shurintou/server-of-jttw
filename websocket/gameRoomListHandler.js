@@ -191,6 +191,40 @@ module.exports = function(data ,wss, ws){
                 })
             })
         }
+        else if(data.action === 'ready'){
+            redis.get(roomId, function(err, res){
+                if (err) {return console.error('error redis response - ' + err)}
+                let room = JSON.parse(res)
+                for( let i = 0; i < Object.keys(room.playerList).length; i++){
+                    if(room.playerList[i].id === ws.userId){
+                        room.playerList[i].ready = !room.playerList[i].ready
+                        break
+                    }
+                }
+                redis.set(roomId, JSON.stringify(room), function(err){
+                    if (err) {return console.error('error redis response - ' + err)}
+                    redis.keys(allRooms, function(err, list){
+                        if (err) {return console.error('error redis response - ' + err)}
+                        if(list.length === 0){ 
+                            wss.clients.forEach(function each(client) {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                }
+                            })
+                            return
+                        }
+                        redis.mget(list, function(err, gameRoomList){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            wss.clients.forEach(function each(client) {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                }
+                            });
+                        })
+                    })
+                })
+            })
+        }
     }
     
 }
