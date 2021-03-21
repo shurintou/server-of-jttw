@@ -1,6 +1,7 @@
 const redis = require('../database/redis')
 const WebSocket = require('ws');
 const conf = require('../config/')
+const errors = require('../common/errors')
 
 module.exports = function(data ,wss, ws){
     var allRooms = conf.redisCache.gameRoomPrefix + '*'
@@ -156,12 +157,12 @@ module.exports = function(data ,wss, ws){
                     }
                 }
                 if(freeSeatIndex === -1){
-                    ws.send(JSON.stringify({type: 'system', player_loc: 0 , text: '房间已满，无法进入'}))
+                    ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.ROOM_FULL.message}))
                     return
                 }
                 if(room.needPassword){
                     if(data.password !== room.password){
-                        ws.send(JSON.stringify({type: 'system', player_loc: 0 , text: '密码不正确，无法进入'}))
+                        ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.WRONG_PASSWORD.message}))
                         return
                     }
                 }
