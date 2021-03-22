@@ -85,7 +85,7 @@ module.exports = function(data ,wss, ws){
                     redis.get(conf.redisCache.playerPrefix + remainId, function(err, res){
                         if (err) {return console.error('error redis response - ' + err)}
                         wss.clients.forEach(function each(client) {
-                            if (client.readyState === WebSocket.OPEN) {
+                            if (client.readyState === WebSocket.OPEN && client !== ws) {
                                 client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '玩家 ' + JSON.parse(res).nickname + ' 成为了房主'}));
                             }
                         })
@@ -149,16 +149,30 @@ module.exports = function(data ,wss, ws){
             redis.get(roomId, function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
                 let room = JSON.parse(res)
-                let freeSeatIndex = -1
-                for( let i = 0; i < Object.keys(room.playerList).length; i++){
-                    if(room.playerList[i].id === 0 ){
-                        freeSeatIndex = i
-                        break
+                let freeSeatIndex = 0
+                /* 不指定位置 */
+                if(data.seatIndex === -1){
+                    freeSeatIndex = -1
+                    for( let i = 0; i < Object.keys(room.playerList).length; i++){
+                        if(room.playerList[i].id === 0 ){
+                            freeSeatIndex = i
+                            break
+                        }
+                    }
+                    if(freeSeatIndex === -1){
+                        ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.ROOM_FULL.message}))
+                        return
                     }
                 }
-                if(freeSeatIndex === -1){
-                    ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.ROOM_FULL.message}))
-                    return
+                /* 指定位置 */
+                else{
+                    if(room.playerList[data.seatIndex].id === 0 ){
+                        freeSeatIndex = data.seatIndex
+                    }
+                    else{
+                        ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.SEAT_FULL.message}))
+                        return
+                    }
                 }
                 if(room.needPassword){
                     if(data.password !== room.password){
@@ -191,6 +205,7 @@ module.exports = function(data ,wss, ws){
                 })
             })
         }
+        /* 准备 */
         else if(data.action === 'ready'){
             redis.get(roomId, function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
