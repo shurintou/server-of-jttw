@@ -87,7 +87,7 @@ module.exports = function(data ,wss, ws){
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN && client !== ws) {
                                 if( client.userId === remainId ){
-                                    client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '你' + ' 成为了房主'}));
+                                    client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '你 成为了房主'}));
                                     return
                                 }
                                 client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '玩家 ' + JSON.parse(res).nickname + ' 成为了房主'}));
