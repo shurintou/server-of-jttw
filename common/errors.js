@@ -8,4 +8,5 @@ module.exports={
     INVITATIONCODE_NOT_FOUND: {code: 406, message: '邀请码不存在，请重新输入'},
     INVITATIONCODE_USED: {code: 406, message: '邀请码已使用，请重新输入'},
     ROOM_FULL:{code: 0, message: '房间已满员，无法进入'},
+    SEAT_FULL:{code: 0, message: '座位已被占，无法进入'},
 }
