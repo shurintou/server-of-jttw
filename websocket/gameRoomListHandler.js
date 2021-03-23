@@ -68,7 +68,7 @@ module.exports = function(data ,wss, ws){
             let deleteId = room.playerList[data.seatIndex].id
             let remainId = 0
             /* 删掉离开的玩家 */
-            room.playerList[data.seatIndex] = {id: 0, cards: 0, ready: false}
+            room.playerList[data.seatIndex] = {id: 0, cards: 0, win: 0, loss: 0, ready: false}
             let stillHasPlayer = false
             for( let i = 0; i < Object.keys(room.playerList).length; i++){
                 if(room.playerList[i].id !== 0){
@@ -184,7 +184,7 @@ module.exports = function(data ,wss, ws){
                         return
                     }
                 }
-                room.playerList[freeSeatIndex] = {id: ws.userId, cards: 0, ready: false}
+                room.playerList[freeSeatIndex] = {id: ws.userId, cards: 0, win: 0, loss: 0, ready: false}
                 redis.set(roomId, JSON.stringify(room), function(err){
                     if (err) {return console.error('error redis response - ' + err)}
                     redis.keys(allRooms, function(err, list){
