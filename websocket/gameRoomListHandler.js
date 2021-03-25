@@ -244,6 +244,39 @@ module.exports = function(data ,wss, ws){
                 })
             })
         }
+        /* 修改房间设置 */
+        else if(data.action === 'edit'){
+            redis.get(roomId, function(err, res){
+                if (err) {return console.error('error redis response - ' + err)}
+                let room = JSON.parse(res)
+                room.name = data.name
+                room.needPassword = data.needPassword
+                room.password = data.password
+                room.cardNum = data.cardNum
+                redis.set(roomId, JSON.stringify(room), function(err){
+                    if (err) {return console.error('error redis response - ' + err)}
+                    redis.keys(allRooms, function(err, list){
+                        if (err) {return console.error('error redis response - ' + err)}
+                        if(list.length === 0){ 
+                            wss.clients.forEach(function each(client) {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                }
+                            })
+                            return
+                        }
+                        redis.mget(list, function(err, gameRoomList){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            wss.clients.forEach(function each(client) {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                }
+                            });
+                        })
+                    })
+                })
+            })
+        }
     }
     
 }
