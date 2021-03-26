@@ -19,22 +19,27 @@ module.exports = function(data ,wss, ws){
             })
         })
     }
-    /* id位NaN是新建的房间，需要分配一个id */
+    /* id为NaN是新建的房间，需要分配一个id */
     else if(data.id === null || data.id === NaN){
         redis.keys(allRooms, function(err, list){
             if (err) {return console.error('error redis response - ' + err)}
-            var idOfList = []
-            list.forEach( item => { idOfList.push(parseInt(item.split(conf.redisCache.gameRoomPrefix)[1]))})
-            idOfList.sort()
-            /* 分配的房间号 */
             var freeIndex = 0
-            for(var i = 0; i < idOfList.length; i++){
-                if( idOfList[i] !== i + 1 ){
-                    freeIndex = i + 1
-                    break
-                }
+            var idOfList = []
+            if( list.length === 0){
+                freeIndex = 1
             }
-            if(freeIndex === 0){ freeIndex = idOfList.length + 1 }
+            else{
+                list.forEach( item => { idOfList.push(parseInt(item.split(conf.redisCache.gameRoomPrefix)[1]))})
+                idOfList.sort()
+                /* 分配的房间号 */
+                for(var i = 0; i < idOfList.length; i++){
+                    if( idOfList[i] !== i + 1 ){
+                        freeIndex = i + 1
+                        break
+                    }
+                }
+                if(freeIndex === 0){ freeIndex = idOfList.length + 1 }
+            }
             redis.set(conf.redisCache.gameRoomPrefix + freeIndex, JSON.stringify({
             id: freeIndex,
             name: data.name,
