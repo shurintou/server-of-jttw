@@ -52,14 +52,35 @@ module.exports = function(data ,wss, ws){
             }), 
             function(err){
                 if (err) {return console.error('error redis response - ' + err)}
-                list.push(conf.redisCache.gameRoomPrefix + freeIndex)
+                const gameRoomLength =  list.push(conf.redisCache.gameRoomPrefix + freeIndex)
+                let duplicateOwner = false
                 redis.mget(list, function(err, gameRoomList){
                     if (err) {return console.error('error redis response - ' + err)}
+                    if (gameRoomLength > 1){
+                        for( let i = 0; i < gameRoomLength - 1; i++ ){
+                            if( JSON.parse(gameRoomList[i]).owner === data.owner ){
+                                duplicateOwner = true
+                                break
+                            }
+                        }
+                        if(duplicateOwner){
+                            redis.del( conf.redisCache.gameRoomPrefix + freeIndex, function(err){
+                                if (err) {return console.error('error redis response - ' + err)}
+                                gameRoomList.pop()
+                                wss.clients.forEach(function each(client) {
+                                    if (client.readyState === WebSocket.OPEN) {
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    }
+                                })
+                            })
+                            return
+                        }
+                    }
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
                         }
-                    });
+                    })
                 })
             })
         })        
