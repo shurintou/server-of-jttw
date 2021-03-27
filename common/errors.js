@@ -9,4 +9,5 @@ module.exports={
     INVITATIONCODE_USED: {code: 406, message: '邀请码已使用，请重新输入'},
     ROOM_FULL:{code: 0, message: '房间已满员，无法进入'},
     SEAT_FULL:{code: 0, message: '座位已被占，无法进入'},
+    ALREADY_IN_ROOM:{code: 0, message: '已在房间之中'},
 }
