@@ -179,6 +179,12 @@ module.exports = function(data ,wss, ws){
             redis.get(roomId, function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
                 let room = JSON.parse(res)
+                for( let i = 0; i < Object.keys(room.playerList).length; i++ ){
+                    if( room.playerList[i].id === ws.userId ){
+                        ws.send(JSON.stringify({type: 'error', player_loc: 0 , text: errors.ALREADY_IN_ROOM.message}))
+                        return
+                    }
+                }
                 let freeSeatIndex = 0
                 /* 不指定位置 */
                 if(data.seatIndex === -1){
