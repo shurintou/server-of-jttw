@@ -309,6 +309,88 @@ module.exports = function(data ,wss, ws){
                 })
             })
         }
+        /* 换位置 */
+        else if(data.action === 'changeSeat'){
+            redis.get(roomId, function(err, res){
+                if (err) {return console.error('error redis response - ' + err)}
+                let room = JSON.parse(res)
+                /* 确保玩家信息没有发生改变 */
+                if(room.playerList[data.targetSeatIndex].id !== data.targetId || room.playerList[data.sourceSeatIndex].id !== data.sourceId){
+                    return
+                }
+                /* 目标位置没有玩家则直接换 */
+                if(room.playerList[data.targetSeatIndex].id === 0){
+                    room.playerList[data.targetSeatIndex] = room.playerList[data.sourceSeatIndex]
+                    room.playerList[data.sourceSeatIndex] = {id: 0, cards: 0, win: 0, loss: 0, ready: false}
+                    redis.set(roomId, JSON.stringify(room), function(err){
+                        if (err) {return console.error('error redis response - ' + err)}
+                        redis.keys(allRooms, function(err, list){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            if(list.length === 0){ 
+                                wss.clients.forEach(function each(client) {
+                                    if (client.readyState === WebSocket.OPEN) {
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    }
+                                })
+                                return
+                            }
+                            redis.mget(list, function(err, gameRoomList){
+                                if (err) {return console.error('error redis response - ' + err)}
+                                wss.clients.forEach(function each(client) {
+                                    if (client.readyState === WebSocket.OPEN) {
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    }
+                                });
+                            })
+                        })
+                    })
+                }
+                /* 有玩家则向该玩家发送请求 */
+                else{
+                    if(data.confirm){
+                        let tempPlayerInfo = room.playerList[data.targetSeatIndex]
+                        room.playerList[data.targetSeatIndex] = room.playerList[data.sourceSeatIndex]
+                        room.playerList[data.sourceSeatIndex] = tempPlayerInfo
+                        redis.set(roomId, JSON.stringify(room), function(err){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            redis.keys(allRooms, function(err, list){
+                                if (err) {return console.error('error redis response - ' + err)}
+                                if(list.length === 0){ 
+                                    wss.clients.forEach(function each(client) {
+                                        if (client.readyState === WebSocket.OPEN) {
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                        }
+                                    })
+                                    return
+                                }
+                                redis.mget(list, function(err, gameRoomList){
+                                    if (err) {return console.error('error redis response - ' + err)}
+                                    wss.clients.forEach(function each(client) {
+                                        if (client.readyState === WebSocket.OPEN) {
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                        }
+                                    });
+                                })
+                            })
+                        })
+                    }
+                    else{
+                        wss.clients.forEach(function each(client) {
+                            if (client.readyState === WebSocket.OPEN && client.userId === data.targetId) {
+                                client.send(JSON.stringify({type: 'askChangeSeat', data: data}));
+                            }
+                        });
+                    }
+                }
+            })
+        }
+        /* 拒绝换位 */
+        else if(data.action === 'disagreeChangeSeat'){
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN && client.userId === data.playerId) {
+                    client.send(JSON.stringify({type: 'system', player_loc:  data.id , text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求'}));
+                }
+            });
+        }
     }
-    
 }
