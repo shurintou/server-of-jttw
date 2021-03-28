@@ -1,4 +1,4 @@
-const db = require('../database/mysql');
+const db = require('../database/mysql')
 module.exports = db.defineModel('invitationCode', 
 {
     invitation_code: 
@@ -16,5 +16,5 @@ module.exports = db.defineModel('invitationCode',
         type: db.dataTypes.INTEGER(11),
         defaultValue: 0
     },
-});
+})
 

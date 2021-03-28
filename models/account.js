@@ -1,4 +1,4 @@
-const db = require('../database/mysql');
+const db = require('../database/mysql')
 
 module.exports = db.defineModel('account', 
 {
@@ -21,5 +21,5 @@ module.exports = db.defineModel('account',
         type: db.dataTypes.INTEGER(5),
         defaultValue: 0
     },
-});
+})
 

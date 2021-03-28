@@ -1,6 +1,6 @@
 
-const {Sequelize, DataTypes} = require('sequelize');
-const conf = require('../config/');
+const {Sequelize, DataTypes} = require('sequelize')
+const conf = require('../config/')
 const dbConf = conf.mysql
 
 var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password, {
@@ -36,7 +36,7 @@ module.exports = {
         }
         return sequelize.define(name, attrs, {
             timestamps: true,
-        });
+        })
     },
 
     sync: async function(){

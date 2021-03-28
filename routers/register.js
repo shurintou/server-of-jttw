@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 const registerService = require('../services/registerService')
 
 
@@ -12,7 +12,7 @@ router.post('/register', function (req, res) {
     .catch(err => {
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 
 module.exports = router

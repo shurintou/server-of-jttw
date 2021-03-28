@@ -1,4 +1,4 @@
-const db = require('../database/mysql');
+const db = require('../database/mysql')
 const Account = require('../common/models').account
 
 const Record = db.defineModel('record', 
@@ -57,7 +57,7 @@ const Record = db.defineModel('record',
         type: db.dataTypes.INTEGER(11),
         defaultValue: 0
     },
-});
+})
 
 Account.hasOne(Record)
 Record.belongsTo(Account)

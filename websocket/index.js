@@ -1,4 +1,4 @@
-const WebSocket = require('ws');
+const WebSocket = require('ws')
 const playerListHandler = require('./playerListHandler')
 const chatHandler = require('./chatHandler')
 const redis = require('../database/redis')
@@ -24,7 +24,7 @@ wss.on('connection', function connection(ws, req) {
             jsText.userId = ws.userId
             /* heartbeat */
             if(jsText.type === 'ping'){
-                ws.send(JSON.stringify({'type': 'pong'}));
+                ws.send(JSON.stringify({'type': 'pong'}))
                 return
             }
             /* reset the expire of the session */
@@ -42,12 +42,12 @@ wss.on('connection', function connection(ws, req) {
                 return
             } 
         })
-    });
-});
+    })
+})
   
 wss.on('close', function close() {
   clearInterval(interval)
-});
+})
 
 clearHandler(wss)  
 

@@ -1,5 +1,5 @@
 const redis = require('../database/redis')
-const WebSocket = require('ws');
+const WebSocket = require('ws')
 const conf = require('../config/')
 
 module.exports = function(data ,wss, req){
@@ -30,14 +30,14 @@ module.exports = function(data ,wss, req){
                 if(data.player_loc > 0){
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN && client.userId !== req.session.userId) {
-                            client.send(JSON.stringify({type: 'system', player_loc: data.player_loc , text: '玩家 ' + data.nickname + ' 进入了房间'}));
+                            client.send(JSON.stringify({type: 'system', player_loc: data.player_loc , text: '玩家 ' + data.nickname + ' 进入了房间'}))
                         }
                     })
                 }
                 else{
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN && client.userId !== req.session.userId) {
-                            client.send(JSON.stringify({type: 'system', player_loc: oldPlayer.player_loc , text: '玩家 ' + data.nickname + ' 离开了房间'}));
+                            client.send(JSON.stringify({type: 'system', player_loc: oldPlayer.player_loc , text: '玩家 ' + data.nickname + ' 离开了房间'}))
                         }
                     })
                 }
@@ -51,7 +51,7 @@ module.exports = function(data ,wss, req){
                     if (err) {return console.error('error redis response - ' + err)}
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({type: 'playerList', data: playerList}));
+                            client.send(JSON.stringify({type: 'playerList', data: playerList}))
                         }
                     })
                 })

@@ -1,6 +1,4 @@
-const WebSocket = require('ws');
 const models = require('../common/models')
-const wss = require('../websocket/')
 
 module.exports = {
     modifyAvatar: async function(req){

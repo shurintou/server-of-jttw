@@ -1,7 +1,7 @@
 const conf = require('../config/')
 const redis = require('../database/redis')
 const logoutHandler = require('./logoutHandler')
-const WebSocket = require('ws');
+const WebSocket = require('ws')
 
 /* 定期清除失活的连接，session，player */  
 module.exports =  function(wss){setInterval(function checkConnections() {
@@ -78,7 +78,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
                                     if(list.length === 0){ 
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
-                                                client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                                client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                             }
                                         })
                                         return
@@ -87,7 +87,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
                                         if (err) {return console.error('error redis response - ' + err)}
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
-                                                client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                                client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                             }
                                         })
                                     })
@@ -103,7 +103,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
                                 if(list.length === 0){ 
                                     wss.clients.forEach(function each(client) {
                                         if (client.readyState === WebSocket.OPEN) {
-                                            client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                         }
                                     })
                                     return
@@ -112,7 +112,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
                                     if (err) {return console.error('error redis response - ' + err)}
                                     wss.clients.forEach(function each(client) {
                                         if (client.readyState === WebSocket.OPEN) {
-                                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                         }
                                     })
                                 })

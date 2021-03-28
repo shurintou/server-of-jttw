@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 const loginService = require('../services/loginService')
 const sessionHandler = require('../common/session').sessionHandler
 
@@ -24,7 +24,7 @@ router.post('/login', function (req, res) {
         req.session.destroy( () => {} )
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 router.delete('/logout', function(req, res){
     loginService.logout(req)
