@@ -1,5 +1,5 @@
 const redis = require('../database/redis')
-const WebSocket = require('ws');
+const WebSocket = require('ws')
 const conf = require('../config/')
 const errors = require('../common/errors')
 
@@ -10,12 +10,12 @@ module.exports = function(data ,wss, ws){
         redis.keys(allRooms, function(err, list){
             if (err) {return console.error('error redis response - ' + err)}
             if(list.length === 0){ 
-                ws.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                ws.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                 return 
             }
             redis.mget(list, function(err, gameRoomList){
                 if (err) {return console.error('error redis response - ' + err)}
-                ws.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                ws.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
             })
         })
     }
@@ -69,7 +69,7 @@ module.exports = function(data ,wss, ws){
                                 gameRoomList.pop()
                                 wss.clients.forEach(function each(client) {
                                     if (client.readyState === WebSocket.OPEN) {
-                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                     }
                                 })
                             })
@@ -78,7 +78,7 @@ module.exports = function(data ,wss, ws){
                     }
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                         }
                     })
                 })
@@ -113,10 +113,10 @@ module.exports = function(data ,wss, ws){
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN && client !== ws) {
                                 if( client.userId === remainId ){
-                                    client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '你 成为了房主'}));
+                                    client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '你 成为了房主'}))
                                     return
                                 }
-                                client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '玩家 ' + JSON.parse(res).nickname + ' 成为了房主'}));
+                                client.send(JSON.stringify({type: 'system', player_loc: (-1 * data.id) , text: '玩家 ' + JSON.parse(res).nickname + ' 成为了房主'}))
                             }
                         })
                     })
@@ -128,7 +128,7 @@ module.exports = function(data ,wss, ws){
                         if(list.length === 0){ 
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                 }
                             })
                             return
@@ -137,9 +137,9 @@ module.exports = function(data ,wss, ws){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                 }
-                            });
+                            })
                         })
                     })
                 })
@@ -153,7 +153,7 @@ module.exports = function(data ,wss, ws){
                         if(list.length === 0){ 
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                 }
                             })
                             return
@@ -162,9 +162,9 @@ module.exports = function(data ,wss, ws){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                 }
-                            });
+                            })
                         })
                     })
                 })
@@ -224,7 +224,7 @@ module.exports = function(data ,wss, ws){
                         if(list.length === 0){ 
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                 }
                             })
                             return
@@ -233,9 +233,9 @@ module.exports = function(data ,wss, ws){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                 }
-                            });
+                            })
                         })
                     })
                 })
@@ -259,7 +259,7 @@ module.exports = function(data ,wss, ws){
                         if(list.length === 0){ 
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                 }
                             })
                             return
@@ -268,9 +268,9 @@ module.exports = function(data ,wss, ws){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                 }
-                            });
+                            })
                         })
                     })
                 })
@@ -292,7 +292,7 @@ module.exports = function(data ,wss, ws){
                         if(list.length === 0){ 
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                 }
                             })
                             return
@@ -301,9 +301,9 @@ module.exports = function(data ,wss, ws){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                    client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                 }
-                            });
+                            })
                         })
                     })
                 })
@@ -314,6 +314,7 @@ module.exports = function(data ,wss, ws){
             redis.get(roomId, function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
                 let room = JSON.parse(res)
+                if(room.status === 1) return
                 /* 确保玩家信息没有发生改变 */
                 if(room.playerList[data.targetSeatIndex].id !== data.targetId || room.playerList[data.sourceSeatIndex].id !== data.sourceId){
                     return
@@ -329,7 +330,7 @@ module.exports = function(data ,wss, ws){
                             if(list.length === 0){ 
                                 wss.clients.forEach(function each(client) {
                                     if (client.readyState === WebSocket.OPEN) {
-                                        client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                     }
                                 })
                                 return
@@ -338,9 +339,9 @@ module.exports = function(data ,wss, ws){
                                 if (err) {return console.error('error redis response - ' + err)}
                                 wss.clients.forEach(function each(client) {
                                     if (client.readyState === WebSocket.OPEN) {
-                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                        client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                     }
-                                });
+                                })
                             })
                         })
                     })
@@ -358,7 +359,7 @@ module.exports = function(data ,wss, ws){
                                 if(list.length === 0){ 
                                     wss.clients.forEach(function each(client) {
                                         if (client.readyState === WebSocket.OPEN) {
-                                            client.send(JSON.stringify({type: 'gameRoomList', data: [] }));
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: [] }))
                                         }
                                     })
                                     return
@@ -367,9 +368,9 @@ module.exports = function(data ,wss, ws){
                                     if (err) {return console.error('error redis response - ' + err)}
                                     wss.clients.forEach(function each(client) {
                                         if (client.readyState === WebSocket.OPEN) {
-                                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}));
+                                            client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
                                         }
-                                    });
+                                    })
                                 })
                             })
                         })
@@ -377,20 +378,25 @@ module.exports = function(data ,wss, ws){
                     else{
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN && client.userId === data.targetId) {
-                                client.send(JSON.stringify({type: 'askChangeSeat', data: data}));
+                                client.send(JSON.stringify({type: 'askChangeSeat', data: data}))
                             }
-                        });
+                        })
                     }
                 }
             })
         }
         /* 拒绝换位 */
         else if(data.action === 'disagreeChangeSeat'){
-            wss.clients.forEach(function each(client) {
-                if (client.readyState === WebSocket.OPEN && client.userId === data.playerId) {
-                    client.send(JSON.stringify({type: 'system', player_loc:  data.id , text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求'}));
-                }
-            });
+            redis.get(roomId, function(err, res){
+                if (err) {return console.error('error redis response - ' + err)}
+                let room = JSON.parse(res)
+                if(room.status === 1) return
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN && client.userId === data.playerId) {
+                        client.send(JSON.stringify({type: 'system', player_loc:  data.id , text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求'}))
+                    }
+                })
+            })
         }
     }
 }

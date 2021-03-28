@@ -1,5 +1,5 @@
 const redis = require('../database/redis')
-const WebSocket = require('ws');
+const WebSocket = require('ws')
 const conf = require('../config/')
 
 module.exports= function(wss, data){
@@ -17,7 +17,7 @@ module.exports= function(wss, data){
                             if (err) {return console.error('error redis response - ' + err)}
                             wss.clients.forEach(function each(client) {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({type: 'playerList', data: playerList}));
+                                    client.send(JSON.stringify({type: 'playerList', data: playerList}))
                                     client.send(JSON.stringify({type: 'system', player_loc: 0 , text: '玩家 ' + JSON.parse(res).nickname + ' 下线了'}))
                                     if(res.player_loc > 0){
                                         client.send(JSON.stringify({type: 'system', player_loc: res.player_loc , text: '玩家 ' + JSON.parse(res).nickname + ' 退出了房间'}))

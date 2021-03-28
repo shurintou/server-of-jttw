@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 const authorizationService = require('../services/authorizationService')
 const sessionHandler = require('../common/session').sessionHandler
 
@@ -13,7 +13,7 @@ router.get('/authorization', function (req, res) {
     .catch(err => {
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 
 module.exports = router

@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 const infoSearchService = require('../services/infoSearchService')
 
 
@@ -11,7 +11,7 @@ router.get('/player/record/:id', function (req, res) {
     .catch(err => {
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 
 module.exports = router

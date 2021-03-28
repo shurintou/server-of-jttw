@@ -1,5 +1,5 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express')
+var router = express.Router()
 const modifyService = require('../services/modifyService')
 const baseUrl = '/modify'
 
@@ -11,7 +11,7 @@ router.put( baseUrl + '/avatar', function (req, res) {
     .catch(err => {
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 router.put( baseUrl + '/nickname', function (req, res) {
     modifyService.modifyNickname(req)
@@ -21,6 +21,6 @@ router.put( baseUrl + '/nickname', function (req, res) {
     .catch(err => {
         res.status(err.code? err.code:500).json({message: err.message})
     })
-});
+})
 
 module.exports = router

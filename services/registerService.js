@@ -4,7 +4,7 @@ const sequelize = require('../database/mysql').sequelize
 
 module.exports = {
     register: async function(data){
-        const t = await sequelize.transaction();
+        const t = await sequelize.transaction()
         try{
             const InvitationCode = models.invitationCode
             const Account = models.account
