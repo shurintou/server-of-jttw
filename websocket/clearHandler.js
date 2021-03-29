@@ -39,6 +39,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
             }
             let stillAlivePlayerIdList = []
             for(let i = 0; i < sessions.length; i++){
+                if(!sessions[i])continue
                 stillAlivePlayerIdList.push( sessions[i].userId )
             }
             /* 清理房间 */
