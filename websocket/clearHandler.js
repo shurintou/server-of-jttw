@@ -31,7 +31,7 @@ module.exports =  function(wss){setInterval(function checkConnections() {
             let sessions = []
             res.forEach( item => { sessions.push(JSON.parse(item)) })
             for(let i = 0; i < sessions.length; i++){
-                if(!sessions[i])return
+                if(!sessions[i])continue
                 redis.ttl(conf.redisCache.sessionPrefix + sessions[i].sessionID, function(err, res){
                     if (err) {return console.error('error redis response - ' + err)}
                     if( res < conf.ws.deadTtl ){logoutHandler(wss, sessions[i])}
