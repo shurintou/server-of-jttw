@@ -21,6 +21,7 @@ module.exports = {
       playerPrefix: 'player:',
       sessionPrefix: 'sess:',
       gameRoomPrefix: 'room:',
+      gamePrefix: 'game:',
   },
   port: 3000,
   frontOrigin: 'http://192.168.11.11:8080',

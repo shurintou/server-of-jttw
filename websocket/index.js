@@ -6,6 +6,7 @@ const conf = require('../config/')
 const errors = require('../common/errors')
 const wss = new WebSocket.Server(conf.ws.config)
 const gameRoomListHandler = require('./gameRoomListHandler')
+const gameHandler = require('./gameHandler')
 const clearHandler = require('./clearHandler')
 
 wss.on('connection', function connection(ws, req) {
@@ -35,6 +36,10 @@ wss.on('connection', function connection(ws, req) {
             }
             if(jsText.type === 'gameRoomList'){
                 gameRoomListHandler(jsText, wss, ws)
+                return
+            }
+            if(jsText.type === 'game'){
+                gameHandler(jsText, wss, ws)
                 return
             }
             if(jsText.type === 'chat'){
