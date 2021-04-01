@@ -48,6 +48,7 @@ module.exports = function(data ,wss, ws){
             password: data.password,
             cardNum: data.cardNum,
             owner: data.owner,
+            lastLoser: data.lastLoser,
             playerList: data.playerList
             }), 
             function(err){
