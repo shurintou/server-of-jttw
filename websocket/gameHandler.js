@@ -30,19 +30,20 @@ module.exports = function(data ,wss, ws){
                         let game = {
                             id: data.id,
                             clockwise: false,
-                            currentPlayer: 0,
+                            currentPlayer: -1,
                             currentCard: [],
+                            cardNum: gameRoom.cardNum,
                             currentCardPlayer: 0,
                             currentCombo: 0,
                             gamePlayer: {
-                                0: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                1: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                2: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                3: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                4: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                5: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                6: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                7: {id: 0, nickname: '', cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                2: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                3: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                4: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                5: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                6: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                7: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
                             },
                             gamePlayerId: [],    
                             remainCards: pokers, //发送给玩家时只发送长度
@@ -53,11 +54,15 @@ module.exports = function(data ,wss, ws){
                         for(let i = 0; i < Object.keys(gameRoom.playerList).length; i++){
                             if(gameRoom.playerList[i].id > 0){
                                 game.gamePlayerId.push(gameRoom.playerList[i].id)
+                                if(game.currentPlayer === -1 ){
+                                    game.currentPlayer = i
+                                }
                                 for(let j = 0; j < gamePlayerList.length; j++){
                                     /* 某玩家在房间中，获取该玩家昵称，设置信息，并改变其在玩家列表中的状态 */
                                     if(gameRoom.playerList[i].id === gamePlayerList[j].id){
                                         game.gamePlayer[i].id = gamePlayerList[j].id
                                         game.gamePlayer[i].nickname = gamePlayerList[j].nickname
+                                        game.gamePlayer[i].avatar_id = gamePlayerList[j].avatar_id
                                         game.gamePlayer[i].online = true
                                         gamePlayerList[j].player_status = 2
                                         /* 发牌 */
@@ -103,12 +108,13 @@ module.exports = function(data ,wss, ws){
                                         })
                                     })
                                 })
-                                let gameStr = JSON.stringify(game)
-                                redis.set(gameKey, gameStr, function(err){
+                                redis.set(gameKey, JSON.stringify(game), function(err){
                                     if (err) {return console.error('error redis response - ' + err)}
+                                    game.remainCards = game.remainCards.length
+                                    let gameStr = JSON.stringify(game)
                                     wss.clients.forEach(function each(client) {
                                         if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                                            client.send(JSON.stringify({type: 'game', data: gameStr}))
+                                            client.send(JSON.stringify({type: 'game', action:'initialize', data: gameStr}))
                                         }
                                     })
                                 })
@@ -118,6 +124,13 @@ module.exports = function(data ,wss, ws){
                 })
             })
         })
-        return
+    }
+    else if(data.action === 'get'){
+        redis.get( gameKey, function(err, res){
+            if (err) {return console.error('error redis response - ' + err)}
+            let game = JSON.parse(res)
+            game.remainCards = game.remainCards.length
+            ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(game)}))
+        })
     }
 }
