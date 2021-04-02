@@ -1,12 +1,11 @@
 const redis = require('../database/redis')
 const WebSocket = require('ws')
 const conf = require('../config/')
-const errors = require('../common/errors')
 const poker = require('../common/poker')
 
 module.exports = function(data ,wss, ws){
-    var gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
-    var gameKey = conf.redisCache.gamePrefix + data.id
+    let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
+    let gameKey = conf.redisCache.gamePrefix + data.id
     if(data.action === 'initialize'){
         redis.get(gameKey, function(err, res){
             if (err) {return console.error('error redis response - ' + err)}
@@ -30,11 +29,13 @@ module.exports = function(data ,wss, ws){
                         let game = {
                             id: data.id,
                             clockwise: false,
-                            currentPlayer: -1,
+                            currentPlayer: -1, //座位号
                             currentCard: [],
                             cardNum: gameRoom.cardNum,
-                            currentCardPlayer: 0,
+                            currentCardPlayer: -1,
                             currentCombo: 0,
+                            version: 0, //数据版本
+                            timer: 0,
                             gamePlayer: {
                                 0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
                                 1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
@@ -69,7 +70,7 @@ module.exports = function(data ,wss, ws){
                                         while(game.gamePlayer[i].remainCards.length < 5){
                                             game.gamePlayer[i].remainCards.push( game.remainCards.pop())
                                         }
-                                        if(gameRoom.playerList[i].id === gameRoom.lastLoser ){
+                                        if(gameRoom.playerList[i].id === gameRoom.lastLoser && gameRoom.lastLoser > 0 ){
                                             game.currentPlayer = i
                                         }
                                         redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[j].id)
@@ -133,4 +134,105 @@ module.exports = function(data ,wss, ws){
             ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(game)}))
         })
     }
+    else if(data.action === 'play'){
+        redis.get( gameKey, function(err, res){
+            if (err) {return console.error('error redis response - ' + err)}
+            let game = JSON.parse(res)
+            if(game.currentPlayer === data.seatIndex){
+                clearInterval(game.timer)
+                game.gamePlayer[data.seatIndex].remainCards = data.remainCards
+                game.currentCombo = game.currentCombo + data.playCard.length
+                if(game.currentCombo > game.maxCombo){
+                    game.maxCombo = game.currentCombo
+                }
+                if(poker.cardList[data.playCard[0]].num === 100){//反弹牌
+                    game.gamePlayer[data.seatIndex].joker = game.gamePlayer[data.seatIndex].joker + data.playCard.length
+                    game.clockwise = !game.clockwise
+                }
+                else{
+                    game.currentCard = data.playCard
+                    game.currentCardPlayer = data.seatIndex
+                    if(poker.cardList[data.playCard[0]].num === 21){
+                        game.gamePlayer[data.seatIndex].shaseng = game.gamePlayer[data.seatIndex].shaseng + data.playCard.length
+                    }
+                    else if(poker.cardList[data.playCard[0]].num === 22){
+                        game.gamePlayer[data.seatIndex].bajie = game.gamePlayer[data.seatIndex].bajie + data.playCard.length
+                    }
+                    else if(poker.cardList[data.playCard[0]].num === 23){
+                        game.gamePlayer[data.seatIndex].wukong = game.gamePlayer[data.seatIndex].wukong + data.playCard.length
+                    }
+                    else if(poker.cardList[data.playCard[0]].num === 31){
+                        game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length
+                    }
+                }
+                while(game.gamePlayer[data.seatIndex].remainCards.length < 5 && game.remainCards.length > 0){//补牌
+                    game.gamePlayer[data.seatIndex].remainCards.push( game.remainCards.pop())
+                }
+                let hasPlayerPlayCard = false
+                let step = game.clockwise ? -1 : 1
+                let nextSeatIndex = data.seatIndex + step
+                for(let i = 0; i < 7; i++){
+                    if(nextSeatIndex > 7){
+                        nextSeatIndex = 0
+                    }
+                    else if(nextSeatIndex < 0){
+                        nextSeatIndex = 7
+                    }
+                    if(game.gamePlayer[nextSeatIndex].remainCards.length > 0){
+                        hasPlayerPlayCard = true
+                        game.currentPlayer = nextSeatIndex
+                        break
+                    }
+                    nextSeatIndex = nextSeatIndex + step
+                } 
+                if(!hasPlayerPlayCard){
+                    //游戏结束
+                    return
+                }
+                game.version = game.version + 1
+                let timer = setInterval( function(){disCard(wss, data)} , poker.waitTime)
+                game.timer = timer[Symbol.toPrimitive]()
+                redis.set(gameKey, JSON.stringify(game), function(err){
+                    if (err) {return console.error('error redis response - ' + err)}
+                    game.remainCards = game.remainCards.length
+                    wss.clients.forEach(function each(client) {
+                        if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                            client.send(JSON.stringify({type: 'game', action:'update', data: JSON.stringify(game)}))
+                        }
+                    })
+                })
+            }
+        })
+    }
+}
+
+function disCard(wss, data){
+    let gameKey = conf.redisCache.gamePrefix + data.id
+    redis.get( gameKey, function(err, res){
+        if (err) {return console.error('error redis response - ' + err)}
+        let game = JSON.parse(res)
+        if(game.currentCard.length === 0){
+        
+        }
+        else{
+            if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
+                game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
+            }
+            game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
+            game.currentCombo = 0
+            game.currentCard = []
+            game.currentCardPlayer = -1
+            game.version = game.version + 1
+            redis.set(gameKey, JSON.stringify(game), function(err){
+                if (err) {return console.error('error redis response - ' + err)}
+                game.remainCards = game.remainCards.length
+                wss.clients.forEach(function each(client) {
+                    if(client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                        client.send(JSON.stringify({type: 'game', action:'update', data: JSON.stringify(game)}))
+                    }
+                })
+            })
+        }
+    })
+    
 }
