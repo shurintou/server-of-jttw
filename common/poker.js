@@ -70,5 +70,7 @@ module.exports = {
         }
         array.length = size
         return array
-    }
+    },
+
+    waitTime: 15000,
 }
