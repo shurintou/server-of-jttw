@@ -31,8 +31,10 @@ module.exports = function(data ,wss, ws){
                             clockwise: false,
                             currentPlayer: -1, //座位号
                             currentCard: [],
-                            cardNum: gameRoom.cardNum,
                             currentCardPlayer: -1,
+                            jokerCard: [],
+                            jokerCardPlayer: -1,
+                            cardNum: gameRoom.cardNum,
                             currentCombo: 0,
                             version: 0, //数据版本
                             timer: 0,
@@ -145,9 +147,16 @@ module.exports = function(data ,wss, ws){
                 if(game.currentCombo > game.maxCombo){
                     game.maxCombo = game.currentCombo
                 }
+                if(game.jokerCard.length > 0){
+                    game.jokerCard = []
+                    game.jokerCardPlayer = -1
+                }
                 if(poker.cardList[data.playCard[0]].num === 100){//反弹牌
                     game.gamePlayer[data.seatIndex].joker = game.gamePlayer[data.seatIndex].joker + data.playCard.length
                     game.clockwise = !game.clockwise
+                    game.jokerCard = data.playCard
+                    game.jokerCard.sort()
+                    game.jokerCardPlayer = data.seatIndex
                 }
                 else{
                     game.currentCard = data.playCard
@@ -211,13 +220,85 @@ function disCard(wss, data){
     redis.get( gameKey, function(err, res){
         if (err) {return console.error('error redis response - ' + err)}
         let game = JSON.parse(res)
+        /* 现在牌池没有牌的情况 */
         if(game.currentCard.length === 0){
-        
+            game.gamePlayer[game.currentPlayer].remainCards.sort((a,b) =>{
+                if( poker.cardList[a].num === poker.cardList[b].num){
+                    return poker.cardList[a].suit - poker.cardList[b].suit
+                }
+                else{
+                    return poker.cardList[a].num - poker.cardList[b].num
+                }
+            })
+            game.currentCombo = 1
+            let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
+           
+            if(poker.cardList[playCard].num === 100){//反弹牌
+                game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
+                game.clockwise = !game.clockwise
+                game.jokerCard = []
+                game.jokerCard.push(playCard)
+                game.jokerCardPlayer = game.currentPlayer
+            }
+            else{
+                game.currentCardPlayer = game.currentPlayer
+                game.currentCard = []
+                game.currentCard.push(playCard)
+                if(poker.cardList[playCard].num === 21){
+                    game.gamePlayer[game.currentPlayer].shaseng = game.gamePlayer[game.currentPlayer].shaseng + 1
+                }
+                else if(poker.cardList[playCard].num === 22){
+                    game.gamePlayer[game.currentPlayer].bajie = game.gamePlayer[game.currentPlayer].bajie + 1
+                }
+                else if(poker.cardList[playCard].num === 23){
+                    game.gamePlayer[game.currentPlayer].wukong = game.gamePlayer[game.currentPlayer].wukong + 1
+                }
+                else if(poker.cardList[playCard].num === 31){
+                    game.gamePlayer[game.currentPlayer].tangseng = game.gamePlayer[game.currentPlayer].tangseng + 1
+                }
+            }
+            if(game.remainCards.length > 0){
+                game.gamePlayer[game.currentPlayer].remainCards.push(game.remainCards.pop())
+            }
+            let hasPlayerPlayCard = false
+            let step = game.clockwise ? -1 : 1
+            let nextSeatIndex = game.currentPlayer + step
+            for(let i = 0; i < 7; i++){
+                if(nextSeatIndex > 7){
+                    nextSeatIndex = 0
+                }
+                else if(nextSeatIndex < 0){
+                    nextSeatIndex = 7
+                }
+                if(game.gamePlayer[nextSeatIndex].remainCards.length > 0){
+                    hasPlayerPlayCard = true
+                    game.currentPlayer = nextSeatIndex
+                    break
+                }
+                nextSeatIndex = nextSeatIndex + step
+            } 
+            if(!hasPlayerPlayCard){
+                //游戏结束
+                return
+            }
+            game.version = game.version + 1
+            redis.set(gameKey, JSON.stringify(game), function(err){
+                if (err) {return console.error('error redis response - ' + err)}
+                game.remainCards = game.remainCards.length
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                        client.send(JSON.stringify({type: 'game', action:'update', data: JSON.stringify(game)}))
+                    }
+                })
+            })
         }
+        /* 牌池有牌的情况 */
         else{
             if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
                 game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
             }
+            game.jokerCard = []
+            game.jokerCardPlayer = -1
             game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
             game.currentCombo = 0
             game.currentCard = []
