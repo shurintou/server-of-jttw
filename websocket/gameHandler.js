@@ -113,7 +113,7 @@ module.exports = function(data ,wss, ws){
                                         })
                                     })
                                 })
-                                sendGameInfo(gameKey, game, wss, 'initialize')
+                                sendGameInfo(gameKey, game, wss, 'initialize', ['游戏开始'])
                             })
                         })
                     })
@@ -141,6 +141,7 @@ module.exports = function(data ,wss, ws){
             if (err) {return console.error('error redis response - ' + err)}
             let game = JSON.parse(res)
             if(game.currentPlayer === data.seatIndex){
+                let playCardText = '玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[data.playCard[0]].name
                 game.gamePlayer[game.currentPlayer].online = true
                 game.gamePlayer[game.currentPlayer].offLineTime = 0
                 clearTimeout(game.timer)
@@ -203,7 +204,7 @@ module.exports = function(data ,wss, ws){
                 game.version = game.version + 1
                 let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
                 game.timer = timer[Symbol.toPrimitive]()
-                sendGameInfo(gameKey, game, wss, 'update')
+                sendGameInfo(gameKey, game, wss, 'update',[ playCardText ])
             }
             else{
                 ws.send(JSON.stringify({type: 'error', player_loc: data.id , text: errors.POKER_TIMER_EXPIRED.message}))
@@ -230,7 +231,7 @@ module.exports = function(data ,wss, ws){
                     })
                     game.currentCombo = 1
                     let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
-                
+                    let playCardText = '玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[playCard].name
                     if(poker.cardList[playCard].num === 100){//反弹牌
                         game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
                         game.clockwise = !game.clockwise
@@ -282,13 +283,14 @@ module.exports = function(data ,wss, ws){
                     game.version = game.version + 1
                     let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
-                    sendGameInfo(gameKey, game, wss, 'update')
+                    sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
                 /* 牌池有牌的情况 */
                 else{
                     if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
                         game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
                     }
+                    let playCardText = '玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 收下 ' + game.currentCombo + ' 张牌'
                     game.jokerCard = []
                     game.jokerCardPlayer = -1
                     game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
@@ -298,7 +300,7 @@ module.exports = function(data ,wss, ws){
                     game.version = game.version + 1
                     let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
-                    sendGameInfo(gameKey, game, wss, 'update')
+                    sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
             }
             else{
@@ -318,9 +320,8 @@ module.exports = function(data ,wss, ws){
                 .set(gameKey, JSON.stringify(game))
                 .exec(function(err, results){
                     if (err) {return console.error('error redis response - ' + err)}
-                    console.log(results)
                     if(results === null){//在set时有其他线程改变了key，set失败
-                        ws.send(JSON.stringify({type: 'error', player_loc: data.id , text: errors.SET_ONLINE_ERROR.message}))
+                        ws.send(JSON.stringify({type: 'message', subType:'error', player_loc: data.id , text: errors.SET_ONLINE_ERROR.message}))
                         return
                     }
                     if(game.gamePlayer[data.seatIndex].online){
@@ -366,7 +367,7 @@ function intervalCheckCard(wss, id){
             })
             game.currentCombo = 1
             let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
-           
+            let playCardText = '玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[playCard].name
             if(poker.cardList[playCard].num === 100){//反弹牌
                 game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
                 game.clockwise = !game.clockwise
@@ -418,13 +419,14 @@ function intervalCheckCard(wss, id){
             game.version = game.version + 1
             let timer = setTimeout( function(){intervalCheckCard(wss, game.id )} , getWaitTime(game))
             game.timer = timer[Symbol.toPrimitive]()
-            sendGameInfo(gameKey, game, wss, 'update')
+            sendGameInfo(gameKey, game, wss, 'update', [playCardText])
         }
         /* 牌池有牌的情况 */
         else{
             if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
                 game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
             }
+            let playCardText = '玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 收下 ' + game.currentCombo + ' 张牌'
             game.jokerCard = []
             game.jokerCardPlayer = -1
             game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
@@ -434,15 +436,18 @@ function intervalCheckCard(wss, id){
             game.version = game.version + 1
             let timer = setTimeout( function(){intervalCheckCard(wss, game.id )} , getWaitTime(game))
             game.timer = timer[Symbol.toPrimitive]()
-            sendGameInfo(gameKey, game, wss, 'update')
+            sendGameInfo(gameKey, game, wss, 'update', [playCardText])
         }
     })
 }
 
-function sendGameInfo(gameKey, game, wss, action){
+function sendGameInfo(gameKey, game, wss, action, messageList){
     redis.set(gameKey, JSON.stringify(game), function(err){
         if (err) {return console.error('error redis response - ' + err)}
         game.remainCards = game.remainCards.length
+        game.messages = []
+        messageList.forEach(text => game.messages.push(text))
+        game.messages.push( '等待玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
         let gameStr = JSON.stringify(game)
         wss.clients.forEach(function each(client) {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
