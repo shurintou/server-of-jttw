@@ -339,6 +339,17 @@ module.exports = function(data ,wss, ws){
             })
         })
     }
+    else if(data.action === 'textToPlayer'){
+        redis.get( gameKey, function(err, res){
+            if (err) {return console.error('error redis response - ' + err)}
+            let game = JSON.parse(res)
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                    client.send(JSON.stringify({type: 'game', action: 'textToPlayer', data: {source: data.source, target: data.target, sourceId: data.sourceId, targetId: data.targetId, text: data.text} }))
+                }
+            })
+        })
+    }
 }
 
 function intervalCheckCard(wss, id){
