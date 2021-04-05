@@ -73,4 +73,5 @@ module.exports = {
     },
 
     waitTime: 15000,
+    offLineWaitTime: 1000,
 }
