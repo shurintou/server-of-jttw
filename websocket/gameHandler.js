@@ -8,100 +8,105 @@ module.exports = function(data ,wss, ws){
     let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
     let gameKey = conf.redisCache.gamePrefix + data.id
     if(data.action === 'initialize'){
-        redis.get(gameKey, function(err, res){
+        redis.watch(gameKey, gameRoomKey, function(err){
             if (err) {return console.error('error redis response - ' + err)}
-            if(res !== null)return
-            redis.get(gameRoomKey, function(err, gameRoomRes){
+            redis.get(gameKey, function(err, res){
                 if (err) {return console.error('error redis response - ' + err)}
-                redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
+                if(res !== null)return
+                redis.get(gameRoomKey, function(err, gameRoomRes){
                     if (err) {return console.error('error redis response - ' + err)}
-                    redis.mget(list, function(err, playerListRes){
+                    redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
                         if (err) {return console.error('error redis response - ' + err)}
-                        let gameRoom = JSON.parse(gameRoomRes) //游戏房间
-                        let redisMSetStr = [] //mset批量改变玩家游戏状态的redis语句
-                        let gamePlayerList = []  //player:列表
-                        let pokers = [] //扑克牌数字列表
-                        for(let i = 0; i < gameRoom.cardNum; i++){
-                            for(let j = 0; j < 54; j++){
-                                pokers.push(j)
-                            }
-                        }
-                        pokers = poker.shuffle(pokers)
-                        let timer = setTimeout( function(){intervalCheckCard(wss, data.id)} , poker.waitTime)
-                        let game = {
-                            id: data.id,
-                            clockwise: false,
-                            currentPlayer: -1, //座位号
-                            currentCard: [],
-                            currentCardPlayer: -1,
-                            jokerCard: [],
-                            jokerCardPlayer: -1,
-                            cardNum: gameRoom.cardNum,
-                            currentCombo: 0,
-                            version: 0, //数据版本
-                            timer: timer[Symbol.toPrimitive](),
-                            gamePlayer: {
-                                0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                2: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                3: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                4: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                5: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                6: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                7: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                            },
-                            gamePlayerId: [],    
-                            remainCards: pokers, //发送给玩家时只发送长度
-                        }
-                        for(let i = 0; i < playerListRes.length; i++){
-                            gamePlayerList.push( JSON.parse(playerListRes[i]) )
-                        }
-                        for(let i = 0; i < Object.keys(gameRoom.playerList).length; i++){
-                            if(gameRoom.playerList[i].id > 0){
-                                game.gamePlayerId.push(gameRoom.playerList[i].id)
-                                if(game.currentPlayer === -1 ){
-                                    game.currentPlayer = i
+                        redis.mget(list, function(err, playerListRes){
+                            if (err) {return console.error('error redis response - ' + err)}
+                            let gameRoom = JSON.parse(gameRoomRes) //游戏房间
+                            let redisMSetStr = [] //mset批量改变玩家游戏状态的redis语句
+                            let gamePlayerList = []  //player:列表
+                            let pokers = [] //扑克牌数字列表
+                            for(let i = 0; i < gameRoom.cardNum; i++){
+                                for(let j = 0; j < 54; j++){
+                                    pokers.push(j)
                                 }
-                                for(let j = 0; j < gamePlayerList.length; j++){
-                                    /* 某玩家在房间中，获取该玩家昵称，设置信息，并改变其在玩家列表中的状态 */
-                                    if(gameRoom.playerList[i].id === gamePlayerList[j].id){
-                                        game.gamePlayer[i].id = gamePlayerList[j].id
-                                        game.gamePlayer[i].nickname = gamePlayerList[j].nickname
-                                        game.gamePlayer[i].avatar_id = gamePlayerList[j].avatar_id
-                                        game.gamePlayer[i].online = true
-                                        gamePlayerList[j].player_status = 2
-                                        /* 发牌 */
-                                        while(game.gamePlayer[i].remainCards.length < 5){
-                                            game.gamePlayer[i].remainCards.push( game.remainCards.pop())
+                            }
+                            pokers = poker.shuffle(pokers)
+                            let timer = setTimeout( function(){intervalCheckCard(wss, data.id)} , poker.waitTime)
+                            let game = {
+                                id: data.id,
+                                clockwise: false,
+                                currentPlayer: -1, //座位号
+                                currentCard: [],
+                                currentCardPlayer: -1,
+                                jokerCard: [],
+                                jokerCardPlayer: -1,
+                                cardNum: gameRoom.cardNum,
+                                currentCombo: 0,
+                                version: 0, //数据版本
+                                timer: timer[Symbol.toPrimitive](),
+                                gamePlayer: {
+                                    0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    2: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    3: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    4: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    5: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    6: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                    7: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                },
+                                gamePlayerId: [],    
+                                remainCards: pokers, //发送给玩家时只发送长度
+                            }
+                            for(let i = 0; i < playerListRes.length; i++){
+                                gamePlayerList.push( JSON.parse(playerListRes[i]) )
+                            }
+                            for(let i = 0; i < Object.keys(gameRoom.playerList).length; i++){
+                                if(gameRoom.playerList[i].id > 0){
+                                    game.gamePlayerId.push(gameRoom.playerList[i].id)
+                                    if(game.currentPlayer === -1 ){
+                                        game.currentPlayer = i
+                                    }
+                                    for(let j = 0; j < gamePlayerList.length; j++){
+                                        /* 某玩家在房间中，获取该玩家昵称，设置信息，并改变其在玩家列表中的状态 */
+                                        if(gameRoom.playerList[i].id === gamePlayerList[j].id){
+                                            game.gamePlayer[i].id = gamePlayerList[j].id
+                                            game.gamePlayer[i].nickname = gamePlayerList[j].nickname
+                                            game.gamePlayer[i].avatar_id = gamePlayerList[j].avatar_id
+                                            game.gamePlayer[i].online = true
+                                            gamePlayerList[j].player_status = 2
+                                            /* 发牌 */
+                                            while(game.gamePlayer[i].remainCards.length < 5){
+                                                game.gamePlayer[i].remainCards.push( game.remainCards.pop())
+                                            }
+                                            if(gameRoom.playerList[i].id === gameRoom.lastLoser && gameRoom.lastLoser > 0 ){
+                                                game.currentPlayer = i
+                                            }
+                                            redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[j].id)
+                                            redisMSetStr.push(JSON.stringify(gamePlayerList[j]))
+                                            break
                                         }
-                                        if(gameRoom.playerList[i].id === gameRoom.lastLoser && gameRoom.lastLoser > 0 ){
-                                            game.currentPlayer = i
-                                        }
-                                        redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[j].id)
-                                        redisMSetStr.push(JSON.stringify(gamePlayerList[j]))
-                                        break
                                     }
                                 }
                             }
-                        }
-                        /* 批量改变玩家状态 */
-                        redis.mset(redisMSetStr, function(err){
-                            if (err) {return console.error('error redis response - ' + err)}
-                            redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
+                            gameRoom.status = 1
+                            redis.multi()
+                            .mset(redisMSetStr)
+                            .set(gameRoomKey, JSON.stringify(gameRoom))
+                            .set(gameKey, JSON.stringify(game))
+                            .exec(function(err, results){
                                 if (err) {return console.error('error redis response - ' + err)}
-                                redis.mget(list, function(err, playerList){
+                                if(results === null){
+                                    ws.send(JSON.stringify({type: 'message', subType:'error', player_loc: data.id , text: errors.SET_ONLINE_ERROR.message}))
+                                }
+                                redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
                                     if (err) {return console.error('error redis response - ' + err)}
-                                    wss.clients.forEach(function each(client) {
-                                        if (client.readyState === WebSocket.OPEN) {
-                                            client.send(JSON.stringify({type: 'playerList', data: playerList}))
-                                        }
+                                    redis.mget(list, function(err, playerList){
+                                        if (err) {return console.error('error redis response - ' + err)}
+                                        wss.clients.forEach(function each(client) {
+                                            if (client.readyState === WebSocket.OPEN) {
+                                                client.send(JSON.stringify({type: 'playerList', data: playerList}))
+                                            }
+                                        })
                                     })
                                 })
-                            })
-                            gameRoom.status = 1
-                            /* 改变游戏列表 */
-                            redis.set(gameRoomKey, JSON.stringify(gameRoom), function(err){
-                                if (err) {return console.error('error redis response - ' + err)}
                                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
                                     if (err) {return console.error('error redis response - ' + err)}
                                     redis.mget(list, function(err, gameRoomList){
@@ -113,7 +118,17 @@ module.exports = function(data ,wss, ws){
                                         })
                                     })
                                 })
-                                sendGameInfo(gameKey, game, wss, 'initialize', ['游戏开始'])
+                                game.remainCards = game.remainCards.length
+                                game.messages = []
+                                messageList =['游戏开始']
+                                messageList.forEach(text => game.messages.push(text))
+                                game.messages.push( '等待玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
+                                let gameStr = JSON.stringify(game)
+                                wss.clients.forEach(function each(client) {
+                                    if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                                        client.send(JSON.stringify({type: 'game', action: 'initialize', data: gameStr}))
+                                    }
+                                })
                             })
                         })
                     })
