@@ -137,35 +137,14 @@ module.exports = function(data ,wss, ws){
         })
     }
     else if(data.action === 'get'){
-        redis.watch(gameKey, function(err){
+        redis.get( gameKey, function(err, res){
             if (err) {return console.error('error redis response - ' + err)}
-            redis.get( gameKey, function(err, res){
-                if (err) {return console.error('error redis response - ' + err)}
-                let game = JSON.parse(res)
-                let oldGame = game
-                for(let i = 0; i < Object.keys(game.gamePlayer).length; i++){
-                    if(game.gamePlayer[i].id === ws.userId){
-                        game.gamePlayer[i].online = true
-                        game.gamePlayer[i].offLineTime = 0
-                        break
-                    }
-                }
-                game.version = game.version + 1
-                redis.multi()
-                .set(gameKey, JSON.stringify(game))
-                .exec(function(err, results){
-                    if (err) {return console.error('error redis response - ' + err)}
-                    if(results === null){
-                        oldGame.remainCards = oldGame.remainCards.length
-                        oldGame.messages = ['等待玩家 ' + oldGame.gamePlayer[oldGame.currentPlayer].nickname + ' 出牌...']
-                        ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(oldGame)}))
-                        return
-                    }
-                    game.remainCards = game.remainCards.length
-                    game.messages = ['等待玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...']
-                    ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(game)}))
-                })
-            })
+            let game = JSON.parse(res)
+            game.remainCards = game.remainCards.length
+            game.messages = []
+            game.messages.push( '成功重新连接...')
+            game.messages.push( '等待玩家 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
+            ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(game)}))
         })
     }
     else if(data.action === 'play'){
@@ -613,6 +592,7 @@ function deleteGame(game, wss, losePlayer, winPlayer){
             let redisMSetStr = []
             resList.forEach( playerItem => {
                 let player = JSON.parse(playerItem)
+                if( !player || player === null || Object.keys(player).length === 0) return
                 player.player_status = 1
                 redisMSetStr.push(conf.redisCache.playerPrefix + player.id)
                 redisMSetStr.push(JSON.stringify(player))
