@@ -51,7 +51,7 @@ wss.on('connection', function connection(ws, req) {
 })
   
 wss.on('close', function close() {
-  clearInterval(interval)
+  clearInterval(wss.clearHandlerTimerId)
 })
 
 clearHandler(wss)  
