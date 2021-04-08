@@ -9,7 +9,6 @@ module.exports =  function(wss){
         wss.clients.forEach(function each(ws) {
             if (ws.isAlive === false){
                 ws.terminate()
-                console.log('delete')
                 logoutHandler(wss, ws)
             }
             ws.isAlive = false;
