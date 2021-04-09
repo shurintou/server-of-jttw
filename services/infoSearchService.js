@@ -4,7 +4,7 @@ const conf = require('../config/')
 
 module.exports = {
     getPlayerRecord: async function(req){
-        var recordId = 'record:' + req.params.id
+        var recordId = conf.redisCache.playerRecordPrefix + req.params.id
         try{
             var checkResult = await redisWrapper(recordId)
             if(checkResult.result){
