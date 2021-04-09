@@ -3,6 +3,9 @@ const WebSocket = require('ws')
 const conf = require('../config/')
 const poker = require('../common/poker')
 const errors = require('../common/errors')
+const models = require('../common/models')
+const sequelize = require('../database/mysql').sequelize
+const { Op } = require("sequelize");
 
 module.exports = function(data ,wss, ws){
     let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
@@ -524,6 +527,10 @@ function gameover(gameKey, game, wss){
     winPlayer = cardsSortList[0].id
     maxCards = cardsSortList[cardsSortList.length -1].cards
     minCards = cardsSortList[0].cards
+    cardsSortList.sort(function (x, y) {//排最大combo
+        return x.maxCombo - y.maxCombo
+    })
+    maxCombo = cardsSortList[cardsSortList.length -1].maxCombo
     redis.set(gameKey, JSON.stringify(game), function(err){
         if (err) {return console.error('error redis response - ' + err)}
         game.remainCards = 0
@@ -534,7 +541,7 @@ function gameover(gameKey, game, wss){
                 client.send(JSON.stringify({type: 'game', action: 'update', data: gameStr}))
             }
         })
-        saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards)
+        saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo)
     })
     setTimeout(function(){
         deleteGame(game, wss, losePlayer, winPlayer)
@@ -615,6 +622,69 @@ function deleteGame(game, wss, losePlayer, winPlayer){
     })
 }
 
-function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards){
-
+async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo){
+    const t = await sequelize.transaction()
+        try{
+            const Player = models.player
+            const Game = models.game
+            const Account = models.account
+            let insertPlayersInfo = []
+            let accounts = await Account.findAll({where:{ id: {[Op.in]: game.gamePlayerId}}})
+            for(let i = 0; i < Object.keys(game.gamePlayer).length; i++){
+                let player = game.gamePlayer[i]
+                for(let j = 0; j < accounts.length; j++){
+                    if( player.id === accounts[j].id){
+                        insertPlayersInfo.push({
+                            nickname : player.nickname,
+                            avatar_id : player.avatar_id,
+                            cards : player.cards,
+                            max_combo : player.maxCombo,
+                            wukong : player.wukong,
+                            bajie : player.bajie,
+                            shaseng : player.shaseng,
+                            tangseng : player.tangseng,
+                            joker : player.joker,
+                            seat_index : i,
+                            accountId : accounts[j].id,
+                        })
+                        break
+                    }
+                }
+            }
+            let gameInfo = {
+                max_cards : maxCards,
+                min_cards : minCards,
+                player_num : game.gamePlayerId.length,
+                cardNum : game.cardNum,
+                max_combo : maxCombo,
+            }
+            let insertedPlayers = await Player.bulkCreate(insertPlayersInfo)
+            let insertedGame = await Game.create(gameInfo)
+            insertedGame.addPlayers(insertedPlayers)
+            let winPlayerId = 0
+            let losePlayerId = 0
+            insertedPlayers.forEach( insertedPlayer => {
+                if(insertedPlayer.accountId === winPlayer){
+                    winPlayerId = insertedPlayer.id
+                }
+                else if(insertedPlayer.accountId === losePlayer){
+                    losePlayerId = insertedPlayer.id
+                }
+            })
+            insertedGame.winner = winPlayerId
+            insertedGame.loser = losePlayerId
+            await insertedGame.save()
+            t.afterCommit(() => {
+                wss.clients.forEach(function each(client) {
+                    if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                        client.send(JSON.stringify({type: 'message', subType:'warning', player_loc: game.id , text: '游戏已保存'}))
+                    }
+                })
+            })
+            await t.commit()
+        }
+        catch(e){
+            console.error(e)
+            await t.rollback()
+        }
 }
