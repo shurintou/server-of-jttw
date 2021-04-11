@@ -661,18 +661,28 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             let insertedPlayers = await Player.bulkCreate(insertPlayersInfo)
             let insertedGame = await Game.create(gameInfo)
             insertedGame.addPlayers(insertedPlayers)
-            let winPlayerId = 0
-            let losePlayerId = 0
+            let winPlayerNickname = ''
+            let losePlayerNickname = ''
+            let maxComboPlayer = ''
             insertedPlayers.forEach( insertedPlayer => {
+                if(insertedPlayer.max_combo === maxCombo){
+                    if(maxComboPlayer.length > 0){
+                        maxComboPlayer = maxComboPlayer + ', ' + insertedPlayer.nickname
+                    }
+                    else{
+                        maxComboPlayer = insertedPlayer.nickname
+                    }
+                }
                 if(insertedPlayer.accountId === winPlayer){
-                    winPlayerId = insertedPlayer.id
+                    winPlayerNickname = insertedPlayer.nickname
                 }
                 else if(insertedPlayer.accountId === losePlayer){
-                    losePlayerId = insertedPlayer.id
+                    losePlayerNickname = insertedPlayer.nickname
                 }
             })
-            insertedGame.winner = winPlayerId
-            insertedGame.loser = losePlayerId
+            insertedGame.winner = winPlayerNickname
+            insertedGame.loser = losePlayerNickname
+            insertedGame.max_combo_player = maxComboPlayer
             await insertedGame.save()
             t.afterCommit(() => {
                 wss.clients.forEach(function each(client) {
