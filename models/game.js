@@ -2,11 +2,11 @@ const db = require('../database/mysql')
 
 const Game = db.defineModel('game', 
 {
-    /* 赢家playerid */
+    /* 赢家player nickname */
     winner: 
     {
-        type: db.dataTypes.INTEGER(11),
-        defaultValue: 0
+        type: db.dataTypes.STRING(20),
+        defaultValue: ''
     },
     /* 最少收牌 */
     min_cards:
@@ -14,11 +14,11 @@ const Game = db.defineModel('game',
         type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
-    /* 输家playerid */
+    /* 输家playernickname */
     loser: 
     {
-        type: db.dataTypes.INTEGER(11),
-        defaultValue: 0
+        type: db.dataTypes.STRING(20),
+        defaultValue: ''
     },
     /* 最多收牌 */
     max_cards:
@@ -44,6 +44,12 @@ const Game = db.defineModel('game',
         type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
+    /* 最大连击数玩家 */
+    max_combo_player:
+    {
+        type: db.dataTypes.STRING(50),
+        defaultValue: ''
+    }
 })
 
 module.exports = Game
