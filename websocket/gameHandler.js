@@ -145,7 +145,7 @@ module.exports = function(data ,wss, ws){
             let game = JSON.parse(res)
             game.remainCards = game.remainCards.length
             game.messages = []
-            game.messages.push( '成功重新连接...')
+            game.messages.push( '重新连接...')
             game.messages.push( '等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
             ws.send(JSON.stringify({type: 'game', action:'get', data: JSON.stringify(game)}))
         })
@@ -541,7 +541,9 @@ function gameover(gameKey, game, wss){
                 client.send(JSON.stringify({type: 'game', action: 'update', data: gameStr}))
             }
         })
-        saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo)
+        setTimeout(function(){
+            saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo)
+        }, 1500)
     })
     setTimeout(function(){
         deleteGame(game, wss, losePlayer, winPlayer)
@@ -683,13 +685,40 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             insertedGame.winner = winPlayerNickname
             insertedGame.loser = losePlayerNickname
             insertedGame.max_combo_player = maxComboPlayer
+            let gameResultDto = {
+                winnerNickname: winPlayerNickname,
+                winnerCards: minCards,
+                loserNickname: losePlayerNickname,
+                loserCards: maxCards,
+                cardsNum: game.cardNum,
+                playersNum: game.gamePlayerId.length,
+                maxCombo: maxCombo,
+                maxComboPlayer: maxComboPlayer,
+                gameResultList:[]
+            }
+            insertPlayersInfo.forEach( player => {
+                gameResultDto.gameResultList.push({
+                    id: player.accountId,
+                    nickname: player.nickname,
+                    avatar_id: player.avatar_id,
+                    cards: player.cards,
+                    seatIndex: player.seat_index, 
+                    maxCombo: player.max_combo,
+                    wukong: player.wukong, 
+                    bajie: player.bajie, 
+                    shaseng: player.shaseng, 
+                    tangseng: player.tangseng, 
+                    joker: player.joker
+                })
+            })
+            wss.clients.forEach(function each(client) {
+                if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                    client.send(JSON.stringify({type: 'game', action: 'result', data: JSON.stringify(gameResultDto)}))
+                }
+            })
             await insertedGame.save()
             t.afterCommit(() => {
-                wss.clients.forEach(function each(client) {
-                    if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                        client.send(JSON.stringify({type: 'message', subType:'warning', player_loc: game.id , text: '游戏已保存'}))
-                    }
-                })
+              
             })
             await t.commit()
         }
