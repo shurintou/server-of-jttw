@@ -686,6 +686,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             insertedGame.loser = losePlayerNickname
             insertedGame.max_combo_player = maxComboPlayer
             let gameResultDto = {
+                id: insertedGame.id,
                 winnerNickname: winPlayerNickname,
                 winnerCards: minCards,
                 loserNickname: losePlayerNickname,
@@ -711,14 +712,20 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                     joker: player.joker
                 })
             })
+            let gameResultStr = JSON.stringify(gameResultDto)
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({type: 'game', action: 'result', data: JSON.stringify(gameResultDto)}))
+                    client.send(JSON.stringify({type: 'game', action: 'result', data: gameResultStr}))
                 }
             })
             await insertedGame.save()
             t.afterCommit(() => {
-              
+                redis.multi()
+                .set(conf.redisCache.gameRecordPrefix + insertedGame.id, gameResultStr)
+                .expire(conf.redisCache.gameRecordPrefix + insertedGame.id, conf.redisCache.expire)
+                .exec( function(err){
+                    if (err) {return console.error('error redis response - ' + err)}
+                })
             })
             await t.commit()
         }
