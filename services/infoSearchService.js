@@ -28,6 +28,30 @@ module.exports = {
         catch(e){
             return Promise.reject({message: e})
         }
+    },
+
+    getGameRecordsList: async function(req){
+        try{
+            const Player = models.player
+            var playersRecordNum = await Player.count({
+                where: {
+                    accountId : req.session.userId
+                }
+            })
+            playersRecordNum = Math.ceil(playersRecordNum / 5)
+            var playerRecords = await Player.findAll({
+                order: [ ['id' , 'DESC'] ],
+                where: {
+                    accountId : req.session.userId
+                },
+                offset: (req.params.page - 1) * 5,
+                limit: 5
+            })
+            return Promise.resolve({code: 200, message: '', pageNum: playersRecordNum, list: playerRecords })
+        }
+        catch(e){
+            return Promise.reject({message: e})
+        }
     }
 }
 
