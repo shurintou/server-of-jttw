@@ -35,16 +35,16 @@ module.exports = {
             const Player = models.player
             var playersRecordNum = await Player.count({
                 where: {
-                    accountId : req.session.userId
+                    accountId : req.query.id
                 }
             })
             playersRecordNum = Math.ceil(playersRecordNum / 5)
             var playerRecords = await Player.findAll({
                 order: [ ['id' , 'DESC'] ],
                 where: {
-                    accountId : req.session.userId
+                    accountId : req.query.id
                 },
-                offset: (req.params.page - 1) * 5,
+                offset: (req.query.page - 1) * 5,
                 limit: 5
             })
             return Promise.resolve({code: 200, message: '', pageNum: playersRecordNum, list: playerRecords })

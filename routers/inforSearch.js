@@ -13,7 +13,7 @@ router.get('/player/record/:id', function (req, res) {
     })
 })
 
-router.get('/game/records/:page', function(req, res){
+router.get('/game/records/', function(req, res){
     infoSearchService.getGameRecordsList(req)
     .then(result => {
         res.status(200).json({code: result.code,  message: result.message, pageNum: result.pageNum ? result.pageNum : 0, list: result.list? result.list : []})
