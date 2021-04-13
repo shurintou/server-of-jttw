@@ -38,7 +38,6 @@ module.exports = {
                     accountId : req.query.id
                 }
             })
-            playersRecordNum = Math.ceil(playersRecordNum / 5)
             var playerRecords = await Player.findAll({
                 order: [ ['id' , 'DESC'] ],
                 where: {
