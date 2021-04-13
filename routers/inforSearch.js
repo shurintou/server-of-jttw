@@ -23,5 +23,15 @@ router.get('/game/records/', function(req, res){
     })
 })
 
+router.get('/game/record/:id', function (req, res) {
+    infoSearchService.getGameRecord(req)
+    .then(result => {
+        res.status(200).json({code: result.code,  message: result.message, gameResult: result.gameResult ? result.gameResult : null})
+    })
+    .catch(err => {
+        res.status(err.code? err.code:500).json({message: err.message})
+    })
+})
+
 
 module.exports = router
