@@ -36,25 +36,31 @@ const Record = db.defineModel('record',
     /* 某局最多获牌数 */
     max_card:
     {
-        type: db.dataTypes.INTEGER(11),
+        type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
-    /* 最多牌时一共多少副牌 */
+    /* 最多收牌数时该局玩家平均收牌数 */
     max_card_amount:
     {
-        type: db.dataTypes.INTEGER(11),
+        type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
     /* 某局最少获牌数 */
     min_card:
     {
-        type: db.dataTypes.INTEGER(11),
+        type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
-    /* 最少牌时一共多少副牌 */
+    /* 最少收牌数时该局玩家平均收牌数 */
     min_card_amount:
     {
-        type: db.dataTypes.INTEGER(11),
+        type: db.dataTypes.INTEGER(4),
+        defaultValue: 0
+    },
+    /* 一次获得最多的牌数 */
+    max_combo:
+    {
+        type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
 })
