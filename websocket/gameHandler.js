@@ -631,12 +631,14 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             const Game = models.game
             const Account = models.account
             let insertPlayersInfo = []
+            let playerExpList = []
             let accounts = await Account.findAll({where:{ id: {[Op.in]: game.gamePlayerId}}})
             for(let i = 0; i < Object.keys(game.gamePlayer).length; i++){
                 let player = game.gamePlayer[i]
                 for(let j = 0; j < accounts.length; j++){
                     if( player.id === accounts[j].id){
-                        calRecord( player, accounts[j], Math.floor(game.cardNum * 54 / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length )
+                        let addExp = await calRecord( player, accounts[j], Math.floor(game.cardNum * 54 / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length )
+                        playerExpList.push({id: player.id, exp: addExp})
                         insertPlayersInfo.push({
                             nickname : player.nickname,
                             avatar_id : player.avatar_id,
@@ -714,9 +716,12 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                 })
             })
             let gameResultStr = JSON.stringify(gameResultDto)
+            //各玩家获得的经验值数组
+            gameResultDto.playerExpList = playerExpList
+            let gameResultWithExpStr = JSON.stringify(gameResultDto)
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({type: 'game', action: 'result', data: gameResultStr}))
+                    client.send(JSON.stringify({type: 'game', action: 'result', data: gameResultWithExpStr}))
                 }
             })
             await insertedGame.save()
@@ -783,5 +788,5 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
         }
     })
     await playerRecord.save()
-    
+    return exp
 }
