@@ -636,6 +636,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                 let player = game.gamePlayer[i]
                 for(let j = 0; j < accounts.length; j++){
                     if( player.id === accounts[j].id){
+                        calRecord( player, accounts[j], Math.floor(game.cardNum * 54 / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length )
                         insertPlayersInfo.push({
                             nickname : player.nickname,
                             avatar_id : player.avatar_id,
@@ -733,4 +734,54 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             console.error(e)
             await t.rollback()
         }
+}
+
+async function calRecord(player, playerInstance, averageCard, losePlayer, winPlayer, playerNum){
+    let playerRecord = await playerInstance.getRecord()
+    let exp = 50
+    playerRecord.num_of_game = playerRecord.num_of_game + 1
+    playerRecord.experienced_cards = playerRecord.experienced_cards + player.cards
+    if(losePlayer === playerInstance.id){
+        playerRecord.most_game = playerRecord.most_game + 1
+        exp = 0
+    }
+    else if(winPlayer === playerInstance.id){
+        playerRecord.least_game = playerRecord.least_game + 1
+        exp = exp + (5 * playerNum)
+    }
+    if(player.maxCombo > playerRecord.max_combo){
+        playerRecord.max_combo = player.maxCombo
+    }
+    let cardShareAverage = player.cards / averageCard
+    let cardSharePoint = Math.floor( 50 * cardShareAverage)
+    if(cardSharePoint < 100){
+        exp = exp + 100 - cardSharePoint
+    }
+    playerRecord.experience = playerRecord.experience + exp
+    if(cardShareAverage < 1){
+        if(playerRecord.min_card_amount === 0 || cardShareAverage < (playerRecord.min_card / playerRecord.min_card_amount)){
+            playerRecord.min_card_amount = averageCard
+            playerRecord.min_card = player.cards
+        }
+    }
+    else{
+        if(playerRecord.max_card_amount === 0 || cardShareAverage > (playerRecord.max_card / playerRecord.max_card_amount)){
+            playerRecord.max_card_amount = averageCard
+            playerRecord.max_card = player.cards
+        }
+    }
+    redis.exists(conf.redisCache.playerRecordPrefix + playerInstance.id, function(err, res){
+        if (err) {return console.error('error redis response - ' + err)}
+        /* 如果redis中有缓存则刷新该缓存中数据；如果没有则不必做任何处理，因为查询没缓存玩家的战绩时会自动从数据库中读取最新数据 */
+        if(res === 1){
+            redis.multi()
+            .set(conf.redisCache.playerRecordPrefix + playerInstance.id, JSON.stringify(playerRecord, null, 4))
+            .expire(conf.redisCache.playerRecordPrefix + playerInstance.id, conf.redisCache.expire)
+            .exec(function(err){
+                if (err) {return console.error('error redis response - ' + err)}
+            })
+        }
+    })
+    await playerRecord.save()
+    
 }
