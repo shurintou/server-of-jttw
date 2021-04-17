@@ -13,5 +13,6 @@ module.exports = {
         req.session.username = account.username
         req.session.userId = account.id
         req.session.sessionID = req.sessionID
+        req.session.ip = req.ip
     }
 }

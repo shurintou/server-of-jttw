@@ -41,12 +41,14 @@ function storeWrapper(req, account){
             redis.mget(list, function(err, res){
                 if(err){ return reject({message: err})}
                 let sessions = []
+                let sessionIp = ''
                 res.forEach( item => { sessions.push(JSON.parse(item)) })
                 var hasLogin = false //是否有重复登录
                 var sessionId = ''  //已经登录的sessionID
                 for(var i = 0; i < sessions.length; i++){
                         if(sessions[i].username === req.body.username){
                             sessionId = conf.redisCache.sessionPrefix + sessions[i].sessionID
+                            sessionIp = sessions[i].ip
                             hasLogin = true
                             break
                         }
@@ -55,8 +57,8 @@ function storeWrapper(req, account){
                         /* 如果有重复登录，则获取已经登录session的ttl */
                         redis.ttl(sessionId, function(err , res){
                             if (err) {return console.error('error redis response - ' + err)}   
-                            /* 如果已经登录的session的ttl少于挤号判定时间，则删除该session，让另一边登录 */                         
-                            if(res < conf.ws.forceLogoutTtl){
+                            /* 如果已经登录的session的ttl少于挤号判定时间，则删除该session，让另一边登录 */  
+                            if(res < conf.ws.forceLogoutTtl || req.ip === sessionIp){
                                 redis.del(sessionId, function(err){
                                     if (err) {return console.error('error redis response - ' + err)}                            
                                     return resolve({code: 200, message: '', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
