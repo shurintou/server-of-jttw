@@ -4,7 +4,6 @@ const conf = require('../config/')
 
 module.exports = function(data ,wss, req, ws){
     if(data.action && data.action === 'get'){
-        console.log('get123123123')
         redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
             if (err) {return console.error('error redis response - ' + err)}
             if (list.length > 0){

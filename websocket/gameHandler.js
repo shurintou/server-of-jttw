@@ -239,89 +239,20 @@ module.exports = function(data ,wss, ws){
                 game.gamePlayer[game.currentPlayer].online = true
                 game.gamePlayer[game.currentPlayer].offLineTime = 0
                 clearTimeout(game.timer)
-                /* 现在牌池没有牌的情况 */
-                if(game.currentCard.length === 0){
-                    game.gamePlayer[game.currentPlayer].remainCards.sort((a,b) =>{
-                        if( poker.cardList[a].num === poker.cardList[b].num){
-                            return poker.cardList[a].suit - poker.cardList[b].suit
-                        }
-                        else{
-                            return poker.cardList[a].num - poker.cardList[b].num
-                        }
-                    })
-                    game.currentCombo = 1
-                    let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
-                    let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[playCard].name
-                    if(poker.cardList[playCard].num === 100){//反弹牌
-                        game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
-                        game.clockwise = !game.clockwise
-                        game.jokerCard = []
-                        game.jokerCard.push(playCard)
-                        game.jokerCardPlayer = game.currentPlayer
-                    }
-                    else{
-                        game.currentCardPlayer = game.currentPlayer
-                        game.currentCard = []
-                        game.currentCard.push(playCard)
-                        if(poker.cardList[playCard].num === 21){
-                            game.gamePlayer[game.currentPlayer].shaseng = game.gamePlayer[game.currentPlayer].shaseng + 1
-                        }
-                        else if(poker.cardList[playCard].num === 22){
-                            game.gamePlayer[game.currentPlayer].bajie = game.gamePlayer[game.currentPlayer].bajie + 1
-                        }
-                        else if(poker.cardList[playCard].num === 23){
-                            game.gamePlayer[game.currentPlayer].wukong = game.gamePlayer[game.currentPlayer].wukong + 1
-                        }
-                        else if(poker.cardList[playCard].num === 31){
-                            game.gamePlayer[game.currentPlayer].tangseng = game.gamePlayer[game.currentPlayer].tangseng + 1
-                        }
-                    }
-                    if(game.remainCards.length > 0){
-                        game.gamePlayer[game.currentPlayer].remainCards.push(game.remainCards.pop())
-                    }
-                    let hasPlayerPlayCard = false
-                    let step = game.clockwise ? -1 : 1
-                    let nextSeatIndex = game.currentPlayer + step
-                    for(let i = 0; i < 7; i++){
-                        if(nextSeatIndex > 7){
-                            nextSeatIndex = 0
-                        }
-                        else if(nextSeatIndex < 0){
-                            nextSeatIndex = 7
-                        }
-                        if(game.gamePlayer[nextSeatIndex].remainCards.length > 0){
-                            hasPlayerPlayCard = true
-                            game.currentPlayer = nextSeatIndex
-                            break
-                        }
-                        nextSeatIndex = nextSeatIndex + step
-                    } 
-                    if(!hasPlayerPlayCard){
-                        gameover(gameKey, game, wss)
-                        return
-                    }
-                    game.version = game.version + 1
-                    let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
-                    game.timer = timer[Symbol.toPrimitive]()
-                    sendGameInfo(gameKey, game, wss, 'update', [playCardText])
+                if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
+                    game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
                 }
-                /* 牌池有牌的情况 */
-                else{
-                    if(game.currentCombo > game.gamePlayer[game.currentPlayer].maxCombo){
-                        game.gamePlayer[game.currentPlayer].maxCombo = game.currentCombo
-                    }
-                    let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 收下 ' + game.currentCombo + ' 张牌'
-                    game.jokerCard = []
-                    game.jokerCardPlayer = -1
-                    game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
-                    game.currentCombo = 0
-                    game.currentCard = []
-                    game.currentCardPlayer = -1
-                    game.version = game.version + 1
-                    let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
-                    game.timer = timer[Symbol.toPrimitive]()
-                    sendGameInfo(gameKey, game, wss, 'update', [playCardText])
-                }
+                let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 收下 ' + game.currentCombo + ' 张牌'
+                game.jokerCard = []
+                game.jokerCardPlayer = -1
+                game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
+                game.currentCombo = 0
+                game.currentCard = []
+                game.currentCardPlayer = -1
+                game.version = game.version + 1
+                let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
+                game.timer = timer[Symbol.toPrimitive]()
+                sendGameInfo(gameKey, game, wss, 'update', [playCardText])
             }
             else{
                 ws.send(JSON.stringify({type: 'error', player_loc: data.id , text: errors.POKER_TIMER_EXPIRED.message}))
