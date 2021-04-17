@@ -44,6 +44,8 @@ module.exports = function(data ,wss, ws){
                                 cardNum: gameRoom.cardNum,
                                 currentCombo: 0,
                                 version: 0, //数据版本
+                                timesCombo: 0, //多牌连击次数
+                                timesCard: 0 , //多牌得到的额外牌数
                                 timer: timer[Symbol.toPrimitive](),
                                 gamePlayer: {
                                     0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
@@ -160,7 +162,15 @@ module.exports = function(data ,wss, ws){
                 game.gamePlayer[game.currentPlayer].offLineTime = 0
                 clearTimeout(game.timer)
                 game.gamePlayer[data.seatIndex].remainCards = data.remainCards
-                game.currentCombo = game.currentCombo + data.playCard.length
+                if(data.playCard.length > 1){//多牌暴击
+                    game.timesCombo = game.timesCombo + 1
+                    let timesAddCard = game.timesCombo * data.playCard.length
+                    game.timesCard = game.timesCard + timesAddCard
+                    game.currentCombo = game.currentCombo + timesAddCard
+                }
+                else{
+                    game.currentCombo = game.currentCombo + data.playCard.length
+                }
                 if(game.currentCombo > game.maxCombo){
                     game.maxCombo = game.currentCombo
                 }
@@ -247,6 +257,7 @@ module.exports = function(data ,wss, ws){
                 game.jokerCardPlayer = -1
                 game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
                 game.currentCombo = 0
+                game.timesCombo = 0
                 game.currentCard = []
                 game.currentCardPlayer = -1
                 game.version = game.version + 1
@@ -392,6 +403,7 @@ function intervalCheckCard(wss, id){
             game.jokerCardPlayer = -1
             game.gamePlayer[game.currentPlayer].cards = game.gamePlayer[game.currentPlayer].cards + game.currentCombo
             game.currentCombo = 0
+            game.timesCombo = 0
             game.currentCard = []
             game.currentCardPlayer = -1
             game.version = game.version + 1
@@ -433,6 +445,7 @@ function gameover(gameKey, game, wss){
     game.jokerCard = []
     game.jokerCardPlayer = -1
     game.currentCombo = 0
+    game.timesCombo = 0
     game.version = game.version + 1
     let winPlayer = 0 //id
     let losePlayer = 0
@@ -568,7 +581,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                 let player = game.gamePlayer[i]
                 for(let j = 0; j < accounts.length; j++){
                     if( player.id === accounts[j].id){
-                        let addExp = await calRecord( player, accounts[j], Math.floor(game.cardNum * 54 / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length )
+                        let addExp = await calRecord( player, accounts[j], Math.floor((game.cardNum * 54  + game.timesCard )/ game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length )
                         playerExpList.push({id: player.id, exp: addExp})
                         insertPlayersInfo.push({
                             nickname : player.nickname,
