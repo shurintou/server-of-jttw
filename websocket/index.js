@@ -31,7 +31,7 @@ wss.on('connection', function connection(ws, req) {
             /* reset the expire of the session */
             redis.pexpire( conf.redisCache.sessionPrefix + req.sessionID , conf.session.cookie.maxAge)
             if(jsText.type === 'playerList'){
-                playerListHandler(jsText, wss, req)
+                playerListHandler(jsText, wss, req, ws)
                 return
             }
             if(jsText.type === 'gameRoomList'){
