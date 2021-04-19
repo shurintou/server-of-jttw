@@ -440,6 +440,7 @@ function getWaitTime(game){
 }
 
 function gameover(gameKey, game, wss){
+    game.currentPlayer = -1
     game.currentCard = []
     game.currentCardPlayer = -1
     game.jokerCard = []
