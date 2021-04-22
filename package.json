@@ -8,6 +8,7 @@
     "express": "^4.17.1",
     "express-session": "^1.17.1",
     "fs": "0.0.1-security",
+    "log4js": "^6.3.0",
     "mysql": "^2.18.1",
     "mysql2": "^2.2.5",
     "redis": "^3.0.2",
