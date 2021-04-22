@@ -25,6 +25,14 @@ module.exports = {
       playerRecordPrefix: 'playerRecord:',
       gameRecordPrefix: 'gameRecord:',
   },
+  logConf:{
+    appenders: { 
+      jttw: { type: "dateFile", filename: "log/jttw.log" } 
+    },
+    categories: {
+      default: { appenders: ["jttw"], level: "error" }
+    }
+  },
   port: 3000,
   frontOrigin: 'http://192.168.11.11:8080',
   APIRoot: '/rest/v1',

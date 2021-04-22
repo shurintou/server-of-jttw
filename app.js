@@ -5,6 +5,7 @@ const http = require('http')
 const wss = require('./websocket/')
 const routers = require('./common/routers')
 const routerInterceptor = require('./common/routerInterceptor')
+const logger = require('./common/log')
 
 /* 配置config */
 const conf = require('./config/')
@@ -22,6 +23,9 @@ if (app.get('env') === 'production') {
 app.use(session)
 app.use('/', routerInterceptor)//拦截器
 /**********/
+
+/* 日志 */
+app.use(logger)
 
 /* websocket */
 const server = http.createServer(app)
