@@ -1,6 +1,7 @@
 var express = require('express')
 var router = express.Router()
 const registerService = require('../services/registerService')
+const logger = require('../common/log')
 
 
 router.post('/register', function (req, res) {
@@ -10,6 +11,7 @@ router.post('/register', function (req, res) {
         res.status(200).json({code: result.code,  message: result.message})
     })
     .catch(err => {
+        logger.error(err.message)
         res.status(err.code? err.code:500).json({message: err.message})
     })
 })

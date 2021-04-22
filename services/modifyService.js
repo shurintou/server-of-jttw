@@ -1,4 +1,5 @@
 const models = require('../common/models')
+const logger = require('../common/log')
 
 module.exports = {
     modifyAvatar: async function(req){
@@ -10,6 +11,7 @@ module.exports = {
             return Promise.resolve({code:200 , message: ''})
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     },
@@ -23,6 +25,7 @@ module.exports = {
             return Promise.resolve({code:200 , message: ''})
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     },

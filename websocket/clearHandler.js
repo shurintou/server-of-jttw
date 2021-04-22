@@ -2,6 +2,7 @@ const conf = require('../config/')
 const redis = require('../database/redis')
 const logoutHandler = require('./logoutHandler')
 const WebSocket = require('ws')
+const logger = require('../common/log')
 
 /* 定期清除失活的连接，session，player */  
 module.exports =  function(wss){
@@ -14,27 +15,27 @@ module.exports =  function(wss){
             ws.isAlive = false;
         }) 
         redis.keys(conf.redisCache.sessionPrefix + '*', function(err, list){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             if(list.length === 0){ 
                 /* 没有任何session存在了直接清空所有数据 */
                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     list.forEach( game => { redis.del(game) })
                 })
                 redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     list.forEach( player => { redis.del(player) })
                 })
                 return  
             }
             redis.mget(list, function(err, res){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
                 let sessions = []
                 res.forEach( item => { sessions.push(JSON.parse(item)) })
                 for(let i = 0; i < sessions.length; i++){
                     if(!sessions[i])continue
                     redis.ttl(conf.redisCache.sessionPrefix + sessions[i].sessionID, function(err, res){
-                        if (err) {return console.error('error redis response - ' + err)}
+                        if (err) {return logger.error('error redis response - ' + err)}
                         if( res < conf.ws.deadTtl ){logoutHandler(wss, sessions[i])}
                     })
                 }
@@ -45,12 +46,12 @@ module.exports =  function(wss){
                 }
                 /* 清理房间 */
                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     if(list.length === 0){ 
                         return 
                     }
                     redis.mget(list, function(err, gameRoomList){
-                        if (err) {return console.error('error redis response - ' + err)}
+                        if (err) {return logger.error('error redis response - ' + err)}
                         gameRoomList.forEach( item => {
                             let gameRoom = JSON.parse(item)
                             if(gameRoom.status === 1){ return } //房间正在游戏中，不清理
@@ -75,9 +76,9 @@ module.exports =  function(wss){
                                     gameRoom.owner = stillAlivePlayerIdList[0]
                                 }
                                 redis.set(conf.redisCache.gameRoomPrefix + gameRoom.id, JSON.stringify(gameRoom), function(err){
-                                    if (err) {return console.error('error redis response - ' + err)}
+                                    if (err) {return logger.error('error redis response - ' + err)}
                                     redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                                        if (err) {return console.error('error redis response - ' + err)}
+                                        if (err) {return logger.error('error redis response - ' + err)}
                                         if(list.length === 0){ 
                                             wss.clients.forEach(function each(client) {
                                                 if (client.readyState === WebSocket.OPEN) {
@@ -87,7 +88,7 @@ module.exports =  function(wss){
                                             return
                                         }
                                         redis.mget(list, function(err, gameRoomList){
-                                            if (err) {return console.error('error redis response - ' + err)}
+                                            if (err) {return logger.error('error redis response - ' + err)}
                                             wss.clients.forEach(function each(client) {
                                                 if (client.readyState === WebSocket.OPEN) {
                                                     client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
@@ -100,9 +101,9 @@ module.exports =  function(wss){
                             }
                             /* 否则删除房间 */
                             redis.del(conf.redisCache.gameRoomPrefix + gameRoom.id, function(err){
-                                if (err) {return console.error('error redis response - ' + err)}
+                                if (err) {return logger.error('error redis response - ' + err)}
                                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                                    if (err) {return console.error('error redis response - ' + err)}
+                                    if (err) {return logger.error('error redis response - ' + err)}
                                     if(list.length === 0){ 
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
@@ -112,7 +113,7 @@ module.exports =  function(wss){
                                         return
                                     }
                                     redis.mget(list, function(err, gameRoomList){
-                                        if (err) {return console.error('error redis response - ' + err)}
+                                        if (err) {return logger.error('error redis response - ' + err)}
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
                                                 client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))

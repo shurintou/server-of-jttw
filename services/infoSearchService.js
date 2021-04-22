@@ -1,6 +1,7 @@
 const models = require('../common/models')
 const redis = require('../database/redis')
 const conf = require('../config/')
+const logger = require('../common/log')
 
 module.exports = {
     getPlayerRecord: async function(req){
@@ -20,12 +21,13 @@ module.exports = {
                 .set(playerRecordId, JSON.stringify(record, null, 4))
                 .expire(playerRecordId, conf.redisCache.expire)
                 .exec( function(err){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                 })
                 return Promise.resolve({code: 200, message: '', record: record.toJSON()})
             }
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     },
@@ -49,6 +51,7 @@ module.exports = {
             return Promise.resolve({code: 200, message: '', pageNum: playersRecordNum, list: playerRecords })
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     },
@@ -98,12 +101,13 @@ module.exports = {
                 .set(gameRecordId, JSON.stringify(gameResultDto))
                 .expire(gameRecordId, conf.redisCache.expire)
                 .exec( function(err){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                 })
                 return Promise.resolve({code: 200, message: '', gameResult: gameResultDto})
             }
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     }
