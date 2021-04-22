@@ -2,6 +2,7 @@ var express = require('express')
 var router = express.Router()
 const loginService = require('../services/loginService')
 const sessionHandler = require('../common/session').sessionHandler
+const logger = require('../common/log')
 
 router.post('/login', function (req, res) {
     loginService.login(req)
@@ -22,6 +23,7 @@ router.post('/login', function (req, res) {
     })
     .catch(err => {
         req.session.destroy( () => {} )
+        logger.error(err.message)
         res.status(err.code? err.code:500).json({message: err.message})
     })
 })

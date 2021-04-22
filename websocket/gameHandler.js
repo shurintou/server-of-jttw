@@ -6,22 +6,23 @@ const errors = require('../common/errors')
 const models = require('../common/models')
 const sequelize = require('../database/mysql').sequelize
 const { Op } = require("sequelize");
+const logger = require('../common/log')
 
 module.exports = function(data ,wss, ws){
     let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
     let gameKey = conf.redisCache.gamePrefix + data.id
     if(data.action === 'initialize'){
         redis.watch(gameKey, gameRoomKey, function(err){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             redis.get(gameKey, function(err, res){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
                 if(res !== null)return
                 redis.get(gameRoomKey, function(err, gameRoomRes){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
-                        if (err) {return console.error('error redis response - ' + err)}
+                        if (err) {return logger.error('error redis response - ' + err)}
                         redis.mget(list, function(err, playerListRes){
-                            if (err) {return console.error('error redis response - ' + err)}
+                            if (err) {return logger.error('error redis response - ' + err)}
                             let gameRoom = JSON.parse(gameRoomRes) //游戏房间
                             let redisMSetStr = [] //mset批量改变玩家游戏状态的redis语句
                             let gamePlayerList = []  //player:列表
@@ -97,14 +98,14 @@ module.exports = function(data ,wss, ws){
                             .set(gameRoomKey, JSON.stringify(gameRoom))
                             .set(gameKey, JSON.stringify(game))
                             .exec(function(err, results){
-                                if (err) {return console.error('error redis response - ' + err)}
+                                if (err) {return logger.error('error redis response - ' + err)}
                                 if(results === null){
                                     ws.send(JSON.stringify({type: 'message', subType:'error', player_loc: data.id , text: errors.SET_ONLINE_ERROR.message}))
                                 }
                                 redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
-                                    if (err) {return console.error('error redis response - ' + err)}
+                                    if (err) {return logger.error('error redis response - ' + err)}
                                     redis.mget(list, function(err, playerList){
-                                        if (err) {return console.error('error redis response - ' + err)}
+                                        if (err) {return logger.error('error redis response - ' + err)}
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
                                                 client.send(JSON.stringify({type: 'playerList', data: playerList}))
@@ -113,9 +114,9 @@ module.exports = function(data ,wss, ws){
                                     })
                                 })
                                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                                    if (err) {return console.error('error redis response - ' + err)}
+                                    if (err) {return logger.error('error redis response - ' + err)}
                                     redis.mget(list, function(err, gameRoomList){
-                                        if (err) {return console.error('error redis response - ' + err)}
+                                        if (err) {return logger.error('error redis response - ' + err)}
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN) {
                                                 client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))
@@ -143,7 +144,7 @@ module.exports = function(data ,wss, ws){
     }
     else if(data.action === 'get'){
         redis.get( gameKey, function(err, res){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             let game = JSON.parse(res)
             game.remainCards = game.remainCards.length
             game.messages = []
@@ -154,7 +155,7 @@ module.exports = function(data ,wss, ws){
     }
     else if(data.action === 'play'){
         redis.get( gameKey, function(err, res){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             let game = JSON.parse(res)
             if(game.currentPlayer === data.seatIndex){
                 let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[data.playCard[0]].name
@@ -243,7 +244,7 @@ module.exports = function(data ,wss, ws){
     }
     else if(data.action === 'discard'){
         redis.get( gameKey, function(err, res){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             let game = JSON.parse(res)
             if(game.currentPlayer === data.seatIndex){
                 game.gamePlayer[game.currentPlayer].online = true
@@ -272,9 +273,9 @@ module.exports = function(data ,wss, ws){
     }
     else if(data.action === 'shiftOnline'){
         redis.watch( gameKey, function(err){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             redis.get( gameKey, function(err, res){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
                 let game = JSON.parse(res)
                 game.gamePlayer[data.seatIndex].online = !game.gamePlayer[data.seatIndex].online
                 game.gamePlayer[data.seatIndex].offLineTime = 0
@@ -282,7 +283,7 @@ module.exports = function(data ,wss, ws){
                 redis.multi()
                 .set(gameKey, JSON.stringify(game))
                 .exec(function(err, results){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     if(results === null){//在set时有其他线程改变了key，set失败
                         ws.send(JSON.stringify({type: 'message', subType:'error', player_loc: data.id , text: errors.SET_ONLINE_ERROR.message}))
                         return
@@ -304,7 +305,7 @@ module.exports = function(data ,wss, ws){
     }
     else if(data.action === 'textToPlayer'){
         redis.get( gameKey, function(err, res){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             let game = JSON.parse(res)
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
@@ -318,7 +319,7 @@ module.exports = function(data ,wss, ws){
 function intervalCheckCard(wss, id){
     let gameKey = conf.redisCache.gamePrefix + id
     redis.get( gameKey, function(err, res){
-        if (err) {return console.error('error redis response - ' + err)}
+        if (err) {return logger.error('error redis response - ' + err)}
         let game = JSON.parse(res)
         game.gamePlayer[game.currentPlayer].offLineTime = game.gamePlayer[game.currentPlayer].offLineTime + 1 //玩家超时次数
         game.gamePlayer[game.currentPlayer].offLinePlayCard = game.gamePlayer[game.currentPlayer].offLinePlayCard + 1 //玩家托管打出的牌数
@@ -416,7 +417,7 @@ function intervalCheckCard(wss, id){
 
 function sendGameInfo(gameKey, game, wss, action, messageList){
     redis.set(gameKey, JSON.stringify(game), function(err){
-        if (err) {return console.error('error redis response - ' + err)}
+        if (err) {return logger.error('error redis response - ' + err)}
         game.remainCards = game.remainCards.length
         game.messages = []
         messageList.forEach(text => game.messages.push(text))
@@ -477,7 +478,7 @@ function gameover(gameKey, game, wss){
     })
     maxCombo = cardsSortList[cardsSortList.length -1].maxCombo
     redis.set(gameKey, JSON.stringify(game), function(err){
-        if (err) {return console.error('error redis response - ' + err)}
+        if (err) {return logger.error('error redis response - ' + err)}
         game.remainCards = 0
         game.messages = ['游戏结束，正在结算...']
         let gameStr = JSON.stringify(game)
@@ -499,14 +500,14 @@ function deleteGame(game, wss, losePlayer, winPlayer){
     let gameRoomKey = conf.redisCache.gameRoomPrefix + game.id
     let gameKey = conf.redisCache.gamePrefix + game.id
     redis.del(gameKey, function(err){
-        if (err) {return console.error('error redis response - ' + err)}
+        if (err) {return logger.error('error redis response - ' + err)}
         wss.clients.forEach(function each(client) {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                 client.send(JSON.stringify({type: 'game', action: 'delete'}))//删除游戏
             }
         })
         redis.get(gameRoomKey, function(err, res){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             let gameRoom = JSON.parse(res)
             gameRoom.status = 0
             for(let i = 0; i < Object.keys(gameRoom.playerList).length; i++){
@@ -523,11 +524,11 @@ function deleteGame(game, wss, losePlayer, winPlayer){
                 }
             }
             redis.set(gameRoomKey, JSON.stringify(gameRoom), function(err){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
                 redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     redis.mget(list, function(err, gameRoomList){
-                        if (err) {return console.error('error redis response - ' + err)}
+                        if (err) {return logger.error('error redis response - ' + err)}
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({type: 'gameRoomList', data: gameRoomList}))//更新游戏列表
@@ -541,7 +542,7 @@ function deleteGame(game, wss, losePlayer, winPlayer){
         game.gamePlayerId.forEach( id => { changePlayerList.push(conf.redisCache.playerPrefix + id) })
         if(changePlayerList.length === 0) return
         redis.mget( changePlayerList, function(err, resList){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             if(resList.length === 0) return
             let redisMSetStr = []
             resList.forEach( playerItem => {
@@ -552,11 +553,11 @@ function deleteGame(game, wss, losePlayer, winPlayer){
                 redisMSetStr.push(JSON.stringify(player))
             })
             redis.mset(redisMSetStr, function(err){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
                 redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                     redis.mget(list, function(err, playerList){
-                        if (err) {return console.error('error redis response - ' + err)}
+                        if (err) {return logger.error('error redis response - ' + err)}
                         wss.clients.forEach(function each(client) {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({type: 'playerList', data: playerList}))//更新玩家列表
@@ -675,13 +676,13 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                 .set(conf.redisCache.gameRecordPrefix + insertedGame.id, gameResultStr)
                 .expire(conf.redisCache.gameRecordPrefix + insertedGame.id, conf.redisCache.expire)
                 .exec( function(err){
-                    if (err) {return console.error('error redis response - ' + err)}
+                    if (err) {return logger.error('error redis response - ' + err)}
                 })
             })
             await t.commit()
         }
         catch(e){
-            console.error(e)
+            logger.error(e)
             await t.rollback()
         }
 }
@@ -721,14 +722,14 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
         }
     }
     redis.exists(conf.redisCache.playerRecordPrefix + playerInstance.id, function(err, res){
-        if (err) {return console.error('error redis response - ' + err)}
+        if (err) {return logger.error('error redis response - ' + err)}
         /* 如果redis中有缓存则刷新该缓存中数据；如果没有则不必做任何处理，因为查询没缓存玩家的战绩时会自动从数据库中读取最新数据 */
         if(res === 1){
             redis.multi()
             .set(conf.redisCache.playerRecordPrefix + playerInstance.id, JSON.stringify(playerRecord, null, 4))
             .expire(conf.redisCache.playerRecordPrefix + playerInstance.id, conf.redisCache.expire)
             .exec(function(err){
-                if (err) {return console.error('error redis response - ' + err)}
+                if (err) {return logger.error('error redis response - ' + err)}
             })
         }
     })

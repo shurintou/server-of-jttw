@@ -2,6 +2,7 @@ const models = require('../common/models')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
+const logger = require('../common/log')
 
 module.exports = {
     authorization: async function(req){
@@ -18,6 +19,7 @@ module.exports = {
             }
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     }

@@ -8,6 +8,7 @@ const wss = new WebSocket.Server(conf.ws.config)
 const gameRoomListHandler = require('./gameRoomListHandler')
 const gameHandler = require('./gameHandler')
 const clearHandler = require('./clearHandler')
+const logger = require('../common/log')
 
 wss.on('connection', function connection(ws, req) {
     ws.username = req.session.username
@@ -15,7 +16,7 @@ wss.on('connection', function connection(ws, req) {
     ws.sessionID = req.sessionID
     ws.on('message', function incoming(data) {
         redis.get(conf.redisCache.sessionPrefix + req.sessionID, function(err, session){
-            if (err) {return console.error('error redis response - ' + err)}
+            if (err) {return logger.error('error redis response - ' + err)}
             if(!session){
                 ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
                 return 

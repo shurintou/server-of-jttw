@@ -4,6 +4,7 @@ const conf = require('../config/')
 const errors = require('../common/errors')
 const logoutHandler = require('../websocket/logoutHandler')
 const wss = require('../websocket/')
+const logger = require('../common/log')
 
 
 module.exports = {
@@ -25,6 +26,7 @@ module.exports = {
             }
         }
         catch(e){
+            logger.error(e)
             return Promise.reject({message: e})
         }
     },
@@ -56,18 +58,18 @@ function storeWrapper(req, account){
                 if(hasLogin){
                         /* 如果有重复登录，则获取已经登录session的ttl */
                         redis.ttl(sessionId, function(err , res){
-                            if (err) {return console.error('error redis response - ' + err)}   
+                            if (err) {return logger.error('error redis response - ' + err)}   
                             /* 如果已经登录的session的ttl少于挤号判定时间，则删除该session，让另一边登录 */  
                             if(res < conf.ws.forceLogoutTtl || req.ip === sessionIp){
                                 redis.del(sessionId, function(err){
-                                    if (err) {return console.error('error redis response - ' + err)}                            
+                                    if (err) {return logger.error('error redis response - ' + err)}                            
                                     return resolve({code: 200, message: '', account: {id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname }})
                                 })
                             }
                             /* 如果大于挤号判定时间，则将该session的ttl设置为挤号判定时间 */
                             else{
                                 redis.expire(sessionId , conf.ws.forceLogoutTtl, function(err){
-                                    if (err) {return console.error('error redis response - ' + err)}                            
+                                    if (err) {return logger.error('error redis response - ' + err)}                            
                                     return resolve(errors.DUBLICATE_ACCESS)
                                 })
                             }

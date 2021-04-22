@@ -1,6 +1,7 @@
 const models = require('../common/models')
 const errors = require('../common/errors')
 const sequelize = require('../database/mysql').sequelize
+const logger = require('../common/log')
 
 module.exports = {
     register: async function(data){
@@ -34,6 +35,7 @@ module.exports = {
         }
         catch(e){
             await t.rollback()
+            logger.error(e)
             return Promise.reject({message: e})
         }
        
