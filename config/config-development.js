@@ -27,7 +27,7 @@ module.exports = {
   },
   logConf:{
     appenders: { 
-      jttw: { type: "dateFile", filename: "log/jttw.log" } 
+      jttw: { type: "dateFile", filename: "log/jttw", pattern: '.yyyy-MM-dd.log', alwaysIncludePattern: true } 
     },
     categories: {
       default: { appenders: ["jttw"], level: "error" }
