@@ -2,6 +2,8 @@
 const {Sequelize, DataTypes} = require('sequelize')
 const conf = require('../config/')
 const dbConf = conf.mysql
+const logger = require('../common/log')
+
 
 var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password, {
     host: dbConf.host,
@@ -12,7 +14,8 @@ var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password,
         min: dbConf.pool.min,
         idle: dbConf.pool.idle,
     },
-    timezone: dbConf.timezone
+    timezone: dbConf.timezone,
+    logging: msg => logger.debug(msg)
 })
 
 module.exports = {
