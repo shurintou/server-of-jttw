@@ -24,6 +24,7 @@ module.exports = {
       gamePrefix: 'game:',
       playerRecordPrefix: 'playerRecord:',
       gameRecordPrefix: 'gameRecord:',
+      rankPrefix: 'rank:',
   },
   logConf:{
     appenders: { 
