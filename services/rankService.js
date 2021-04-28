@@ -67,20 +67,25 @@ module.exports = {
             scoreList = topThreeList.filter( (item, index) => index % 2 === 1)
             // let accounts = await Account.findAll({where:{ id: {[Op.in]: idList}}}) in条件查找是无序的，故弃用
             for(let i = 0; i < idList.length; i++){
-                let account = await Account.findAll({where:{ id: idList[i] }})
-                resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: account[0].avatar_id, nickname: account[0].nickname, record: scoreList[i] })
+                let getRedisWrapperPlayer = await getTopPlayer(idList[i])
+                /* 缓存中是否有前三名玩家的信息 */
+                if(getRedisWrapperPlayer.result){
+                    resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: getRedisWrapperPlayer.player.avatar_id, nickname: getRedisWrapperPlayer.player.nickname, record: scoreList[i] })
+                }
+                else{
+                    let account = await Account.findAll({where:{ id: idList[i] }})
+                    setTopPlayer(idList[i], account[0].avatar_id, account[0].nickname)
+                    resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: account[0].avatar_id, nickname: account[0].nickname, record: scoreList[i] })
+                }
             }
             let resList = getRedisWrapperResult.resList
             if(resList === null){
                 resultDto.playerInfo = null
             }
             else{
-                let player = await Account.findAll({where:{id : req.query.id}})
                 resultDto.playerInfo.id = resList[0]
                 resultDto.playerInfo.record = resList[1]
                 resultDto.playerInfo.rank = getRedisWrapperResult.resRank + 1
-                resultDto.playerInfo.avatarId = player[0].avatar_id
-                resultDto.playerInfo.nickname = player[0].nickname
             }
             return Promise.resolve({code: 200, message: '', type: req.query.type, result: resultDto})
         }
@@ -186,5 +191,34 @@ function setGetRedisWrapper(redisKey, zaddList, id, order){
                 }
             })
         })
+    })
+}
+
+
+function getTopPlayer(id){
+    let topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
+    return new Promise((resolve, reject) => {
+        redis.exists( topPlayerKey, function(err, res){
+            if (err) {return reject({message: 'error redis response - ' + err })}
+            if( res === 1){
+                redis.get(topPlayerKey, function(err, player){
+                    if (err) {return reject({message: 'error redis response - ' + err })}
+                    return resolve({result: true, player: JSON.parse(player)})
+                })
+            }
+            else{
+                return resolve({result: false})
+            }
+        })
+    })
+}
+
+function setTopPlayer(keyId, avatarId, nickname){
+    let topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
+    redis.multi()
+    .set(topPlayerKey, JSON.stringify({ avatar_id: avatarId, nickname: nickname }))
+    .expire(topPlayerKey, conf.redisCache.expire)
+    .exec(function(err){
+        if (err) {return logger.error('error redis response - ' + err)}
     })
 }
