@@ -692,6 +692,7 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
     let exp = 50
     playerRecord.num_of_game = playerRecord.num_of_game + 1
     playerRecord.experienced_cards = playerRecord.experienced_cards + player.cards
+    /* 吃鸡拉跨 */
     if(losePlayer === playerInstance.id){
         playerRecord.most_game = playerRecord.most_game + 1
         exp = 0
@@ -700,9 +701,19 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
         playerRecord.least_game = playerRecord.least_game + 1
         exp = exp + (5 * playerNum)
     }
+    /* 单次最大 */
     if(player.maxCombo > playerRecord.max_combo){
         playerRecord.max_combo = player.maxCombo
     }
+    /* 最多最少收牌数 */
+    if(playerRecord.least_cards === -1 || playerRecord.least_cards > player.cards){
+        playerRecord.least_cards = player.cards
+    }
+    if(playerRecord.most_cards < player.cards){
+        playerRecord.most_cards = player.cards
+    }
+
+    /* 最低最高占比 */
     let cardShareAverage = player.cards / averageCard
     let cardSharePoint = Math.floor( 50 * cardShareAverage)
     if(cardSharePoint < 100){

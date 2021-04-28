@@ -10,7 +10,7 @@ module.exports = {
         var rankPrefix = conf.redisCache.rankPrefix
         const Account = models.account
         let order = 1
-        if(req.query.type === 'lowest_rate'){
+        if(req.query.type === 'lowest_rate' || req.query.type === 'least_cards'){
             order = 0
         }
         try{
@@ -19,7 +19,7 @@ module.exports = {
             }
             else{
                 const Record = models.record
-                var records = await Record.findAll({where:{ num_of_game: {[Op.gt]: 5}}})
+                var records = await Record.findAll({where:{ num_of_game: {[Op.gte]: 5}}})
                 if(records.length < 1){//样本数量不足时
                     return Promise.resolve({code: 200, message: '', type: req.query.type, result: {rankList: [], playerInfo: null}})
                 }
@@ -48,6 +48,12 @@ module.exports = {
                     else if(req.query.type === 'lowest_rate'){
                         let insertRecord = record.min_card_amount === 0? 0 : (record.min_card * 100 / record.min_card_amount).toFixed(1) 
                         zaddList.push(insertRecord * 10)
+                    }
+                    else if(req.query.type === 'least_cards'){
+                        zaddList.push(record.least_cards)
+                    }
+                    else if(req.query.type === 'most_cards'){
+                        zaddList.push(record.most_cards)
                     }
                     zaddList.push(record.accountId)
                 })
