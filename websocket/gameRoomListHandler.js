@@ -92,6 +92,7 @@ module.exports = function(data ,wss, ws){
         /* 小于0，某玩家离开了房间 */
         redis.get(roomId, function(err, res){
             if (err) {return logger.error('error redis response - ' + err)}
+            if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
             let room = JSON.parse(res)
             let deleteId = room.playerList[data.seatIndex].id
             let remainId = 0
@@ -180,6 +181,7 @@ module.exports = function(data ,wss, ws){
         if(data.action === 'enter'){
             redis.get(roomId, function(err, res){
                 if (err) {return logger.error('error redis response - ' + err)}
+                if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
                 let room = JSON.parse(res)
                 for( let i = 0; i < Object.keys(room.playerList).length; i++ ){
                     if( room.playerList[i].id === ws.userId ){
@@ -247,6 +249,7 @@ module.exports = function(data ,wss, ws){
         else if(data.action === 'ready'){
             redis.get(roomId, function(err, res){
                 if (err) {return logger.error('error redis response - ' + err)}
+                if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
                 let room = JSON.parse(res)
                 for( let i = 0; i < Object.keys(room.playerList).length; i++){
                     if(room.playerList[i].id === ws.userId){
@@ -282,6 +285,7 @@ module.exports = function(data ,wss, ws){
         else if(data.action === 'edit'){
             redis.get(roomId, function(err, res){
                 if (err) {return logger.error('error redis response - ' + err)}
+                if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
                 let room = JSON.parse(res)
                 room.name = data.name
                 room.needPassword = data.needPassword
@@ -315,6 +319,7 @@ module.exports = function(data ,wss, ws){
         else if(data.action === 'changeSeat'){
             redis.get(roomId, function(err, res){
                 if (err) {return logger.error('error redis response - ' + err)}
+                if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
                 let room = JSON.parse(res)
                 if(room.status === 1) return
                 /* 确保玩家信息没有发生改变 */
@@ -391,6 +396,7 @@ module.exports = function(data ,wss, ws){
         else if(data.action === 'disagreeChangeSeat'){
             redis.get(roomId, function(err, res){
                 if (err) {return logger.error('error redis response - ' + err)}
+                if(res === null){ return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST)}
                 let room = JSON.parse(res)
                 if(room.status === 1) return
                 wss.clients.forEach(function each(client) {

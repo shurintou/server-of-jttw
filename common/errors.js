@@ -11,5 +11,6 @@ module.exports={
     SEAT_FULL: {code: 0, message: '座位已被占，无法进入'},
     ALREADY_IN_ROOM: {code: 0, message: '已在房间之中'},
     POKER_TIMER_EXPIRED: {code: 0, message: '已超时，出牌失败'},
-    SET_ONLINE_ERROR: {code: 0, message: '操作失败，请稍后重试'}
+    SET_ONLINE_ERROR: {code: 0, message: '操作失败，请稍后重试'},
+    CACHE_DOES_NOT_EXIST: {code: 0 , message: '缓存不存在'},
 }
