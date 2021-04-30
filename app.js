@@ -50,6 +50,11 @@ Object.keys(routers).forEach(key => {
 })
 /*******/
 
+/* 错误处理中间件 */
+app.use(function (err, req, res, next) {
+  logger.error(err)
+})
+
 /* 启动服务器 */
 // app.listen( conf.port, () => {} )
 server.listen(conf.port, () => {}) 
