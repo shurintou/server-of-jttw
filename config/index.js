@@ -4,6 +4,6 @@ if(process.env.NODE_ENV === 'development'){
 
 }
 else{
-    var f = 'config-production.js'
+    var f = 'config-production.local.js'
     module.exports = require('../config/' + f)
 }
