@@ -7,6 +7,12 @@ const routers = require('./common/routers')
 const routerInterceptor = require('./common/routerInterceptor')
 const log4js = require("log4js")
 const logger = require('./common/log')
+var history = require('connect-history-api-fallback')
+const path = require('path')
+
+/* 部署前端项目需要的插件 */
+app.use(history())
+app.use(express.static(path.join(__dirname, 'dist')))
 
 /* 配置config */
 const conf = require('./config/')
