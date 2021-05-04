@@ -18,7 +18,7 @@ app.use(express.urlencoded({extended: true}))
 /************/
 
 /* session */
-if (app.get('env') === 'production') {
+if (process.env.NODE_ENV !== 'development') {
   app.set('trust proxy', 1) // trust first proxy
 }
 app.use(session)
