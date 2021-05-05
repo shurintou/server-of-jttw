@@ -72,6 +72,6 @@ module.exports = {
         return array
     },
 
-    waitTime: 15000,
+    waitTime: 20000,
     offLineWaitTime: 1000,
 }
