@@ -6,7 +6,7 @@ node_modules
 # local env files
 .env.local
 .env.*.local
-/config/config-production.local.js
+/config/*config-production.local.js
 
 # Log files
 npm-debug.log*
