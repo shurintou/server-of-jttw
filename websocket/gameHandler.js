@@ -215,6 +215,9 @@ module.exports = function(data ,wss, ws){
                             let timesAddCard = game.timesCombo * data.playCard.length
                             game.timesCard = game.timesCard + timesAddCard
                             game.currentCombo = game.currentCombo + timesAddCard
+                            if(game.timesCombo === 1){
+                                game.timesCombo = data.playCard.length - 1 //2张从2起爆，3张从3开始，依次类推
+                            }
                         }
                         else{
                             game.currentCombo = game.currentCombo + data.playCard.length
