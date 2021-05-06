@@ -39,7 +39,7 @@ module.exports = function(data ,wss, ws){
                                                         }
                                                     }
                                                     pokers = poker.shuffle(pokers)
-                                                    let timer = setTimeout( function(){intervalCheckCard(wss, data.id)} , poker.waitTime)
+                                                    let timer = setTimeout( function(){intervalCheckCard(wss, this, data.id)} , poker.waitTime)
                                                     let game = {
                                                         id: data.id,
                                                         clockwise: false,
@@ -283,7 +283,7 @@ module.exports = function(data ,wss, ws){
                             return
                         }
                         game.version = game.version + 1
-                        let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
+                        let timer = setTimeout( function(){intervalCheckCard(wss, this, game.id)} , getWaitTime(game))
                         game.timer = timer[Symbol.toPrimitive]()
                         sendGameInfo(gameKey, game, wss, 'update',[ playCardText ])
                     }
@@ -317,7 +317,7 @@ module.exports = function(data ,wss, ws){
                         game.currentCard = []
                         game.currentCardPlayer = -1
                         game.version = game.version + 1
-                        let timer = setTimeout( function(){intervalCheckCard(wss, game.id)} , getWaitTime(game))
+                        let timer = setTimeout( function(){intervalCheckCard(wss, this, game.id)} , getWaitTime(game))
                         game.timer = timer[Symbol.toPrimitive]()
                         sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                     }
@@ -399,13 +399,21 @@ module.exports = function(data ,wss, ws){
     }
 }
 
-function intervalCheckCard(wss, id){
+function intervalCheckCard(wss, thisTimer, id){
     try{
         let gameKey = conf.redisCache.gamePrefix + id
         redis.get( gameKey, function(err, res){
             if (err) {return logger.error('error redis response - ' + err)}
             try{
                 let game = JSON.parse(res)
+                if(thisTimer[Symbol.toPrimitive]() !== game.timer){
+                    clearTimeout(game.timer)
+                    wss.clients.forEach(function each(client) {
+                        if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
+                            client.send(JSON.stringify({type: 'message', subType:'error', player_loc: id , text: errors.SERVER_BAD_STATUS.message}))
+                        }
+                    })
+                }
                 game.gamePlayer[game.currentPlayer].offLineTime = game.gamePlayer[game.currentPlayer].offLineTime + 1 //玩家超时次数
                 game.gamePlayer[game.currentPlayer].offLinePlayCard = game.gamePlayer[game.currentPlayer].offLinePlayCard + 1 //玩家托管打出的牌数
                 if(game.gamePlayer[game.currentPlayer].offLineTime > 1 && game.gamePlayer[game.currentPlayer].online){
@@ -475,7 +483,7 @@ function intervalCheckCard(wss, id){
                         return
                     }
                     game.version = game.version + 1
-                    let timer = setTimeout( function(){intervalCheckCard(wss, game.id )} , getWaitTime(game))
+                    let timer = setTimeout( function(){intervalCheckCard(wss, this, game.id )} , getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
                     sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
@@ -493,7 +501,7 @@ function intervalCheckCard(wss, id){
                     game.currentCard = []
                     game.currentCardPlayer = -1
                     game.version = game.version + 1
-                    let timer = setTimeout( function(){intervalCheckCard(wss, game.id )} , getWaitTime(game))
+                    let timer = setTimeout( function(){intervalCheckCard(wss, this, game.id )} , getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
                     sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
