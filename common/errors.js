@@ -13,5 +13,5 @@ module.exports={
     POKER_TIMER_EXPIRED: {code: 0, message: '已超时，出牌失败'},
     SET_ONLINE_ERROR: {code: 0, message: '操作失败，请稍后重试'},
     CACHE_DOES_NOT_EXIST: {code: 0 , message: '缓存不存在'},
-    SERVER_BAD_STATUS: {code: 0 , message: '数据丢包，请尝试刷新'},
+    SERVER_BAD_STATUS: {code: 0 , message: '数据丢包，如有卡顿请尝试刷新'},
 }
