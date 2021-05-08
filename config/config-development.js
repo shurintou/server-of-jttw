@@ -31,7 +31,7 @@ module.exports = {
       jttw: { type: "dateFile", filename: "log/jttw", pattern: '.yyyy-MM-dd.log', alwaysIncludePattern: true } 
     },
     categories: {
-      default: { appenders: ["jttw"], level: "error" }
+      default: { appenders: ["jttw"], level: "warn" }
     }
   },
   port: 3000,

@@ -11,6 +11,7 @@ module.exports =  function(wss){
             wss.clients.forEach(function each(ws) {
                 if (ws.isAlive === false){
                     ws.terminate()
+                    logger.warn('clearHandler terminated the websocket of user' + (ws.session ? ws.session.userId: ws.userId))
                     logoutHandler(wss, ws)
                 }
                 ws.isAlive = false;
@@ -21,7 +22,9 @@ module.exports =  function(wss){
                     /* 没有任何session存在了直接清空所有数据 */
                     redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
                         if (err) {return logger.error('error redis response - ' + err)}
+                        if(list.length === 0){return}
                         try{
+                            logger.warn('clearHandler cleared all game rooms.')
                             list.forEach( game => { redis.del(game) })
                         }
                         catch(e){
@@ -30,7 +33,9 @@ module.exports =  function(wss){
                     })
                     redis.keys(conf.redisCache.playerPrefix + '*', function(err, list){
                         if (err) {return logger.error('error redis response - ' + err)}
+                        if(list.length === 0){return}
                         try{
+                            logger.warn('clearHandler cleared all players.')
                             list.forEach( player => { redis.del(player) })
                         }
                         catch(e){
@@ -48,7 +53,10 @@ module.exports =  function(wss){
                             if(!sessions[i])continue
                             redis.ttl(conf.redisCache.sessionPrefix + sessions[i].sessionID, function(err, res){
                                 if (err) {return logger.error('error redis response - ' + err)}
-                                if( res < conf.ws.deadTtl ){logoutHandler(wss, sessions[i])}
+                                if( res < conf.ws.deadTtl ){
+                                    logger.warn('clearHandler cleared deadTtl user' + sessions[i].userId)
+                                    logoutHandler(wss, sessions[i])
+                                }
                             })
                         }
                         let stillAlivePlayerIdList = []
@@ -123,6 +131,7 @@ module.exports =  function(wss){
                                             return
                                         }
                                         /* 否则删除房间 */
+                                        logger.warn('clearHandler cleared game room' + gameRoom.id)
                                         redis.del(conf.redisCache.gameRoomPrefix + gameRoom.id, function(err){
                                             if (err) {return logger.error('error redis response - ' + err)}
                                             redis.keys(conf.redisCache.gameRoomPrefix + '*', function(err, list){
