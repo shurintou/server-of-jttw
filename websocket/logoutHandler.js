@@ -8,6 +8,7 @@ module.exports= function(wss, data){
     redis.get(conf.redisCache.playerPrefix + userId, function(err, res){
         if (err) {return logger.error('error redis response - ' + err)}
         if(res === null){ return logger.error(conf.redisCache.playerPrefix + userId + errors.CACHE_DOES_NOT_EXIST)}
+        if(JSON.parse(res).player_status === 2){return logger.warn('user' + userId + 'is still in game so keep the cache.')}
         redis.del(conf.redisCache.sessionPrefix + data.sessionID, function(err){
             if (err) {return logger.error('error redis response - ' + err)}
             redis.del(conf.redisCache.playerPrefix + userId, function(err){
