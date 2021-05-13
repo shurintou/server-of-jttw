@@ -94,7 +94,8 @@ module.exports = {
                         bajie: player.bajie, 
                         shaseng: player.shaseng, 
                         tangseng: player.tangseng, 
-                        joker: player.joker
+                        joker: player.joker,
+                        bianshen: player.bianshen
                     })
                 })
                 redis.multi()
