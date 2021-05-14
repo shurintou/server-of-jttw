@@ -62,6 +62,12 @@ const Player = db.defineModel('player',
         type: db.dataTypes.INTEGER(4),
         defaultValue: 0
     },
+    /* 变身 */
+    bianshen:
+    {
+        type: db.dataTypes.INTEGER(4),
+        defaultValue: 0
+    },
 })
 
 Account.hasMany(Player)

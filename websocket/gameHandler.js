@@ -39,6 +39,19 @@ module.exports = function(data ,wss, ws){
                                                         }
                                                     }
                                                     pokers = poker.shuffle(pokers)
+                                                    if(gameRoom.metamorphoseNum > 0){//插入变身牌
+                                                        let addMetamorphoseNum = 0
+                                                        for(let i = 0; i < pokers.length && addMetamorphoseNum < gameRoom.metamorphoseNum * gameRoom.cardNum; i++){
+                                                            if(pokers[i] === 52 || pokers[i] === 53){
+                                                                continue
+                                                            }
+                                                            else{
+                                                                pokers[i] = pokers[i] + 100
+                                                                addMetamorphoseNum = addMetamorphoseNum + 1
+                                                            }
+                                                        }
+                                                        pokers = poker.shuffle(pokers)
+                                                    }
                                                     let timer = setTimeout( function(){intervalCheckCard(wss, this, data.id)} , poker.waitTime)
                                                     let game = {
                                                         id: data.id,
@@ -49,20 +62,21 @@ module.exports = function(data ,wss, ws){
                                                         jokerCard: [],
                                                         jokerCardPlayer: -1,
                                                         cardNum: gameRoom.cardNum,
+                                                        metamorphoseNum: gameRoom.metamorphoseNum,
                                                         currentCombo: 0,
                                                         version: 0, //数据版本
                                                         timesCombo: 0, //多牌连击次数
                                                         timesCard: 0 , //多牌得到的额外牌数
                                                         timer: timer[Symbol.toPrimitive](),
                                                         gamePlayer: {
-                                                            0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            2: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            3: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            4: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            5: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            6: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
-                                                            7: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0},
+                                                            0: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            1: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            2: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            3: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            4: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            5: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            6: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
+                                                            7: {id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0},
                                                         },
                                                         gamePlayerId: [],    
                                                         remainCards: pokers, //发送给玩家时只发送长度
@@ -205,7 +219,8 @@ module.exports = function(data ,wss, ws){
                 try{
                     let game = JSON.parse(res)
                     if(game.currentPlayer === data.seatIndex){
-                        let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[data.playCard[0]].name
+                        let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.getIndexOfCardList(data.playCard[0]).name
+                        let numOfBianshen = 0
                         game.gamePlayer[game.currentPlayer].online = true
                         game.gamePlayer[game.currentPlayer].offLineTime = 0
                         clearTimeout(game.timer)
@@ -218,6 +233,12 @@ module.exports = function(data ,wss, ws){
                             if(game.timesCombo === 1){
                                 game.timesCombo = data.playCard.length - 1 //2张从2起爆，3张从3开始，依次类推
                             }
+                            data.playCard.forEach(n => {//记录变身牌，前端会把原形牌变为小于100，变身牌变为大于等于100，所以在此可以通过100来判断
+                                if(n >= 100){
+                                    game.gamePlayer[data.seatIndex].bianshen = game.gamePlayer[data.seatIndex].bianshen + 1
+                                    numOfBianshen = numOfBianshen + 1
+                                }
+                            })
                         }
                         else{
                             game.currentCombo = game.currentCombo + data.playCard.length
@@ -229,7 +250,7 @@ module.exports = function(data ,wss, ws){
                             game.jokerCard = []
                             game.jokerCardPlayer = -1
                         }
-                        if(poker.cardList[data.playCard[0]].num === 100){//反弹牌
+                        if(poker.getIndexOfCardList(data.playCard[0]).num === 100){//反弹牌
                             game.gamePlayer[data.seatIndex].joker = game.gamePlayer[data.seatIndex].joker + data.playCard.length
                             game.clockwise = !game.clockwise
                             if(game.currentCard.length === 0){
@@ -245,17 +266,17 @@ module.exports = function(data ,wss, ws){
                         else{
                             game.currentCard = data.playCard
                             game.currentCardPlayer = data.seatIndex
-                            if(poker.cardList[data.playCard[0]].num === 21){
-                                game.gamePlayer[data.seatIndex].shaseng = game.gamePlayer[data.seatIndex].shaseng + data.playCard.length
+                            if(poker.getIndexOfCardList(data.playCard[0]).num === 21){
+                                game.gamePlayer[data.seatIndex].shaseng = game.gamePlayer[data.seatIndex].shaseng + data.playCard.length - numOfBianshen
                             }
-                            else if(poker.cardList[data.playCard[0]].num === 22){
-                                game.gamePlayer[data.seatIndex].bajie = game.gamePlayer[data.seatIndex].bajie + data.playCard.length
+                            else if(poker.getIndexOfCardList(data.playCard[0]).num === 22){
+                                game.gamePlayer[data.seatIndex].bajie = game.gamePlayer[data.seatIndex].bajie + data.playCard.length - numOfBianshen
                             }
-                            else if(poker.cardList[data.playCard[0]].num === 23){
-                                game.gamePlayer[data.seatIndex].wukong = game.gamePlayer[data.seatIndex].wukong + data.playCard.length
+                            else if(poker.getIndexOfCardList(data.playCard[0]).num === 23){
+                                game.gamePlayer[data.seatIndex].wukong = game.gamePlayer[data.seatIndex].wukong + data.playCard.length - numOfBianshen
                             }
-                            else if(poker.cardList[data.playCard[0]].num === 31){
-                                game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length
+                            else if(poker.getIndexOfCardList(data.playCard[0]).num === 31){
+                                game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length - numOfBianshen
                             }
                         }
                         while(game.gamePlayer[data.seatIndex].remainCards.length < 5 && game.remainCards.length > 0){//补牌
@@ -427,31 +448,32 @@ function intervalCheckCard(wss, thisTimer, id){
                 /* 现在牌池没有牌的情况 */
                 if(game.currentCard.length === 0){
                     game.gamePlayer[game.currentPlayer].remainCards.sort((a,b) =>{
-                        if( poker.cardList[a].num === poker.cardList[b].num){
-                            return poker.cardList[a].suit - poker.cardList[b].suit
+                        if( poker.getIndexOfCardList(a).num === poker.getIndexOfCardList(b).num){
+                            return poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit
                         }
                         else{
-                            return poker.cardList[a].num - poker.cardList[b].num
+                            return poker.getIndexOfCardList(a).num - poker.getIndexOfCardList(b).num
                         }
                     })
                     game.currentCombo = 1
                     let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
-                    let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.cardList[playCard].name
-                    if(poker.cardList[playCard].num === 100){//反弹牌
+                    playCard = playCard < 100 ? playCard : playCard - 100
+                    let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.getIndexOfCardList(playCard).name
+                    if(poker.getIndexOfCardList(playCard).num === 100){//反弹牌
                         game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
                         game.clockwise = !game.clockwise
                     }
                     else{
-                        if(poker.cardList[playCard].num === 21){
+                        if(poker.getIndexOfCardList(playCard).num === 21){
                             game.gamePlayer[game.currentPlayer].shaseng = game.gamePlayer[game.currentPlayer].shaseng + 1
                         }
-                        else if(poker.cardList[playCard].num === 22){
+                        else if(poker.getIndexOfCardList(playCard).num === 22){
                             game.gamePlayer[game.currentPlayer].bajie = game.gamePlayer[game.currentPlayer].bajie + 1
                         }
-                        else if(poker.cardList[playCard].num === 23){
+                        else if(poker.getIndexOfCardList(playCard).num === 23){
                             game.gamePlayer[game.currentPlayer].wukong = game.gamePlayer[game.currentPlayer].wukong + 1
                         }
-                        else if(poker.cardList[playCard].num === 31){
+                        else if(poker.getIndexOfCardList(playCard).num === 31){
                             game.gamePlayer[game.currentPlayer].tangseng = game.gamePlayer[game.currentPlayer].tangseng + 1
                         }
                     }
@@ -751,6 +773,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                             shaseng : player.shaseng,
                             tangseng : player.tangseng,
                             joker : player.joker,
+                            bianshen : player.bianshen,
                             seat_index : i,
                             accountId : accounts[j].id,
                         })
@@ -814,7 +837,8 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                     bajie: player.bajie, 
                     shaseng: player.shaseng, 
                     tangseng: player.tangseng, 
-                    joker: player.joker
+                    joker: player.joker,
+                    bianshen: player.bianshen
                 })
             })
             let gameResultStr = JSON.stringify(gameResultDto)

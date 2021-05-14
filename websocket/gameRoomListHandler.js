@@ -60,6 +60,7 @@ module.exports = function(data ,wss, ws){
                     needPassword: data.needPassword,
                     password: data.password,
                     cardNum: data.cardNum,
+                    metamorphoseNum: data.metamorphoseNum,
                     owner: data.owner,
                     lastLoser: data.lastLoser,
                     playerList: data.playerList
@@ -383,6 +384,7 @@ module.exports = function(data ,wss, ws){
                         room.needPassword = data.needPassword
                         room.password = data.password
                         room.cardNum = data.cardNum
+                        room.metamorphoseNum = data.metamorphoseNum
                         redis.set(roomId, JSON.stringify(room), function(err){
                             if (err) {return logger.error('error redis response - ' + err)}
                             redis.keys(allRooms, function(err, list){
