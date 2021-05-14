@@ -220,6 +220,7 @@ module.exports = function(data ,wss, ws){
                     let game = JSON.parse(res)
                     if(game.currentPlayer === data.seatIndex){
                         let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.getIndexOfCardList(data.playCard[0]).name
+                        let numOfBianshen = 0
                         game.gamePlayer[game.currentPlayer].online = true
                         game.gamePlayer[game.currentPlayer].offLineTime = 0
                         clearTimeout(game.timer)
@@ -232,6 +233,12 @@ module.exports = function(data ,wss, ws){
                             if(game.timesCombo === 1){
                                 game.timesCombo = data.playCard.length - 1 //2张从2起爆，3张从3开始，依次类推
                             }
+                            data.playCard.forEach(n => {//记录变身牌，前端会把原形牌变为小于100，变身牌变为大于等于100，所以在此可以通过100来判断
+                                if(n >= 100){
+                                    game.gamePlayer[data.seatIndex].bianshen = game.gamePlayer[data.seatIndex].bianshen + 1
+                                    numOfBianshen = numOfBianshen + 1
+                                }
+                            })
                         }
                         else{
                             game.currentCombo = game.currentCombo + data.playCard.length
@@ -260,16 +267,16 @@ module.exports = function(data ,wss, ws){
                             game.currentCard = data.playCard
                             game.currentCardPlayer = data.seatIndex
                             if(poker.getIndexOfCardList(data.playCard[0]).num === 21){
-                                game.gamePlayer[data.seatIndex].shaseng = game.gamePlayer[data.seatIndex].shaseng + data.playCard.length
+                                game.gamePlayer[data.seatIndex].shaseng = game.gamePlayer[data.seatIndex].shaseng + data.playCard.length - numOfBianshen
                             }
                             else if(poker.getIndexOfCardList(data.playCard[0]).num === 22){
-                                game.gamePlayer[data.seatIndex].bajie = game.gamePlayer[data.seatIndex].bajie + data.playCard.length
+                                game.gamePlayer[data.seatIndex].bajie = game.gamePlayer[data.seatIndex].bajie + data.playCard.length - numOfBianshen
                             }
                             else if(poker.getIndexOfCardList(data.playCard[0]).num === 23){
-                                game.gamePlayer[data.seatIndex].wukong = game.gamePlayer[data.seatIndex].wukong + data.playCard.length
+                                game.gamePlayer[data.seatIndex].wukong = game.gamePlayer[data.seatIndex].wukong + data.playCard.length - numOfBianshen
                             }
                             else if(poker.getIndexOfCardList(data.playCard[0]).num === 31){
-                                game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length
+                                game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length - numOfBianshen
                             }
                         }
                         while(game.gamePlayer[data.seatIndex].remainCards.length < 5 && game.remainCards.length > 0){//补牌
@@ -450,6 +457,7 @@ function intervalCheckCard(wss, thisTimer, id){
                     })
                     game.currentCombo = 1
                     let playCard = game.gamePlayer[game.currentPlayer].remainCards.shift()
+                    playCard = playCard < 100 ? playCard : playCard - 100
                     let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.getIndexOfCardList(playCard).name
                     if(poker.getIndexOfCardList(playCard).num === 100){//反弹牌
                         game.gamePlayer[game.currentPlayer].joker = game.gamePlayer[game.currentPlayer].joker + 1
@@ -765,6 +773,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                             shaseng : player.shaseng,
                             tangseng : player.tangseng,
                             joker : player.joker,
+                            bianshen : player.bianshen,
                             seat_index : i,
                             accountId : accounts[j].id,
                         })
@@ -828,7 +837,8 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                     bajie: player.bajie, 
                     shaseng: player.shaseng, 
                     tangseng: player.tangseng, 
-                    joker: player.joker
+                    joker: player.joker,
+                    bianshen: player.bianshen
                 })
             })
             let gameResultStr = JSON.stringify(gameResultDto)
