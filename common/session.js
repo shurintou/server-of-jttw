@@ -1,3 +1,5 @@
+/* session配置，通过redis来管理玩家session */
+
 var session = require('express-session')
 let RedisStore = require('connect-redis')(session)
 let redisClient = require('../database/redis')

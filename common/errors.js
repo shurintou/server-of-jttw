@@ -1,3 +1,4 @@
+/* 异常信息配置文件 */
 module.exports={
     SESSION_TIMEOUT: {code: 401, message: '账号信息已过期，请重新登录'},
     WEBSOCKET_SESSION_TIMEOUT: {code: 1000, message: '账号信息已过期，请重新登录'},

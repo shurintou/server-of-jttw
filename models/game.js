@@ -1,3 +1,5 @@
+/* 游戏模型 */
+
 const db = require('../database/mysql')
 
 const Game = db.defineModel('game', 

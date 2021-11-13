@@ -1,3 +1,5 @@
+/* 邀请码模型 */
+
 const db = require('../database/mysql')
 module.exports = db.defineModel('invitationCode', 
 {

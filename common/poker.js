@@ -1,3 +1,5 @@
+/* 扑克牌配置文件 */
+
 var localCardList = [
     { num: 2, suit: 4, src: '2A', name: '妖怪2' },
     { num: 2, suit: 3, src: '2B', name: '妖怪2' },

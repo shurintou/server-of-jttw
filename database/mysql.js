@@ -1,10 +1,11 @@
+/* 持久层 */
 
 const {Sequelize, DataTypes} = require('sequelize')
 const conf = require('../config/')
 const dbConf = conf.mysql
 const logger = require('../common/log')
 
-
+//使用sequelize持久层框架
 var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password, {
     host: dbConf.host,
     dialect: 'mysql',
@@ -19,6 +20,7 @@ var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password,
 })
 
 module.exports = {
+    //定义模型model时的共通处理
     defineModel: function(name, attributes) {
         var attrs = {};
         attrs.id = {

@@ -1,3 +1,5 @@
+/* 账号模型 */
+
 const db = require('../database/mysql')
 
 module.exports = db.defineModel('account', 
