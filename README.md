@@ -5,7 +5,6 @@
 [![](https://img.shields.io/badge/Redis-3.0-red)](https://www.npmjs.com/package/redis)
 [![](https://img.shields.io/badge/ws-7.4-orange)](https://github.com/websockets/ws)
 
-项目地址: [https://www.jttw.link](https://www.jttw.link)
 
 西游记是一款网页联机式的纸牌类游戏，该项目是西游记的后端部分。前端部分请参考 [https://github.com/shurintou/journey-to-the-west](https://github.com/shurintou/journey-to-the-west)。
 
