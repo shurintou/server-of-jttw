@@ -21,7 +21,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env NODE_ENV=development node-dev app.js",
+    "dev": "cross-env NODE_ENV=development node app.js",
     "start": "node app.js"
   },
   "author": "",
