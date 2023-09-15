@@ -6,7 +6,7 @@ const logger = require('./log')
 
 let files = fs.readdirSync('./models')
 
-let js_files = files.filter((f)=>{
+let js_files = files.filter((f) => {
     return f.endsWith('.js')
 }, files)
 

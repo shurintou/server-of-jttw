@@ -11,7 +11,7 @@ sess.store = redisStore
 module.exports = {
     session: session(sess),
     store: redisStore,
-    sessionHandler: function( req, account){
+    sessionHandler: function (req, account) {
         req.session.username = account.username
         req.session.userId = account.id
         req.session.sessionID = req.sessionID

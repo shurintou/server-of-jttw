@@ -20,7 +20,7 @@ const conf = require('./config/')
 
 /* 解析JSON */
 app.use(express.json())
-app.use(express.urlencoded({extended: true}))
+app.use(express.urlencoded({ extended: true }))
 /************/
 
 /* session */
@@ -32,7 +32,7 @@ app.use('/', routerInterceptor)//拦截器
 /**********/
 
 /* 日志 */
-app.use(log4js.connectLogger(logger, {level: 'error'}))
+app.use(log4js.connectLogger(logger, { level: 'error' }))
 
 /* websocket */
 const server = http.createServer(app)
@@ -52,7 +52,7 @@ server.on('upgrade', function (request, socket, head) {
 
 /* API*(路由) */
 Object.keys(routers).forEach(key => {
-    app.use(conf.APIRoot, routers[key])//给路由增加根路径
+  app.use(conf.APIRoot, routers[key])//给路由增加根路径
 })
 /*******/
 
@@ -63,6 +63,6 @@ app.use(function (err, req, res, next) {
 
 /* 启动服务器 */
 // app.listen( conf.port, () => {} )
-server.listen(conf.port, () => {}) 
+server.listen(conf.port, () => { })
 /*************/
 

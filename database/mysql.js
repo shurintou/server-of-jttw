@@ -1,6 +1,6 @@
 /* 持久层 */
 
-const {Sequelize, DataTypes} = require('sequelize')
+const { Sequelize, DataTypes } = require('sequelize')
 const conf = require('../config/')
 const dbConf = conf.mysql
 const logger = require('../common/log')
@@ -21,7 +21,7 @@ var sequelize = new Sequelize(dbConf.database, dbConf.username, dbConf.password,
 
 module.exports = {
     //定义模型model时的共通处理
-    defineModel: function(name, attributes) {
+    defineModel: function (name, attributes) {
         var attrs = {};
         attrs.id = {
             type: DataTypes.INTEGER(11),
@@ -34,9 +34,9 @@ module.exports = {
             if (typeof value === 'object' && value['type']) {
                 value.allowNull = value.allowNull || false;
                 attrs[key] = value;
-            } 
+            }
             else {
-                attrs[key] = {type: DataTypes[value], allowNull: false };
+                attrs[key] = { type: DataTypes[value], allowNull: false };
             }
         }
         return sequelize.define(name, attrs, {
@@ -44,7 +44,7 @@ module.exports = {
         })
     },
 
-    sync: async function(){
+    sync: async function () {
         await sequelize.sync()
     },
 

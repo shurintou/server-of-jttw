@@ -60,22 +60,22 @@ var localCardList = [
 module.exports = {
     cardList: localCardList,
 
-    getIndexOfCardList: function(index){
-        if(index < 100){
+    getIndexOfCardList: function (index) {
+        if (index < 100) {
             return localCardList[index]
         }
         return localCardList[index - 100]
     },
-    
-    shuffle: function(array, size) {
+
+    shuffle: function (array, size) {
         var index = -1,
             length = array.length,
             lastIndex = length - 1
 
         size = size === undefined ? length : size
         while (++index < size) {
-            var rand = index + Math.floor( Math.random() * (lastIndex - index + 1))
-                value = array[rand]
+            var rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
+            value = array[rand]
             array[rand] = array[index]
             array[index] = value
         }
