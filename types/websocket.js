@@ -1,22 +1,50 @@
-/**
- * @description Redis中的websocket信息。对应key:sess
- * @typedef RedisCacheWebsocket
+/** 
+ * @description 玩家连接的基本信息。
+ * @typedef BasicPlayerConnectionInfo
  * @type {object}
- * @property {Cookie} cookie - 玩家id
  * @property {string} username -  玩家用户名
  * @property {number} userId - 玩家id
- * @property {string} sessionID - 会话的哈希值
+ * @property {string} sessionID - 玩家会话的哈希值
+ */
+
+/**
+ * @description Redis中的websocket信息。对应key:sess
+ * @typedef BasicRedisCacheWebsocketInfo
+ * @type {object}
+ * @property {CookieInfo} cookie - 玩家id
  * @property {string} ip - 玩家ip地址
  * @property {(text:string)=>void} send - 发送websocket信息
+ * @typedef {BasicRedisCacheWebsocket & BasicPlayerConnectionInfo} RedisCacheWebsocketInfo
  */
 
 /**
  * @description Redis中的cookie信息。对应key:sess
- * @typedef Cookie
+ * @typedef CookieInfo
  * @type {object}
  * @property {number} originalMaxAge - 会话存活时间(毫秒)
  * @property {string} expires -  会话到期时间(时间戳)
  * @property {boolean} secure - 同cookie-secure
  * @property {boolean} httpOnly - 同cookie-httpOnly
  * @property {string} path - 同cookie-path
+ */
+
+
+/** 
+ * @description WebSocketServer信息，包含所有玩家的WebSocket连接
+ * @typedef {import("ws").WebSocketServer} WebSocketServerRaw
+ */
+
+/** 
+ * @description WebSocketServer信息，包含所有玩家的WebSocket连接(附带玩家信息)
+ * @typedef {{clients: Set<WebSocketInfo>} & WebSocketServerRaw} WebSocketServerInfo
+ */
+
+/** 
+ * @description 单一玩家的WebSocket连接
+ * @typedef {import("ws").WebSocket} WebSocketRaw
+ */
+
+/** 
+ * @description 单一玩家的WebSocket连接(附带玩家信息)
+ * @typedef {WebSocketRaw & BasicPlayerConnectionInfo} WebSocketInfo
  */

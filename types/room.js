@@ -4,7 +4,7 @@
 
 /**
  * @description Redis中的房间信息。对应key:room
- * @typedef RedisCacheRoom
+ * @typedef RedisCacheRoomInfo
  * @type {object}
  * @property {number} id - 房间id
  * @property {string} name -  房间名 
