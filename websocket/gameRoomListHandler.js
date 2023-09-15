@@ -86,7 +86,6 @@ module.exports = function (data, wss, ws) {
                                 const gameRoomLength = list.push(conf.redisCache.gameRoomPrefix + freeIndex)
                                 let duplicateOwner = false
                                 redis.mget(list, function (err, gameRoomList) {
-                                    console.log(gameRoomList)
                                     if (err) { return logger.error('error redis response - ' + err) }
                                     try {
                                         if (gameRoomLength > 1) {

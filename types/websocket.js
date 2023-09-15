@@ -5,6 +5,7 @@
  * @property {string} username -  玩家用户名
  * @property {number} userId - 玩家id
  * @property {string} sessionID - 玩家会话的哈希值
+ * @property {string} ip - 玩家ip地址
  */
 
 /**
@@ -12,9 +13,10 @@
  * @typedef BasicRedisCacheWebsocketInfo
  * @type {object}
  * @property {CookieInfo} cookie - 玩家id
- * @property {string} ip - 玩家ip地址
- * @property {(text:string)=>void} send - 发送websocket信息
- * @typedef {BasicRedisCacheWebsocket & BasicPlayerConnectionInfo} RedisCacheWebsocketInfo
+ */
+
+/**
+ * @typedef {BasicRedisCacheWebsocketInfo & BasicPlayerConnectionInfo} RedisCacheWebsocketInfo
  */
 
 /**
