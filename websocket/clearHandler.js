@@ -4,14 +4,24 @@ const logoutHandler = require('./logoutHandler')
 const WebSocket = require('ws')
 const logger = require('../common/log')
 
-/* 定期清除失活的连接，session，player */
+/**
+ * @typedef {import('../types/websocket.js').WebSocketServerInfo}
+ * @typedef {import('../types/websocket.js').RedisCacheWebsocketInfo}
+ * @typedef {import('../types/room.js').RedisCacheRoomInfo}
+ */
+
+/**
+ * @summary 定期清除失活的连接，session，player
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {void}
+ */
 module.exports = function (wss) {
     try {
         var clearHandlerTimer = setInterval(function checkConnections() {
             wss.clients.forEach(function each(ws) {
                 if (ws.isAlive === false) {
                     ws.terminate()
-                    logger.warn('clearHandler terminated the websocket of user' + (ws.session ? ws.session.userId : ws.userId))
+                    logger.warn('clearHandler terminated the websocket of user' + ws.userId)
                     logoutHandler(wss, ws)
                 }
                 ws.isAlive = false;
@@ -47,6 +57,7 @@ module.exports = function (wss) {
                 redis.mget(list, function (err, res) {
                     if (err) { return logger.error('error redis response - ' + err) }
                     try {
+                        /** @type {RedisCacheWebsocketInfo[]} */
                         let sessions = []
                         res.forEach(item => { sessions.push(JSON.parse(item)) })
                         for (let i = 0; i < sessions.length; i++) {
@@ -59,6 +70,7 @@ module.exports = function (wss) {
                                 }
                             })
                         }
+                        /** @type {number[]} */
                         let stillAlivePlayerIdList = []
                         for (let i = 0; i < sessions.length; i++) {
                             if (!sessions[i]) continue
@@ -74,6 +86,7 @@ module.exports = function (wss) {
                                 if (err) { return logger.error('error redis response - ' + err) }
                                 try {
                                     gameRoomList.forEach(item => {
+                                        /** @type {RedisCacheRoomInfo} */
                                         let gameRoom = JSON.parse(item)
                                         if (gameRoom.status === 1) { return } //房间正在游戏中，不清理
                                         let stillHasPlayer = false

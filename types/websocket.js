@@ -9,13 +9,13 @@
  */
 
 /**
- * @description Redis中的websocket信息。对应key:sess
  * @typedef BasicRedisCacheWebsocketInfo
  * @type {object}
  * @property {CookieInfo} cookie - 玩家id
  */
 
 /**
+ * @description Redis中的websocket信息。对应key:sess
  * @typedef {BasicRedisCacheWebsocketInfo & BasicPlayerConnectionInfo} RedisCacheWebsocketInfo
  */
 
@@ -38,7 +38,7 @@
 
 /** 
  * @description WebSocketServer信息，包含所有玩家的WebSocket连接(附带玩家信息)
- * @typedef {{clients: Set<WebSocketInfo>} & WebSocketServerRaw} WebSocketServerInfo
+ * @typedef {{clients: Set<WebSocketInfo>} & WebSocketServerRaw & WebSocketServerMixin} WebSocketServerInfo
  */
 
 /** 
@@ -47,6 +47,20 @@
  */
 
 /** 
+ * @description WebSocketServer的附加信息。
+ * @typedef WebSocketServerMixin
+ * @type {object}
+ * @property {NodeJS.Timeout} clearHandlerTimerId - WebSocketServer的计时器Id。
+ */
+
+/** 
+ * @description WebSocket的附加信息。
+ * @typedef WebSocketMixin
+ * @type {object}
+ * @property {boolean} isAlive - 玩家的Websocket连接是否活跃。
+ */
+
+/** 
  * @description 单一玩家的WebSocket连接(附带玩家信息)
- * @typedef {WebSocketRaw & BasicPlayerConnectionInfo} WebSocketInfo
+ * @typedef {WebSocketRaw & BasicPlayerConnectionInfo & WebSocketMixin} WebSocketInfo
  */
