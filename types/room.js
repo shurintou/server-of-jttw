@@ -42,7 +42,13 @@
  * @property {number?} playerId - 被拒绝更换座位的玩家id。disagreeChangeSeat时不为空。
  * @property {string?} refusePlayerNickname - 拒绝更换座位的玩家昵称。disagreeChangeSeat时不为空。
  * @property {string?} nickname - 离开房间的玩家昵称。离开房间时不为空。
- * 
- * 
  */
 
+/** 
+ * @description 游戏房间聊天的websocket请求信息。
+ * @typedef RoomChatWebsocketRequestData
+ * @type {object} 
+ * @property {string} nickname - 发送信息玩家昵称。
+ * @property {string} text - 聊天信息。
+ * @property {number} player_loc - 目标房间id。
+ */
