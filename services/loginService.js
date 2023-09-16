@@ -1,4 +1,4 @@
-const models = require('../common/models')
+const sequelize = require('../database/mysql').sequelize
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
@@ -10,7 +10,7 @@ const logger = require('../common/log')
 module.exports = {
     login: async function (req) {
         try {
-            const Account = models.account
+            const Account = sequelize.models.account
             var accounts = await Account.findAll({ where: { username: req.body.username } })
             if (accounts.length === 0) {
                 return Promise.resolve(errors.USERNAME_NOT_FOUND)

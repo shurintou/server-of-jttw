@@ -1,4 +1,4 @@
-const models = require('../common/models')
+const sequelize = require('../database/mysql').sequelize
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
@@ -17,7 +17,7 @@ module.exports = {
                 return Promise.resolve(errors.SESSION_TIMEOUT)
             }
             else {
-                const Account = models.account
+                const Account = sequelize.models.account
                 /** @type {SequelizedModelPlayer[]} */
                 var accounts = await Account.findAll({ where: { id: req.session.userId } })
                 var account = accounts[0]

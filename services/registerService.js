@@ -1,14 +1,13 @@
-const models = require('../common/models')
-const errors = require('../common/errors')
 const sequelize = require('../database/mysql').sequelize
+const errors = require('../common/errors')
 const logger = require('../common/log')
 
 module.exports = {
     register: async function (data) {
         const t = await sequelize.transaction()
         try {
-            const InvitationCode = models.invitationCode
-            const Account = models.account
+            const InvitationCode = sequelize.models.invitationCode
+            const Account = sequelize.models.account
             var invitationCodes = await InvitationCode.findAll({ where: { invitation_code: data.invitationCode } })
             if (invitationCodes.length === 0) {
                 return Promise.resolve(errors.INVITATIONCODE_NOT_FOUND)
@@ -19,7 +18,7 @@ module.exports = {
             else {
                 var accounts = await Account.findAll({ where: { username: data.username } })
                 if (accounts.length === 0) {
-                    const Record = models.record
+                    const Record = sequelize.models.record
                     var newAccount = await Account.create({ username: data.username, password: data.password }, { transaction: t })
                     await Record.create({ accountId: newAccount.id }, { transaction: t })
                     invitationCodes[0].is_used = true

@@ -1,4 +1,4 @@
-const models = require('../common/models')
+const sequelize = require('../database/mysql').sequelize
 const logger = require('../common/log')
 const redis = require('../database/redis')
 const conf = require('../config/')
@@ -8,7 +8,7 @@ const errors = require('../common/errors')
 module.exports = {
     getRankInfo: async function (req) {
         var rankPrefix = conf.redisCache.rankPrefix
-        const Account = models.account
+        const Account = sequelize.models.account
         let order = 1
         if (req.query.type === 'lowest_rate' || req.query.type === 'least_cards') {
             order = 0
@@ -18,7 +18,7 @@ module.exports = {
             if (getRedisWrapperResult.result) {
             }
             else {
-                const Record = models.record
+                const Record = sequelize.models.record
                 var records = await Record.findAll({ where: { num_of_game: { [Op.gte]: 5 } } })
                 if (records.length < 1) {//样本数量不足时
                     return Promise.resolve({ code: 200, message: '', type: req.query.type, result: { rankList: [], playerInfo: null } })

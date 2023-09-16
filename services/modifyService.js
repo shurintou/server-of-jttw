@@ -1,10 +1,10 @@
-const models = require('../common/models')
+const sequelize = require('../database/mysql').sequelize
 const logger = require('../common/log')
 
 module.exports = {
     modifyAvatar: async function (req) {
         try {
-            const Account = models.account
+            const Account = sequelize.models.account
             var accounts = await Account.findAll({ where: { id: req.session.userId } })
             accounts[0].avatar_id = req.body.avatar_id
             await accounts[0].save()
@@ -18,7 +18,7 @@ module.exports = {
 
     modifyNickname: async function (req) {
         try {
-            const Account = models.account
+            const Account = sequelize.models.account
             var accounts = await Account.findAll({ where: { id: req.session.userId } })
             accounts[0].nickname = req.body.nickname
             await accounts[0].save()
