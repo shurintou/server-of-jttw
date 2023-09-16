@@ -15,6 +15,7 @@ const logger = require('../common/log')
  * @param {RoomWebsocketRequestData} data 游戏房间的前端请求信息。
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
+ * @returns {void}
  */
 module.exports = function (data, wss, ws) {
     try {
