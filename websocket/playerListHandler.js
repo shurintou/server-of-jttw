@@ -2,7 +2,21 @@ const redis = require('../database/redis')
 const WebSocket = require('ws')
 const conf = require('../config/')
 const logger = require('../common/log')
+/**
+ * @typedef {import('../types/websocket.js').WebSocketServerInfo}
+ * @typedef {import('../types/websocket.js').WebSocketInfo}
+ * @typedef {import('../types/http.js').ClientRequest}
+ * @typedef {import('../types/player.js').RedisCachePlayer}
+ * @typedef {import('../types/player.js').PlayerListWebsocketRequestData}
+ */
 
+/**
+ * @param {PlayerListWebsocketRequestData} data 玩家列表的前端请求信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {ClientRequest} req Request信息(附带玩家信息)。
+ * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
+ * @returns {void}
+ */
 module.exports = function (data, wss, req, ws) {
     try {
         if (data.action && data.action === 'get') {
@@ -45,6 +59,7 @@ module.exports = function (data, wss, req, ws) {
                         }
                         /* 对比新旧信息 */
                         else {
+                            /** @type {RedisCachePlayer} */
                             var oldPlayer = JSON.parse(res)
                             if (data.player_loc !== oldPlayer.player_loc) {
                                 if (data.player_loc > 0) {
