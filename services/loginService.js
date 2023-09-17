@@ -8,7 +8,7 @@ const logger = require('../common/log')
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/http').RegisterRequestBody}
- * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAccount}
  * @typedef {import('../types/websocket').RedisCacheWebsocketInfo}
  */
 
@@ -19,7 +19,7 @@ module.exports = {
             /** @type {RegisterRequestBody} */
             const body = req.body
             const Account = sequelize.models.account
-            /** @type {SequelizedModelPlayer[]} */
+            /** @type {SequelizedModelAccount[]} */
             var accounts = await Account.findAll({ where: { username: body.username } })
             if (accounts.length === 0) {
                 return Promise.resolve(errors.USERNAME_NOT_FOUND)
@@ -46,7 +46,7 @@ module.exports = {
 
 /** 
  * @param {ClientRequest} req
- * @param {SequelizedModelPlayer} account
+ * @param {SequelizedModelAccount} account
  * @returns {Promise<{code:number, message:string, account?: {id: number, username: string, avatar_id: number, nickname: string}}>}
  */
 function storeWrapper(req, account) {

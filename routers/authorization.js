@@ -6,7 +6,7 @@ const logger = require('../common/log')
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/http').ClientResponse}
- * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAccount}
  */
 
 router.get('/authorization',

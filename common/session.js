@@ -8,7 +8,7 @@ var sess = conf.session
 var redisStore = new RedisStore({ client: redisClient })
 /** 
  * @typedef {import('../types/http').ClientRequest}
- * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAccount}
  */
 
 sess.store = redisStore
@@ -18,7 +18,7 @@ module.exports = {
     /** 
      * @description 将玩家信息绑定到request会话中。
      * @param {ClientRequest} req
-     * @param {SequelizedModelPlayer} account
+     * @param {SequelizedModelAccount} account
      */
     sessionHandler: function (req, account) {
         req.session.username = account.username

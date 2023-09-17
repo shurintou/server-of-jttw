@@ -5,7 +5,7 @@ const errors = require('../common/errors')
 const logger = require('../common/log')
 /** 
  * @typedef {import('../types/http').ClientRequest}
- * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAccount}
  */
 
 module.exports = {
@@ -18,7 +18,7 @@ module.exports = {
             }
             else {
                 const Account = sequelize.models.account
-                /** @type {SequelizedModelPlayer[]} */
+                /** @type {SequelizedModelAccount[]} */
                 var accounts = await Account.findAll({ where: { id: req.session.userId } })
                 var account = accounts[0]
                 return Promise.resolve({ code: 200, message: '', account: { id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname } })
