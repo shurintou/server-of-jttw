@@ -1,11 +1,11 @@
 /* session配置，通过redis来管理玩家session */
 
-var session = require('express-session')
+const session = require('express-session')
 let RedisStore = require('connect-redis')(session)
 let redisClient = require('../database/redis')
 const conf = require('../config/')
-var sess = conf.session
-var redisStore = new RedisStore({ client: redisClient })
+const sess = conf.session
+const redisStore = new RedisStore({ client: redisClient })
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/player').SequelizedModelAccount}

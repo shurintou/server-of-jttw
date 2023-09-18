@@ -19,7 +19,7 @@ module.exports = {
             /** @type {RegisterRequestBody} */
             const body = req.body
             /** @type {SequelizedModelAccount[]} */
-            var accounts = await Account.findAll({ where: { username: body.username } })
+            const accounts = await Account.findAll({ where: { username: body.username } })
             if (accounts.length === 0) {
                 return Promise.resolve(errors.USERNAME_NOT_FOUND)
             }
@@ -62,9 +62,9 @@ function storeWrapper(req, account) {
                 let sessions = []
                 let sessionIp = ''
                 res.forEach(item => { sessions.push(JSON.parse(item)) })
-                var hasLogin = false //是否有重复登录
-                var sessionId = ''  //已经登录的sessionID
-                for (var i = 0; i < sessions.length; i++) {
+                let hasLogin = false //是否有重复登录
+                let sessionId = ''  //已经登录的sessionID
+                for (let i = 0; i < sessions.length; i++) {
                     if (sessions[i].username === body.username) {
                         sessionId = conf.redisCache.sessionPrefix + sessions[i].sessionID
                         sessionIp = sessions[i].ip

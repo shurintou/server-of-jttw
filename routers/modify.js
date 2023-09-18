@@ -1,5 +1,5 @@
-var express = require('express')
-var router = express.Router()
+const express = require('express')
+const router = express.Router()
 const modifyService = require('../services/modifyService')
 const baseUrl = '/modify'
 const logger = require('../common/log')

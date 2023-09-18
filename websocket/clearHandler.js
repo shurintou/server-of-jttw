@@ -17,7 +17,7 @@ const logger = require('../common/log')
  */
 module.exports = function (wss) {
     try {
-        var clearHandlerTimer = setInterval(function checkConnections() {
+        const clearHandlerTimer = setInterval(function checkConnections() {
             wss.clients.forEach(function each(ws) {
                 if (ws.isAlive === false) {
                     ws.terminate()

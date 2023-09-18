@@ -1,6 +1,6 @@
 /* 路由拦截器 */
 
-var conf = require('../config/')
+const conf = require('../config/')
 const errors = require('./errors')
 
 module.exports = function (req, res, next) {

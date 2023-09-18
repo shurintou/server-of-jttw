@@ -60,7 +60,7 @@ module.exports = function (data, wss, req, ws) {
                         /* 对比新旧信息 */
                         else {
                             /** @type {RedisCachePlayer} */
-                            var oldPlayer = JSON.parse(res)
+                            const oldPlayer = JSON.parse(res)
                             if (data.player_loc !== oldPlayer.player_loc) {
                                 if (data.player_loc > 0) {
                                     wss.clients.forEach(function each(client) {

@@ -7,7 +7,7 @@
 /** 
  * @type {Pokers}
  */
-var localCardList = [
+const localCardList = [
     { num: 2, suit: 4, src: '2A', name: '妖怪2' },
     { num: 2, suit: 3, src: '2B', name: '妖怪2' },
     { num: 2, suit: 2, src: '2C', name: '妖怪2' },
@@ -87,13 +87,13 @@ module.exports = {
      * @returns {number[]} 洗牌后的扑克牌序号数组
      */
     shuffle: function (array, size) {
-        var index = -1,
-            length = array.length,
-            lastIndex = length - 1
+        let index = -1
+        const length = array.length
+        const lastIndex = length - 1
 
         size = size === undefined ? length : size
         while (++index < size) {
-            var rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
+            let rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
             value = array[rand]
             array[rand] = array[index]
             array[index] = value

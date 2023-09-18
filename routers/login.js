@@ -1,5 +1,5 @@
-var express = require('express')
-var router = express.Router()
+const express = require('express')
+const router = express.Router()
 const loginService = require('../services/loginService')
 const sessionHandler = require('../common/session').sessionHandler
 const logger = require('../common/log')

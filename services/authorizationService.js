@@ -12,14 +12,14 @@ module.exports = {
     /** @type {(req: ClientRequest) => Promise<{code:number, message:string, account?: {id: number, username: string, avatar_id: number, nickname: string}}>} */
     authorization: async function (req) {
         try {
-            var checkResult = await storeWrapper(req)
+            const checkResult = await storeWrapper(req)
             if (checkResult.result) {
                 return Promise.resolve(errors.SESSION_TIMEOUT)
             }
             else {
                 /** @type {SequelizedModelAccount[]} */
-                var accounts = await Account.findAll({ where: { id: req.session.userId } })
-                var account = accounts[0]
+                const accounts = await Account.findAll({ where: { id: req.session.userId } })
+                const account = accounts[0]
                 return Promise.resolve({ code: 200, message: '', account: { id: account.id, username: account.username, avatar_id: account.avatar_id, nickname: account.nickname } })
             }
         }

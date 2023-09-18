@@ -7,17 +7,17 @@ const logger = require('../common/log')
 
 module.exports = {
     getPlayerRecord: async function (req) {
-        var playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
+        const playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
         try {
-            var checkResult = await redisWrapper(playerRecordId)
+            const checkResult = await redisWrapper(playerRecordId)
             if (checkResult.result) {
                 /* 缓存中有record的话直接读取 */
                 return Promise.resolve({ code: 200, message: '', record: checkResult.record })
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
-                var records = await Record.findAll({ where: { accountId: req.params.id } })
-                var record = records[0]
+                const records = await Record.findAll({ where: { accountId: req.params.id } })
+                const record = records[0]
                 redis.multi()
                     .set(playerRecordId, JSON.stringify(record, null, 4))
                     .expire(playerRecordId, conf.redisCache.expire)
@@ -35,12 +35,12 @@ module.exports = {
 
     getGameRecordsList: async function (req) {
         try {
-            var playersRecordNum = await Player.count({
+            const playersRecordNum = await Player.count({
                 where: {
                     accountId: req.query.id
                 }
             })
-            var playerRecords = await Player.findAll({
+            const playerRecords = await Player.findAll({
                 order: [['id', 'DESC']],
                 where: {
                     accountId: req.query.id
@@ -57,18 +57,18 @@ module.exports = {
     },
 
     getGameRecord: async function (req) {
-        var gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
+        const gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
         try {
-            var checkResult = await redisWrapper(gameRecordId)
+            const checkResult = await redisWrapper(gameRecordId)
             if (checkResult.result) {
                 /* 缓存中有record的话直接读取 */
                 return Promise.resolve({ code: 200, message: '', gameResult: checkResult.record })
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
-                var games = await Game.findAll({ where: { id: req.params.id } })
-                var game = games[0]
-                var gamePlayerList = await game.getPlayers()
+                const games = await Game.findAll({ where: { id: req.params.id } })
+                const game = games[0]
+                const gamePlayerList = await game.getPlayers()
                 let gameResultDto = {
                     id: game.id,
                     winnerNickname: game.winner,

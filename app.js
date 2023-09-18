@@ -1,13 +1,13 @@
-var express = require("express")
-var session = require('./common/session').session
-var app = express()
+const express = require("express")
+const session = require('./common/session').session
+const app = express()
 const http = require('http')
 const wss = require('./websocket/')
 const routers = require('./common/routers')
 const routerInterceptor = require('./common/routerInterceptor')
 const log4js = require("log4js")
 const logger = require('./common/log')
-var history = require('connect-history-api-fallback')
+const history = require('connect-history-api-fallback')
 const path = require('path')
 
 /* 部署前端项目需要的插件 */

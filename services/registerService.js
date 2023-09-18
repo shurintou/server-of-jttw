@@ -9,7 +9,7 @@ module.exports = {
     register: async function (data) {
         const t = await sequelize.transaction()
         try {
-            var invitationCodes = await InvitationCode.findAll({ where: { invitation_code: data.invitationCode } })
+            const invitationCodes = await InvitationCode.findAll({ where: { invitation_code: data.invitationCode } })
             if (invitationCodes.length === 0) {
                 return Promise.resolve(errors.INVITATIONCODE_NOT_FOUND)
             }
@@ -17,9 +17,9 @@ module.exports = {
                 return Promise.resolve(errors.INVITATIONCODE_USED)
             }
             else {
-                var accounts = await Account.findAll({ where: { username: data.username } })
+                const accounts = await Account.findAll({ where: { username: data.username } })
                 if (accounts.length === 0) {
-                    var newAccount = await Account.create({ username: data.username, password: data.password }, { transaction: t })
+                    const newAccount = await Account.create({ username: data.username, password: data.password }, { transaction: t })
                     await Record.create({ accountId: newAccount.id }, { transaction: t })
                     invitationCodes[0].is_used = true
                     invitationCodes[0].player_id = newAccount.id

@@ -8,7 +8,7 @@ const errors = require('../common/errors')
 
 module.exports = {
     getRankInfo: async function (req) {
-        var rankPrefix = conf.redisCache.rankPrefix
+        const rankPrefix = conf.redisCache.rankPrefix
         let order = 1
         if (req.query.type === 'lowest_rate' || req.query.type === 'least_cards') {
             order = 0
@@ -18,7 +18,7 @@ module.exports = {
             if (getRedisWrapperResult.result) {
             }
             else {
-                var records = await Record.findAll({ where: { num_of_game: { [Op.gte]: 5 } } })
+                const records = await Record.findAll({ where: { num_of_game: { [Op.gte]: 5 } } })
                 if (records.length < 1) {//样本数量不足时
                     return Promise.resolve({ code: 200, message: '', type: req.query.type, result: { rankList: [], playerInfo: null } })
                 }
@@ -96,7 +96,7 @@ module.exports = {
 }
 
 function checkGetRedisWrapper(keyword, order, id) {
-    var redisKey = conf.redisCache.rankPrefix + keyword
+    const redisKey = conf.redisCache.rankPrefix + keyword
     return new Promise((resolve, reject) => {
         redis.exists(redisKey, function (err, res) {
             if (err) { return reject({ message: 'error redis response - ' + err }) }
@@ -195,7 +195,7 @@ function setGetRedisWrapper(redisKey, zaddList, id, order) {
 
 
 function getTopPlayer(id) {
-    let topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
+    const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
     return new Promise((resolve, reject) => {
         redis.exists(topPlayerKey, function (err, res) {
             if (err) { return reject({ message: 'error redis response - ' + err }) }
@@ -213,7 +213,7 @@ function getTopPlayer(id) {
 }
 
 function setTopPlayer(keyId, avatarId, nickname) {
-    let topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
+    const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
     redis.multi()
         .set(topPlayerKey, JSON.stringify({ avatar_id: avatarId, nickname: nickname }))
         .expire(topPlayerKey, conf.redisCache.expire)
