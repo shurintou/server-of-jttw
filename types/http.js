@@ -22,3 +22,11 @@
  * @property {string} username -  玩家用户名
  * @property {string} password - 玩家密码
  */
+
+/**
+ * @description modify的body信息
+ * @typedef ModifyRequestBody
+ * @type {object}
+ * @property {string?} nickname -  新设置的昵称。
+ * @property {string?} avatar_id - 新设置的头像id。
+ */
