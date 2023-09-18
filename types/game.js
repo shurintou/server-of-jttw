@@ -18,7 +18,6 @@
  * @property {number} cardNum - 使用牌副数。
  * @property {number} metamorphoseNum - 每副牌中变身牌数量。
  * @property {number} currentCombo - 现在的连击数。
- * @property {number?} maxCombo - 最大连击数。
  * @property {number} version - 数据的版本，用于确认玩家有没有收到过期数据。
  * @property {number} timesCombo - 暴击连击数。
  * @property {number} timesCard - 暴击连击牌得到的额外牌数量。
@@ -26,6 +25,7 @@
  * @property {GamePlayers} gamePlayer - 游戏中所有玩家状态。
  * @property {number[]} gamePlayerId - 游戏中所有玩家id。
  * @property {number[]} remainCards - 牌堆中余留的牌序号。
+ * @property {string[]} messages - 游戏信息。
  */
 
 
@@ -120,16 +120,4 @@
  * @property {number} tangseng - 使用师傅数。
  * @property {number} bianshen - 使用变身牌数。
  * @property {number} joker - 使用如来、观音牌数。
- */
-
-/** 
- * @typedef GameMessages 游戏信息。
- * @type {object}
- * @property {string[]} messages 游戏信息。
- * */
-
-/**
- * @description 游戏的websocket响应信息。
- * @typedef GameWebsocketResponseData
- * @type {GameMessages & RedisCacheGame}
  */

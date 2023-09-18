@@ -16,7 +16,6 @@ const logger = require('../common/log')
  * @typedef {import('../types/player.js').RedisCachePlayerInGame}
  * @typedef {import('../types/game.js').GamePlayerSeatIndex}
  * @typedef {import('../types/game.js').RedisCacheGame}
- * @typedef {import('../types/game.js').GameWebsocketResponseData}
  * @typedef {import('../types/game.js').GameResultWebsocketResponseData}
  * @typedef {import('../types/game.js').GameWebsocketRequestData}
  * @typedef {import('../types/websocket.js').WebSocketServerInfo}
@@ -241,7 +240,7 @@ module.exports = function (data, wss, ws) {
             redis.get(gameKey, function (err, res) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
-                    /** @type {GameWebsocketResponseData} */
+                    /** @type {RedisCacheGame} */
                     let game = JSON.parse(res)
                     game.remainCards = game.remainCards.length
                     game.messages = []
@@ -286,9 +285,6 @@ module.exports = function (data, wss, ws) {
                         }
                         else {
                             game.currentCombo = game.currentCombo + data.playCard.length
-                        }
-                        if (game.currentCombo > game.maxCombo) {
-                            game.maxCombo = game.currentCombo
                         }
                         if (game.jokerCard.length > 0) {
                             game.jokerCard = []
@@ -595,7 +591,7 @@ function intervalCheckCard(wss, thisTimer, id) {
 
 /**
  * @param {string} gamekey Redis中的游戏key。
- * @param {GameWebsocketResponseData} game Redis中的游戏信息。
+ * @param {RedisCacheGame} game Redis中的游戏信息。
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @param {string} action 具体操作。
  * @param {string[]} messageList 游戏信息。
