@@ -4,8 +4,18 @@ const Game = require('../models/game')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const logger = require('../common/log')
+/** 
+ * @typedef {import('../types/http').ClientRequest}
+ * @typedef {import('../types/record').BasicRedisCachePlayerRecord}
+ * @typedef {import('../types/record').SequelizedModelRecord}
+ * @typedef {import('../types/game.js').GameResultWebsocketResponseData}
+ * @typedef {import('../types/game.js').SequelizedModelGame}
+ * @typedef {import('../types/game.js').GameResultDto}
+ * @typedef {import('../types/player').SequelizedModelPlayer}
+ */
 
 module.exports = {
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, record:BasicRedisCachePlayerRecord>} */
     getPlayerRecord: async function (req) {
         const playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
         try {
@@ -16,6 +26,7 @@ module.exports = {
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
+                /** @type {SequelizedModelRecord[]} */
                 const records = await Record.findAll({ where: { accountId: req.params.id } })
                 const record = records[0]
                 redis.multi()
@@ -33,6 +44,7 @@ module.exports = {
         }
     },
 
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, pageNum:number, list:SequelizedModelPlayer[]>} */
     getGameRecordsList: async function (req) {
         try {
             const playersRecordNum = await Player.count({
@@ -40,6 +52,7 @@ module.exports = {
                     accountId: req.query.id
                 }
             })
+            /** @type {SequelizedModelPlayer} */
             const playerRecords = await Player.findAll({
                 order: [['id', 'DESC']],
                 where: {
@@ -56,6 +69,7 @@ module.exports = {
         }
     },
 
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, gameResult:GameResultDto>} */
     getGameRecord: async function (req) {
         const gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
         try {
@@ -66,9 +80,12 @@ module.exports = {
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
+                /** @type {SequelizedModelGame[]} */
                 const games = await Game.findAll({ where: { id: req.params.id } })
                 const game = games[0]
+                /** @type {SequelizedModelPlayer[]} */
                 const gamePlayerList = await game.getPlayers()
+                /** @type {GameResultDto} */
                 let gameResultDto = {
                     id: game.id,
                     winnerNickname: game.winner,
@@ -113,6 +130,10 @@ module.exports = {
     }
 }
 
+/** 
+ * @param {string} recordId
+ * @returns {Promise<{result:boolean, record?: BasicRedisCachePlayerRecord}>}
+ */
 function redisWrapper(recordId) {
     return new Promise((resolve, reject) => {
         /* 查询redis中是否有缓存，并返回结果 */
