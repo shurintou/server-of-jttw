@@ -3,7 +3,9 @@ const WebSocket = require('ws')
 const conf = require('../config/')
 const poker = require('../common/poker')
 const errors = require('../common/errors')
-const models = require('../common/models')
+const Player = require('../models/player')
+const Account = require('../models/account')
+const Game = require('../models/game')
 const sequelize = require('../database/mysql').sequelize
 const { Op } = require("sequelize");
 const logger = require('../common/log')
@@ -845,9 +847,6 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
 async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo) {
     const t = await sequelize.transaction()
     try {
-        const Player = sequelize.models.player
-        const Game = sequelize.models.game
-        const Account = sequelize.models.account
         /** @type {SequelizedModelPlayer[]} */
         let insertPlayersInfo = []
         /** @typedef {{id: number, exp: number}} PlayerExp 玩家获得经验值，id：玩家id, exp：获得经验值。 */

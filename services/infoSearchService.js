@@ -1,4 +1,6 @@
-const sequelize = require('../database/mysql').sequelize
+const Player = require('../models/player')
+const Record = require('../models/record')
+const Game = require('../models/game')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const logger = require('../common/log')
@@ -14,7 +16,6 @@ module.exports = {
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
-                const Record = sequelize.models.record
                 var records = await Record.findAll({ where: { accountId: req.params.id } })
                 var record = records[0]
                 redis.multi()
@@ -34,7 +35,6 @@ module.exports = {
 
     getGameRecordsList: async function (req) {
         try {
-            const Player = sequelize.models.player
             var playersRecordNum = await Player.count({
                 where: {
                     accountId: req.query.id
@@ -66,7 +66,6 @@ module.exports = {
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
-                const Game = sequelize.models.game
                 var games = await Game.findAll({ where: { id: req.params.id } })
                 var game = games[0]
                 var gamePlayerList = await game.getPlayers()

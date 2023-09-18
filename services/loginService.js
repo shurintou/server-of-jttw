@@ -1,10 +1,10 @@
-const sequelize = require('../database/mysql').sequelize
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
 const logoutHandler = require('../websocket/logoutHandler')
 const wss = require('../websocket/')
 const logger = require('../common/log')
+const Account = require('../models/account')
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/http').RegisterRequestBody}
@@ -18,7 +18,6 @@ module.exports = {
         try {
             /** @type {RegisterRequestBody} */
             const body = req.body
-            const Account = sequelize.models.account
             /** @type {SequelizedModelAccount[]} */
             var accounts = await Account.findAll({ where: { username: body.username } })
             if (accounts.length === 0) {
