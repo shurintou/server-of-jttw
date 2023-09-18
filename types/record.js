@@ -1,8 +1,12 @@
+/** 
+ * @typedef {import("./common.js").SequelizeCommon}
+ */
+
 /**
  * @description Redis中的玩家战绩信息。对应key:playerRecord
- * @typedef RedisCachePlayerRecord
+ * @typedef BasicRedisCachePlayerRecord
  * @type {object}
- * @property {number} id - 玩家战绩id
+ * @property {number} id - 玩家战绩id。主key。
  * @property {number} num_of_game -  玩家总局数 
  * @property {number} most_game - 拉跨局数
  * @property {number} least_game - 吃鸡局数
@@ -17,8 +21,12 @@
  * @property {number} most_cards - 一局获得最多的牌数
  * @property {string} createdAt - 创建时间
  * @property {string} updatedAt - 更新时间
- * @property {number} accountId - 玩家id
+ * @property {number} accountId - 玩家id。外键，对应table:accounts。
+ * @typedef {BasicRedisCachePlayerRecord & SequelizeCommon} RedisCachePlayerRecord
  */
 
-
+/**
+ * @description 数据库中的中的玩家战绩信息。对应table:records。结构与RedisCachePlayerRecord一致。
+ * @typedef {RedisCachePlayerRecord} SequelizedModelRecord
+ */
 

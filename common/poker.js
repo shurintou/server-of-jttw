@@ -1,5 +1,12 @@
 /* 扑克牌配置文件 */
 
+/** 
+ * @typedef {import("../types/game.js").Pokers}
+ */
+
+/** 
+ * @type {Pokers}
+ */
 var localCardList = [
     { num: 2, suit: 4, src: '2A', name: '妖怪2' },
     { num: 2, suit: 3, src: '2B', name: '妖怪2' },
@@ -58,8 +65,14 @@ var localCardList = [
 ]
 
 module.exports = {
+    /** 扑克牌数组。 */
     cardList: localCardList,
 
+    /** 
+     * @description 获取扑克牌的序号
+     * @param {number} index 序号
+     * @returns {number} 除去可能存在的变身牌+100后的序号
+     */
     getIndexOfCardList: function (index) {
         if (index < 100) {
             return localCardList[index]
@@ -67,6 +80,12 @@ module.exports = {
         return localCardList[index - 100]
     },
 
+    /** 
+     * @description 洗牌处理
+     * @param {number[]} array 扑克牌序号数组
+     * @param {number} size 洗牌后的数组大小，默认为array的长度
+     * @returns {number[]} 洗牌后的扑克牌序号数组
+     */
     shuffle: function (array, size) {
         var index = -1,
             length = array.length,
@@ -83,6 +102,8 @@ module.exports = {
         return array
     },
 
+    /** 每一轮出牌等待的时间 */
     waitTime: 20000,
+    /** 玩家托管时等待的时间 */
     offLineWaitTime: 1000,
 }

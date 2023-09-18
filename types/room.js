@@ -1,5 +1,7 @@
 /**
  * @typedef {import('./player.js').RedisCachePlayerInRoom}
+ * @typedef {import("./common.js").SequelizeCommon}
+ * @typedef {import("./common.js").SequelizeCommon}
  */
 
 /**
@@ -32,7 +34,7 @@
  * @property {number?} owner - 房主的玩家id。创建房间时不为空。
  * @property {number?} lastLoser - 上局拉跨的玩家id。创建房间时不为空。
  * @property {Array<RedisCachePlayerInRoom>?} playerList - 玩家信息列表，下标0~7。创建房间时不为空。
- * @property {number?} seatIndex - 目标座位号，下标0~7。为-1时则不指定位置。enter,离开房间时不为空。
+ * @property {GamePlayerSeatIndex?} seatIndex - 目标座位号，下标0~7。为-1时则不指定位置。enter,离开房间时不为空。
  * @property {'enter'|'ready'|'edit'|'changeSeat'|'disagreeChangeSeat'} action - 对目标房间操作的动作。id>0时不为空。
  * @property {number?} targetSeatIndex - 更换座位请求玩家的更换目标座位号。changeSeat时不为空。
  * @property {number?} targetId - 更换座位请求目标玩家的的玩家id。changeSeat时不为空。
@@ -51,4 +53,17 @@
  * @property {string} nickname - 发送信息玩家昵称。
  * @property {string} text - 聊天信息。
  * @property {number} player_loc - 目标房间id。
+ */
+
+
+/**
+ * @description 数据库中的邀请码信息。对应table:invitationcodes。
+ * @typedef ModelInvitationCode
+ * @type {object}
+ * @property {number} id - 邀请码id。主key。
+ * @property {string} invitation_code - 邀请码
+ * @property {string} is_used -  是否已使用
+ * @property {string} player_id - 玩家id
+ * @property {number} avatar_id - 玩家头像id
+ * @typedef {ModelInvitationCode & SequelizeCommon} SequelizedModelInvitationCode
  */

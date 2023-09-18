@@ -7,7 +7,29 @@ const models = require('../common/models')
 const sequelize = require('../database/mysql').sequelize
 const { Op } = require("sequelize");
 const logger = require('../common/log')
+/**
+ * @typedef {import('../types/record').SequelizedModelRecord}
+ * @typedef {import('../types/room.js').RedisCacheRoomInfo}
+ * @typedef {import('../types/player.js').RedisCachePlayer}
+ * @typedef {import('../types/player.js').RedisCachePlayerInGame}
+ * @typedef {import('../types/game.js').GamePlayerSeatIndex}
+ * @typedef {import('../types/game.js').RedisCacheGame}
+ * @typedef {import('../types/game.js').GameWebsocketResponseData}
+ * @typedef {import('../types/game.js').GameResultWebsocketResponseData}
+ * @typedef {import('../types/game.js').GameWebsocketRequestData}
+ * @typedef {import('../types/websocket.js').WebSocketServerInfo}
+ * @typedef {import('../types/websocket.js').WebSocketInfo}
+ * @typedef {import('../types/player').SequelizedModelAccount}
+ * @typedef {import('../types/player').SequelizedModelGame}
+ * @typedef {import('../types/player').SequelizedModelPlayer}
+ */
 
+/**
+ * @param {GameWebsocketRequestData} data 游戏的前端请求信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
+ * @returns {void}
+ */
 module.exports = function (data, wss, ws) {
     try {
         let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
@@ -29,9 +51,13 @@ module.exports = function (data, wss, ws) {
                                             redis.mget(list, function (err, playerListRes) {
                                                 if (err) { return logger.error('error redis response - ' + err) }
                                                 try {
+                                                    /** @type {RedisCacheRoomInfo} */
                                                     let gameRoom = JSON.parse(gameRoomRes) //游戏房间
+                                                    /** @type {string[]} */
                                                     let redisMSetStr = [] //mset批量改变玩家游戏状态的redis语句
+                                                    /** @type {RedisCachePlayerInGame[]} */
                                                     let gamePlayerList = []  //player:列表
+                                                    /** @type {number[]} */
                                                     let pokers = [] //扑克牌数字列表
                                                     for (let i = 0; i < gameRoom.cardNum; i++) {
                                                         for (let j = 0; j < 54; j++) {
@@ -56,10 +82,15 @@ module.exports = function (data, wss, ws) {
                                                     let game = {
                                                         id: data.id,
                                                         clockwise: false,
+                                                        /** @type {GamePlayerSeatIndex} */
                                                         currentPlayer: -1, //座位号
+                                                        /** @type {number[]} */
                                                         currentCard: [],
+                                                        /** @type {GamePlayerSeatIndex} */
                                                         currentCardPlayer: -1,
+                                                        /** @type {number[]} */
                                                         jokerCard: [],
+                                                        /** @type {GamePlayerSeatIndex} */
                                                         jokerCardPlayer: -1,
                                                         cardNum: gameRoom.cardNum,
                                                         metamorphoseNum: gameRoom.metamorphoseNum,
@@ -78,11 +109,17 @@ module.exports = function (data, wss, ws) {
                                                             6: { id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0 },
                                                             7: { id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0 },
                                                         },
+                                                        /** @type {number[]} */
                                                         gamePlayerId: [],
-                                                        remainCards: pokers, //发送给玩家时只发送长度
+                                                        /** @type {number[]} */
+                                                        remainCards: pokers, //发送给玩家时只发送长度,
+                                                        /** @type {string[]} */
+                                                        messages: []
                                                     }
                                                     for (let i = 0; i < playerListRes.length; i++) {
-                                                        gamePlayerList.push(JSON.parse(playerListRes[i]))
+                                                        /** @type {RedisCachePlayerInGame} */
+                                                        const player = JSON.parse(playerListRes[i])
+                                                        gamePlayerList.push(player)
                                                     }
                                                     for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
                                                         if (gameRoom.playerList[i].id > 0) {
@@ -157,7 +194,8 @@ module.exports = function (data, wss, ws) {
                                                                 })
                                                                 game.remainCards = game.remainCards.length
                                                                 game.messages = []
-                                                                messageList = ['游戏开始']
+                                                                /** @type {string[]} */
+                                                                const messageList = ['游戏开始']
                                                                 messageList.forEach(text => game.messages.push(text))
                                                                 game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
                                                                 let gameStr = JSON.stringify(game)
@@ -201,6 +239,7 @@ module.exports = function (data, wss, ws) {
             redis.get(gameKey, function (err, res) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
+                    /** @type {GameWebsocketResponseData} */
                     let game = JSON.parse(res)
                     game.remainCards = game.remainCards.length
                     game.messages = []
@@ -217,6 +256,7 @@ module.exports = function (data, wss, ws) {
             redis.get(gameKey, function (err, res) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
+                    /** @type {RedisCacheGame} */
                     let game = JSON.parse(res)
                     if (game.currentPlayer === data.seatIndex) {
                         let playCardText = game.gamePlayer[game.currentPlayer].nickname + ' 打出了' + poker.getIndexOfCardList(data.playCard[0]).name
@@ -235,7 +275,9 @@ module.exports = function (data, wss, ws) {
                             }
                             data.playCard.forEach(n => {//记录变身牌，前端会把原形牌变为小于100，变身牌变为大于等于100，所以在此可以通过100来判断
                                 if (n >= 100) {
-                                    game.gamePlayer[data.seatIndex].bianshen = game.gamePlayer[data.seatIndex].bianshen + 1
+                                    /** @type {GamePlayerSeatIndex} */
+                                    const dataSeatIndex = data.seatIndex
+                                    game.gamePlayer[dataSeatIndex].bianshen = game.gamePlayer[dataSeatIndex].bianshen + 1
                                     numOfBianshen = numOfBianshen + 1
                                 }
                             })
@@ -284,6 +326,7 @@ module.exports = function (data, wss, ws) {
                         }
                         let hasPlayerPlayCard = false
                         let step = game.clockwise ? -1 : 1
+                        /** @type {GamePlayerSeatIndex} */
                         let nextSeatIndex = data.seatIndex + step
                         for (let i = 0; i < 7; i++) {
                             if (nextSeatIndex > 7) {
@@ -321,6 +364,7 @@ module.exports = function (data, wss, ws) {
             redis.get(gameKey, function (err, res) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
+                    /** @type {RedisCacheGame} */
                     let game = JSON.parse(res)
                     if (game.currentPlayer === data.seatIndex) {
                         game.gamePlayer[game.currentPlayer].online = true
@@ -358,6 +402,7 @@ module.exports = function (data, wss, ws) {
                     redis.get(gameKey, function (err, res) {
                         if (err) { return logger.error('error redis response - ' + err) }
                         try {
+                            /** @type {RedisCacheGame} */
                             let game = JSON.parse(res)
                             game.gamePlayer[data.seatIndex].online = !game.gamePlayer[data.seatIndex].online
                             game.gamePlayer[data.seatIndex].offLineTime = 0
@@ -402,6 +447,7 @@ module.exports = function (data, wss, ws) {
             redis.get(gameKey, function (err, res) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
+                    /** @type {RedisCacheGame} */
                     let game = JSON.parse(res)
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
@@ -420,12 +466,19 @@ module.exports = function (data, wss, ws) {
     }
 }
 
+/**
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {NodeJS.Timeout} thisTimer 计时器。
+ * @param {number} id 游戏id。
+ * @returns {void}
+ */
 function intervalCheckCard(wss, thisTimer, id) {
     try {
         let gameKey = conf.redisCache.gamePrefix + id
         redis.get(gameKey, function (err, res) {
             if (err) { return logger.error('error redis response - ' + err) }
             try {
+                /** @type {RedisCacheGame} */
                 let game = JSON.parse(res)
                 if (thisTimer[Symbol.toPrimitive]() !== game.timer) {
                     clearTimeout(game.timer)
@@ -538,6 +591,14 @@ function intervalCheckCard(wss, thisTimer, id) {
     }
 }
 
+/**
+ * @param {string} gamekey Redis中的游戏key。
+ * @param {GameWebsocketResponseData} game Redis中的游戏信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {string} action 具体操作。
+ * @param {string[]} messageList 游戏信息。
+ * @returns {void}
+ */
 function sendGameInfo(gameKey, game, wss, action, messageList) {
     redis.set(gameKey, JSON.stringify(game), function (err) {
         if (err) { return logger.error('error redis response - ' + err) }
@@ -559,6 +620,10 @@ function sendGameInfo(gameKey, game, wss, action, messageList) {
     })
 }
 
+/**
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @returns {number} 计时器等待时间。
+ */
 function getWaitTime(game) {
     try {
         if (game.gamePlayer[game.currentPlayer].online === false) {
@@ -573,6 +638,12 @@ function getWaitTime(game) {
     }
 }
 
+/**
+ * @param {string} gameKey Redis中游戏key。
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {void}
+ */
 function gameover(gameKey, game, wss) {
     try {
         game.currentPlayer = -1
@@ -587,6 +658,8 @@ function gameover(gameKey, game, wss) {
         let losePlayer = 0
         let maxCards = 0
         let minCards = 0
+        let maxCombo = 0
+        /** @type {RedisCachePlayerInGame[]} */
         let cardsSortList = []
         for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
             game.gamePlayer[i].remainCards = []
@@ -639,6 +712,13 @@ function gameover(gameKey, game, wss) {
     }
 }
 
+/**
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {number} losePlayer 拉跨玩家id
+ * @param {number} winPlayer 吃鸡玩家id
+ * @returns {void}
+ */
 function deleteGame(game, wss, losePlayer, winPlayer) {
     try {
         let gameRoomKey = conf.redisCache.gameRoomPrefix + game.id
@@ -654,6 +734,7 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                 redis.get(gameRoomKey, function (err, res) {
                     if (err) { return logger.error('error redis response - ' + err) }
                     try {
+                        /** @type {RedisCacheRoomInfo} */
                         let gameRoom = JSON.parse(res)
                         gameRoom.status = 0
                         for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
@@ -693,6 +774,7 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                         logger.error(e)
                     }
                 })
+                /** @type {string[]} 玩家key的列表字符串，用于mget */
                 let changePlayerList = []
                 game.gamePlayerId.forEach(id => { changePlayerList.push(conf.redisCache.playerPrefix + id) })
                 if (changePlayerList.length === 0) return
@@ -700,8 +782,10 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                     if (err) { return logger.error('error redis response - ' + err) }
                     try {
                         if (resList.length === 0) return
+                        /** @type {string[]} 玩家信息字符串，用于mset */
                         let redisMSetStr = []
                         resList.forEach(playerItem => {
+                            /** @type {RedisCachePlayer} */
                             let player = JSON.parse(playerItem)
                             if (!player || player === null || Object.keys(player).length === 0) return
                             player.player_status = 1
@@ -748,16 +832,31 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
     }
 }
 
+/**
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {number} losePlayer 拉跨玩家id
+ * @param {number} winPlayer 吃鸡玩家id
+ * @param {number} minCards 吃鸡玩家收牌数
+ * @param {number} maxCards 拉跨玩家收牌数
+ * @param {number} maxCombo 最大连接数
+ * @returns {void}
+ */
 async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo) {
     const t = await sequelize.transaction()
     try {
-        const Player = models.player
-        const Game = models.game
-        const Account = models.account
+        const Player = sequelize.models.player
+        const Game = sequelize.models.game
+        const Account = sequelize.models.account
+        /** @type {SequelizedModelPlayer[]} */
         let insertPlayersInfo = []
+        /** @typedef {{id: number, exp: number}} PlayerExp 玩家获得经验值，id：玩家id, exp：获得经验值。 */
+        /** @type {PlayerExp} */
         let playerExpList = []
+        /** @type {SequelizedModelAccount[]} */
         let accounts = await Account.findAll({ where: { id: { [Op.in]: game.gamePlayerId } } })
         for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
+            /** @type {RedisCachePlayerInGame} */
             let player = game.gamePlayer[i]
             for (let j = 0; j < accounts.length; j++) {
                 if (player.id === accounts[j].id) {
@@ -781,6 +880,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
                 }
             }
         }
+        /** @type {SequelizedModelGame} */
         let gameInfo = {
             max_cards: maxCards,
             min_cards: minCards,
@@ -788,7 +888,9 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             cardNum: game.cardNum,
             max_combo: maxCombo,
         }
+        /** @type {SequelizedModelPlayer[]} */
         let insertedPlayers = await Player.bulkCreate(insertPlayersInfo)
+        /** @type {SequelizedModelGame} */
         let insertedGame = await Game.create(gameInfo)
         insertedGame.addPlayers(insertedPlayers)
         let winPlayerNickname = ''
@@ -823,7 +925,10 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             playersNum: game.gamePlayerId.length,
             maxCombo: maxCombo,
             maxComboPlayer: maxComboPlayer,
-            gameResultList: []
+            /** @type {GameResultWebsocketResponseData[]} */
+            gameResultList: [],
+            /** @type {PlayerExp} */
+            playerExpList: [],
         }
         insertPlayersInfo.forEach(player => {
             gameResultDto.gameResultList.push({
@@ -867,8 +972,18 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
     }
 }
 
+/**
+ * @param {RedisCachePlayerInGame} player Redis中的在游戏中的玩家信息。对应key:game。
+ * @param {SequelizedModelAccount} playerInstance Player的Model。
+ * @param {number} averageCard 平均收牌数。
+ * @param {number} losePlayer 拉跨玩家id。
+ * @param {number} winPlayer 吃鸡玩家id。
+ * @param {number} playerNum 玩家数。
+ * @returns {number} 经验值。
+ */
 async function calRecord(player, playerInstance, averageCard, losePlayer, winPlayer, playerNum) {
     try {
+        /** @type {SequelizedModelRecord} */
         let playerRecord = await playerInstance.getRecord()
         let exp = 50
         playerRecord.num_of_game = playerRecord.num_of_game + 1
