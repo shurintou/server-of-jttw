@@ -16,7 +16,8 @@ const logger = require('../common/log')
  * @typedef {import('../types/player.js').RedisCachePlayerInGame}
  * @typedef {import('../types/game.js').GamePlayerSeatIndex}
  * @typedef {import('../types/game.js').RedisCacheGame}
- * @typedef {import('../types/game.js').GameResultWebsocketResponseData}
+ * @typedef {import('../types/game.js').PlayerExp}
+ * @typedef {import('../types/game.js').GameResultDto}
  * @typedef {import('../types/game.js').GameWebsocketRequestData}
  * @typedef {import('../types/websocket.js').WebSocketServerInfo}
  * @typedef {import('../types/websocket.js').WebSocketInfo}
@@ -845,8 +846,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
     try {
         /** @type {SequelizedModelPlayer[]} */
         let insertPlayersInfo = []
-        /** @typedef {{id: number, exp: number}} PlayerExp 玩家获得经验值，id：玩家id, exp：获得经验值。 */
-        /** @type {PlayerExp} */
+        /** @type {PlayerExp[]} */
         let playerExpList = []
         /** @type {SequelizedModelAccount[]} */
         let accounts = await Account.findAll({ where: { id: { [Op.in]: game.gamePlayerId } } })
@@ -910,6 +910,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
         insertedGame.winner = winPlayerNickname
         insertedGame.loser = losePlayerNickname
         insertedGame.max_combo_player = maxComboPlayer
+        /** @type {GameResultDto} */
         let gameResultDto = {
             id: insertedGame.id,
             winnerNickname: winPlayerNickname,
@@ -920,9 +921,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             playersNum: game.gamePlayerId.length,
             maxCombo: maxCombo,
             maxComboPlayer: maxComboPlayer,
-            /** @type {GameResultWebsocketResponseData[]} */
             gameResultList: [],
-            /** @type {PlayerExp} */
             playerExpList: [],
         }
         insertPlayersInfo.forEach(player => {

@@ -121,3 +121,29 @@
  * @property {number} bianshen - 使用变身牌数。
  * @property {number} joker - 使用如来、观音牌数。
  */
+
+/** 
+ * @typedef PlayerExp 玩家获得经验值，id：玩家id, exp：获得经验值。
+ * @type {object}
+ * @property {number} id 玩家id。
+ * @property {number} exp 玩家获得经验值。
+ */
+
+/**
+ * @description 游戏结果数据。
+ * @typedef GameResultDto
+ * @type {object}
+ * @property {number} id - 游戏id。
+ * @property {string} winnerNickname -  吃鸡玩家昵称。
+ * @property {string} winnerCards -  吃鸡玩家收牌数。
+ * @property {string} loserNickname - 拉跨玩家昵称。
+ * @property {string} loserCards - 拉跨玩家收牌数。
+ * @property {string} playersNum - 玩家数量。
+ * @property {string} cardsNum - 使用牌副数。
+ * @property {string} maxCombo - 一次获得最多的牌数。
+ * @property {string} maxComboPlayer - 一次获得最多的牌数的玩家昵称。
+ * @property {GameResultWebsocketResponseData[]} gameResultList - 一次获得最多的牌数的玩家昵称。
+ * @property {PlayerExp[]?} playerExpList - 一次获得最多的牌数的玩家昵称。
+ */
+
+
