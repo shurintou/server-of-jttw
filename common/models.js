@@ -10,7 +10,7 @@ let js_files = files.filter((f) => {
 }, files)
 
 /** 
- * @deprecated 因为无法提供类型补全支持，所以不再使用这种动态export。
+ * @deprecated 因为无法提供类型补全支持，所以在services和handlers中不再使用这种动态export，但models中仍然在使用。
  */
 module.exports = {};
 
