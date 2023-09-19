@@ -2,6 +2,8 @@
  * @description Request信息
  * @typedef {import("express").Request} ClientRequestRaw
  * @typedef {import("express").Response} ClientResponse
+ * @typedef {import("./record").ResponseRank} ResponseRank
+ * @typedef {import("./record").RankType} RankType
  * /
 
 /** 
@@ -29,4 +31,12 @@
  * @type {object}
  * @property {string?} nickname -  新设置的昵称。
  * @property {string?} avatar_id - 新设置的头像id。
+ */
+
+/**
+ * @description rank的query信息
+ * @typedef RankRequestQuery
+ * @type {object}
+ * @property {number} id - 获取排行的玩家id。
+ * @property {RankType} type - 排行类型。
  */

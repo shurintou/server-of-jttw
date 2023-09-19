@@ -30,3 +30,54 @@
  * @typedef {RedisCachePlayerRecord} SequelizedModelRecord
  */
 
+/**
+ * @description Redis中的玩家信息。对应key:rank-topPlayersList。
+ * @typedef RedisCacheRankPlayer
+ * @type {object}
+ * @property {string} nickname - 昵称
+ * @property {number} avatar_id - 玩家头像id
+ */
+
+/**
+ * @description rank种类。
+ * @typedef RankType
+ * @type {'level'|'winner'|'loser'|'sum'|'combo'|'highest_rate'|'lowest_rate'|'least_cards'|'most_cards'}
+ */
+
+/**
+ * @description Rank response中的的rank属性值类型。
+ * @typedef ResponseRank
+ * @type {object}
+ * @property {ResponseRankPlayerInfo} playerInfo - 请求玩家的排名信息。
+ * @property {ResponseRankTopPlayerInfo[]} rankList - 排行玩家信息列表。
+ */
+
+/**
+ * @description Rank response中的的rank属性值中的playerInfo属性值类型。
+ * @typedef ResponseRankPlayerInfo
+ * @type {object}
+ * @property {number} id - 玩家id。
+ * @property {number} record - 分数。
+ * @property {number} rank - 排名。
+ */
+
+/**
+ * @description Rank response中的的rank属性值中的rankList属性值类型。
+ * @typedef ResponseRankTopPlayerInfo
+ * @type {object}
+ * @property {number} id - 玩家id。
+ * @property {number} record - 分数。
+ * @property {number} rank - 排名。 
+ * @property {string} nickname - 昵称。
+ * @property {number} avatarId - 玩家头像id。
+ */
+
+/** 
+ * @description checkGetRedisWrapper方法的返回值。
+ * @typedef RedisWrapperResult 
+ * @type {object}
+ * @property {boolean} result - 返回结果。
+ * @property {string[]} topThreeList - 前三玩家信息的字符串。
+ * @property {string[]|null} resList - 获取排行玩家的排行信息字符串。
+ * @property {number} resRank - 获取排行玩家的排行。
+ */
