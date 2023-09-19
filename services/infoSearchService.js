@@ -15,7 +15,7 @@ const logger = require('../common/log')
  */
 
 module.exports = {
-    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, record:BasicRedisCachePlayerRecord>} */
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, record:BasicRedisCachePlayerRecord}>} */
     getPlayerRecord: async function (req) {
         const playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
         try {
@@ -44,7 +44,7 @@ module.exports = {
         }
     },
 
-    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, pageNum:number, list:SequelizedModelPlayer[]>} */
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, pageNum:number, list:SequelizedModelPlayer[]}>} */
     getGameRecordsList: async function (req) {
         try {
             const playersRecordNum = await Player.count({
@@ -69,7 +69,7 @@ module.exports = {
         }
     },
 
-    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, gameResult:GameResultDto>} */
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string, gameResult:GameResultDto}>} */
     getGameRecord: async function (req) {
         const gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
         try {

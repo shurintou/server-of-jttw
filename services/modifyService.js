@@ -7,7 +7,7 @@ const logger = require('../common/log')
  */
 
 module.exports = {
-    /** @type {(req: ClientRequest) => Promise<{code:number, message:string>} */
+    /** @type {(req: ClientRequest) => Promise<{code:number, message:string}> */
     modifyAvatar: async function (req) {
         try {
             /** @type {SequelizedModelAccount[]} */
