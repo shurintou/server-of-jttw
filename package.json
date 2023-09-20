@@ -17,11 +17,12 @@
     "ws": "^7.4.3"
   },
   "devDependencies": {
-    "cross-env": "^7.0.3"
+    "cross-env": "^7.0.3",
+    "nodemon": "^3.0.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "cross-env NODE_ENV=development node app.js",
+    "dev": "nodemon cross-env NODE_ENV=development node app.js",
     "start": "node app.js"
   },
   "author": "",
