@@ -4,62 +4,76 @@ const chatHandler = require('./chatHandler')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
+/** @type {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。*/
 const wss = new WebSocket.Server(conf.ws.config)
 const gameRoomListHandler = require('./gameRoomListHandler')
 const gameHandler = require('./gameHandler')
 const clearHandler = require('./clearHandler')
 const logger = require('../common/log')
+/**
+ * @typedef {import('../types/websocket.js').WebSocketServerInfo}
+ * @typedef {import('../types/websocket.js').WebSocketInfo}
+ * @typedef {import('../types/websocket.js').WebSocketRequestRawData}
+ * @typedef {import('../types/http.js').ClientRequest}
+ */
 
-wss.on('connection', function connection(ws, req) {
-    try {
-        ws.username = req.session.username
-        ws.userId = req.session.userId
-        ws.sessionID = req.sessionID
-        ws.on('message', function incoming(data) {
-            redis.get(conf.redisCache.sessionPrefix + req.sessionID, function (err, session) {
-                if (err) { return logger.error('error redis response - ' + err) }
-                try {
-                    if (!session) {
-                        ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
-                        return
+wss.on('connection',
+    /**
+     * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
+     * @param {ClientRequest} req Request信息(附带玩家信息)。
+     * @returns {void}
+     */
+    function connection(ws, req) {
+        try {
+            ws.username = req.session.username
+            ws.userId = req.session.userId
+            ws.sessionID = req.sessionID
+            ws.on('message', function incoming(data) {
+                redis.get(conf.redisCache.sessionPrefix + req.sessionID, function (err, session) {
+                    if (err) { return logger.error('error redis response - ' + err) }
+                    try {
+                        if (!session) {
+                            ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
+                            return
+                        }
+                        ws.isAlive = true
+                        /** @type {WebSocketRequestRawData} */
+                        let jsText = JSON.parse(data)
+                        jsText.userId = ws.userId
+                        /* heartbeat */
+                        if (jsText.type === 'ping') {
+                            ws.send(JSON.stringify({ 'type': 'pong' }))
+                            return
+                        }
+                        /* reset the expire of the session */
+                        redis.pexpire(conf.redisCache.sessionPrefix + req.sessionID, conf.session.cookie.maxAge)
+                        if (jsText.type === 'playerList') {
+                            playerListHandler(jsText, wss, req, ws)
+                            return
+                        }
+                        if (jsText.type === 'gameRoomList') {
+                            gameRoomListHandler(jsText, wss, ws)
+                            return
+                        }
+                        if (jsText.type === 'game') {
+                            gameHandler(jsText, wss, ws)
+                            return
+                        }
+                        if (jsText.type === 'chat') {
+                            chatHandler(jsText, wss, req)
+                            return
+                        }
                     }
-                    ws.isAlive = true
-                    let jsText = JSON.parse(data)
-                    jsText.userId = ws.userId
-                    /* heartbeat */
-                    if (jsText.type === 'ping') {
-                        ws.send(JSON.stringify({ 'type': 'pong' }))
-                        return
+                    catch (e) {
+                        logger.error(e)
                     }
-                    /* reset the expire of the session */
-                    redis.pexpire(conf.redisCache.sessionPrefix + req.sessionID, conf.session.cookie.maxAge)
-                    if (jsText.type === 'playerList') {
-                        playerListHandler(jsText, wss, req, ws)
-                        return
-                    }
-                    if (jsText.type === 'gameRoomList') {
-                        gameRoomListHandler(jsText, wss, ws)
-                        return
-                    }
-                    if (jsText.type === 'game') {
-                        gameHandler(jsText, wss, ws)
-                        return
-                    }
-                    if (jsText.type === 'chat') {
-                        chatHandler(jsText, wss, req)
-                        return
-                    }
-                }
-                catch (e) {
-                    logger.error(e)
-                }
+                })
             })
-        })
-    }
-    catch (e) {
-        logger.error(e)
-    }
-})
+        }
+        catch (e) {
+            logger.error(e)
+        }
+    })
 
 wss.on('close', function close() {
     try {

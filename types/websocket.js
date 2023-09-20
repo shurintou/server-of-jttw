@@ -64,3 +64,11 @@
  * @description 单一玩家的WebSocket连接(附带玩家信息)
  * @typedef {WebSocketRaw & BasicPlayerConnectionInfo & WebSocketMixin} WebSocketInfo
  */
+
+/** 
+ * @description WebSocket请求的信息（此类只包含最基础信息，其余信息根据type来传给对应的Handler来处理）。
+ * @typedef WebSocketRequestRawData
+ * @type {object}
+ * @property {'ping'|'chat'|'game'|'gameRoomList'|'playerList'} type - 请求类型。
+ * @property {number} userId - 发送请求的玩家id。
+ */
