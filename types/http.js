@@ -40,3 +40,12 @@
  * @property {number} id - 获取排行的玩家id。
  * @property {RankType} type - 排行类型。
  */
+
+/**
+ * @description register的body信息
+ * @typedef RegisterRequestBody
+ * @type {object}
+ * @property {string} nickname -  玩家账号。
+ * @property {string} invitationCode -  使用邀请码。
+ * @property {string} password - 玩家密码。
+ */

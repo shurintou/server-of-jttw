@@ -93,3 +93,13 @@
  * @property {number} avatar_id - 玩家头像id
  * @property {string?} action - 请求类型。若不为空，则其余属性应为空。
  */
+
+/**
+ * @description 数据库中的邀请码信息。对应table:invitationcodes
+ * @typedef ModelInvitationCode
+ * @type {object}
+ * @property {string} invitation_code -  邀请码。
+ * @property {boolean} is_used - 是否已使用。
+ * @property {number} player_id - 使用该邀请码的玩家id。
+ * @typedef {ModelInvitationCode & SequelizeCommon} SequelizedModelInvitationCode
+ */
