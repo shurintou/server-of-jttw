@@ -8,7 +8,6 @@ const logger = require('../common/log')
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/record').BasicRedisCachePlayerRecord}
  * @typedef {import('../types/record').SequelizedModelRecord}
- * @typedef {import('../types/game.js').GameResultWebsocketResponseData}
  * @typedef {import('../types/game.js').SequelizedModelGame}
  * @typedef {import('../types/game.js').GameResultDto}
  * @typedef {import('../types/player').SequelizedModelPlayer}
