@@ -85,13 +85,13 @@
 
 /**
  * @description 游戏结果的websocket响应信息。
- * @typedef GameResultWebsocketResponseData
+ * @typedef PlayerRecordInGameResult
  * @type {object}
  * @property {number} id - 游戏中玩家id。
  * @property {string} nickname - 昵称。
- * @property {string} avatar_id - 玩家头像id。
+ * @property {number} avatar_id - 玩家头像id。
  * @property {number} cards - 收牌数。
- * @property {string} seat_index - 座位id，下标0-7。
+ * @property {GamePlayerSeatIndex} seat_index - 座位id，下标0-7。
  * @property {number} maxCombo - 一次获得最多的牌数。
  * @property {number} wukong - 使用悟空数。
  * @property {number} bajie - 使用八戒数。
@@ -114,15 +114,15 @@
  * @type {object}
  * @property {number} id - 游戏id。
  * @property {string} winnerNickname -  吃鸡玩家昵称。
- * @property {string} winnerCards -  吃鸡玩家收牌数。
+ * @property {number} winnerCards -  吃鸡玩家收牌数。
  * @property {string} loserNickname - 拉跨玩家昵称。
- * @property {string} loserCards - 拉跨玩家收牌数。
- * @property {string} playersNum - 玩家数量。
- * @property {string} cardsNum - 使用牌副数。
- * @property {string} maxCombo - 一次获得最多的牌数。
+ * @property {number} loserCards - 拉跨玩家收牌数。
+ * @property {number} playersNum - 玩家数量。
+ * @property {number} cardsNum - 使用牌副数。
+ * @property {number} maxCombo - 一次获得最多的牌数。
  * @property {string} maxComboPlayer - 一次获得最多的牌数的玩家昵称。
- * @property {GameResultWebsocketResponseData[]} gameResultList - 一次获得最多的牌数的玩家昵称。
- * @property {PlayerExp[]?} playerExpList - 一次获得最多的牌数的玩家昵称。
+ * @property {PlayerRecordInGameResult[]} gameResultList - 玩家各项数据列表。
+ * @property {PlayerExp[]?} playerExpList - 玩家获得经验值列表。
  */
 
 
