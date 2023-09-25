@@ -58,28 +58,7 @@
 /**
  * @description 游戏中所有玩家状态。
  * @typedef GamePlayers
- * @type {{
- *  "0" : RedisCachePlayerInGame,
- *  "1" : RedisCachePlayerInGame,
- *  "2" : RedisCachePlayerInGame,
- *  "3" : RedisCachePlayerInGame,
- *  "4" : RedisCachePlayerInGame,
- *  "5" : RedisCachePlayerInGame,
- *  "6" : RedisCachePlayerInGame,
- *  "7" : RedisCachePlayerInGame,
- * }}
- */
-
-
-/*
- * @property {RedisCachePlayerInGame} 0 - 0号玩家状态。
- * @property {RedisCachePlayerInGame} 1 - 1号玩家状态。
- * @property {RedisCachePlayerInGame} 2 - 2号玩家状态。
- * @property {RedisCachePlayerInGame} 3 - 3号玩家状态。
- * @property {RedisCachePlayerInGame} 4 - 4号玩家状态。
- * @property {RedisCachePlayerInGame} 5 - 5号玩家状态。
- * @property {RedisCachePlayerInGame} 6 - 6号玩家状态。
- * @property {RedisCachePlayerInGame} 7 - 7号玩家状态。
+ * @type {{ [key in GamePlayerSeatIndex]: RedisCachePlayerInGame }}
  */
 
 /**
@@ -95,9 +74,9 @@
  * @property {GamePlayerSeatIndex?} seatIndex - 发送请求玩家的座位号：0~7。play,discard,shiftOnline时不为空。
  * @property {Poker[]?} playCard - 玩家打出的牌。play时不为空。
  * @property {number[]?} remainCards - 玩家手中余留牌的序号。play时不为空。
- * @property {number?} target - 发送游戏内信息玩家的目标玩家座位号。textToPlayer时不为空。
+ * @property {GamePlayerSeatIndex?} target - 发送游戏内信息玩家的目标玩家座位号。textToPlayer时不为空。
  * @property {number?} targetId - 发送游戏内信息目标玩家的的玩家id。textToPlayer时不为空。
- * @property {number?} source - 发送游戏内信息玩家的座位号。textToPlayer时不为空。
+ * @property {GamePlayerSeatIndex?} source - 发送游戏内信息玩家的座位号。textToPlayer时不为空。
  * @property {number?} sourceId - 发送游戏内信息玩家的的玩家id。textToPlayer时不为空。
  * @property {string?} soundSrc - 发送游戏内信息对应的语音文件路径。textToPlayer时不为空。
  * @property {'get'|'play'|'discard'|'shiftOnline'|'initialize'|'textToPlayer'} action - 请求类型。
