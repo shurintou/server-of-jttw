@@ -403,8 +403,10 @@ module.exports = function (data, wss, ws) {
                         try {
                             /** @type {RedisCacheGame} */
                             let game = JSON.parse(res)
-                            game.gamePlayer[data.seatIndex].online = !game.gamePlayer[data.seatIndex].online
-                            game.gamePlayer[data.seatIndex].offLineTime = 0
+                            /** @type {RedisCachePlayerInGame} */
+                            const player = game.gamePlayer[data.seatIndex]
+                            player.online = !player.online
+                            player.offLineTime = 0
                             // game.version = game.version + 1  设置托管不更新数据版本
                             redis.multi()
                                 .set(gameKey, JSON.stringify(game))
@@ -415,7 +417,7 @@ module.exports = function (data, wss, ws) {
                                             ws.send(JSON.stringify({ type: 'message', subType: 'error', player_loc: data.id, text: errors.SET_ONLINE_ERROR.message }))
                                             return
                                         }
-                                        if (game.gamePlayer[data.seatIndex].online) {
+                                        if (player.online) {
                                             ws.send(JSON.stringify({ type: 'message', subType: 'success', player_loc: data.id, text: '已取消托管' }))
                                         }
                                         else {
@@ -423,7 +425,7 @@ module.exports = function (data, wss, ws) {
                                         }
                                         wss.clients.forEach(function each(client) {
                                             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                                                client.send(JSON.stringify({ type: 'game', action: 'shiftOnline', seatIndex: data.seatIndex, online: game.gamePlayer[data.seatIndex].online }))
+                                                client.send(JSON.stringify({ type: 'game', action: 'shiftOnline', seatIndex: data.seatIndex, online: player.online }))
                                             }
                                         })
                                     }
