@@ -19,8 +19,6 @@
  * @property {number} max_combo - 一次获得最多的牌数
  * @property {number} least_cards - 一局获得最少的牌数
  * @property {number} most_cards - 一局获得最多的牌数
- * @property {string} createdAt - 创建时间
- * @property {string} updatedAt - 更新时间
  * @property {number} accountId - 玩家id。外键，对应table:accounts。
  * @typedef {BasicRedisCachePlayerRecord & SequelizeCommon} RedisCachePlayerRecord
  */

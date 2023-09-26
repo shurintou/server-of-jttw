@@ -131,7 +131,7 @@ module.exports = {
 
 /** 
  * @param {string} recordId
- * @returns {Promise<{result:boolean, record?: BasicRedisCachePlayerRecord}>}
+ * @returns {Promise<{result:boolean, record?: BasicRedisCachePlayerRecord | GameResultDto}>}
  */
 function redisWrapper(recordId) {
     return new Promise((resolve, reject) => {
