@@ -8,8 +8,7 @@
 */
 
 /**
- * @description Redis中的玩家信息。对应key:player。
- * @typedef RedisCachePlayer
+ * @typedef RedisCachePlayer Redis中的玩家信息。对应key:player。
  * @type {object}
  * @property {number} id - 玩家id
  * @property {string} username -  玩家用户名
@@ -20,8 +19,7 @@
  */
 
 /**
- * @description Redis中的在房间中的玩家信息。对应key:room
- * @typedef RedisCachePlayerInRoom
+ * @typedef RedisCachePlayerInRoom Redis中的在房间中的玩家信息。对应key:room
  * @type {object}
  * @property {number} id - 玩家id
  * @property {number} cards -  总收牌数
@@ -31,8 +29,7 @@
  */
 
 /**
- * @description Redis中的在游戏中的玩家信息。对应key:game
- * @typedef RedisCachePlayerInGame
+ * @typedef RedisCachePlayerInGame Redis中的在游戏中的玩家信息。对应key:game
  * @type {object}
  * @property {number} id - 玩家id。
  * @property {string} nickname - 昵称。
@@ -56,8 +53,7 @@
  */
 
 /**
- * @description 数据库中的玩家账号信息。对应table:accounts。
- * @typedef ModelAccount
+ * @typedef ModelAccount 数据库中的玩家账号信息。对应table:accounts。
  * @type {object}
  * @property {number} id - 账号id。主key。
  * @property {string} username -  用户名
@@ -68,8 +64,7 @@
  */
 
 /**
- * @description 数据库中的游戏中玩家信息。对应table:players。
- * @typedef ModelPlayer
+ * @typedef ModelPlayer 数据库中的游戏中玩家信息。对应table:players。
  * @type {object}
  * @property {number} id - 游戏中玩家id。主key。
  * @property {string} nickname - 昵称。
@@ -89,8 +84,7 @@
  */
 
 /** 
- * @description 玩家列表的websocket请求信息。
- * @typedef PlayerListWebsocketRequestData
+ * @typedef PlayerListWebsocketRequestData 玩家列表的websocket请求信息。
  * @type {object} 
  * @property {string} nickname - 发送信息玩家昵称。
  * @property {number} player_loc - 玩家所在房间id
@@ -100,8 +94,7 @@
  */
 
 /**
- * @description 数据库中的邀请码信息。对应table:invitationcodes
- * @typedef ModelInvitationCode
+ * @typedef ModelInvitationCode 数据库中的邀请码信息。对应table:invitationcodes
  * @type {object}
  * @property {string} invitation_code -  邀请码。
  * @property {boolean} is_used - 是否已使用。

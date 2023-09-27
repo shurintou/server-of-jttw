@@ -5,8 +5,7 @@
  */
 
 /**
- * @description Redis中的房间信息。对应key:room
- * @typedef RedisCacheRoomInfo
+ * @typedef RedisCacheRoomInfo Redis中的房间信息。对应key:room
  * @type {object}
  * @property {number} id - 房间id
  * @property {string} name -  房间名 
@@ -21,8 +20,7 @@
  */
 
 /**
- * @description 游戏房间的websocket请求信息。
- * @typedef RoomWebsocketRequestData
+ * @typedef RoomWebsocketRequestData 游戏房间的websocket请求信息。
  * @type {object} 
  * @property {number} id - 目标房间id 0为获取所有房间，NaN为创建新房间，小于0为离开目标房间，大于0是对目标房间的操作。
  * @property {string?} name -  房间名。创建房间,edit时不为空。
@@ -47,8 +45,7 @@
  */
 
 /** 
- * @description 游戏房间聊天的websocket请求信息。
- * @typedef RoomChatWebsocketRequestData
+ * @typedef RoomChatWebsocketRequestData 游戏房间聊天的websocket请求信息。
  * @type {object} 
  * @property {string} nickname - 发送信息玩家昵称。
  * @property {string} text - 聊天信息。
@@ -57,8 +54,7 @@
 
 
 /**
- * @description 数据库中的邀请码信息。对应table:invitationcodes。
- * @typedef ModelInvitationCode
+ * @typedef ModelInvitationCode 数据库中的邀请码信息。对应table:invitationcodes。
  * @type {object}
  * @property {number} id - 邀请码id。主key。
  * @property {string} invitation_code - 邀请码

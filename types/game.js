@@ -5,8 +5,7 @@
  */
 
 /**
- * @description Redis中的游戏信息。对应key:game。
- * @typedef RedisCacheGame
+ * @typedef RedisCacheGame Redis中的游戏信息。对应key:game。
  * @type {object}
  * @property {number} id - 游戏id
  * @property {boolean} clockwise - 游戏进行方向：true为顺时针，false为逆时针。
@@ -30,8 +29,7 @@
 
 
 /**
- * @description 数据库中的游戏信息。对应table:games。
- * @typedef ModelGame
+ * @typedef ModelGame 数据库中的游戏信息。对应table:games。
  * @type {object}
  * @property {number} id - 游戏id。主key。
  * @property {string} winner -  吃鸡玩家昵称。
@@ -46,8 +44,7 @@
  */
 
 /**
- * @description 扑克牌。
- * @typedef Poker
+ * @typedef Poker 扑克牌。
  * @type {object}
  * @property {number} num - 牌点：如红桃2，为牌点为2。
  * @property {1|2|3|4} suit -  花色点数：黑桃4，红桃3，梅花或大王2，方块或小王1。
@@ -56,19 +53,16 @@
  */
 
 /**
- * @description 游戏中所有玩家状态。
- * @typedef GamePlayers
+ * @typedef GamePlayers 游戏中所有玩家状态。
  * @type {{ [key in GamePlayerSeatIndex]: RedisCachePlayerInGame }}
  */
 
 /**
- * @description 扑克牌的配置,0~53序号越大则越大。100+序号为变身牌，反弹牌没有变身牌。
- * @typedef {Poker[]} Pokers
+ * @typedef {Poker[]} Pokers 扑克牌的配置,0~53序号越大则越大。100+序号为变身牌，反弹牌没有变身牌。
  */
 
 /** 
- * @description 游戏的websocket请求信息。
- * @typedef GameWebsocketRequestData
+ * @typedef GameWebsocketRequestData 游戏的websocket请求信息。
  * @type {object} 
  * @property {number} id - 目标游戏id。
  * @property {GamePlayerSeatIndex?} seatIndex - 发送请求玩家的座位号：0~7。play,discard,shiftOnline时不为空。
@@ -84,8 +78,7 @@
 
 
 /**
- * @description 游戏结果的websocket响应信息。
- * @typedef PlayerRecordInGameResult
+ * @typedef PlayerRecordInGameResult 游戏结果的websocket响应信息。
  * @type {object}
  * @property {number} id - 游戏中玩家id。
  * @property {string} nickname - 昵称。
@@ -109,8 +102,7 @@
  */
 
 /**
- * @description 游戏结果数据。
- * @typedef GameResultDto
+ * @typedef GameResultDto 游戏结果数据。
  * @type {object}
  * @property {number} id - 游戏id。
  * @property {string} winnerNickname -  吃鸡玩家昵称。

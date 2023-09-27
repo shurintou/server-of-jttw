@@ -3,8 +3,7 @@
  */
 
 /**
- * @description Redis中的玩家战绩信息。对应key:playerRecord
- * @typedef BasicRedisCachePlayerRecord
+ * @typedef BasicRedisCachePlayerRecord Redis中的玩家战绩信息。对应key:playerRecord
  * @type {object}
  * @property {number} id - 玩家战绩id。主key。
  * @property {number} num_of_game -  玩家总局数 
@@ -24,35 +23,30 @@
  */
 
 /**
- * @description 数据库中的中的玩家战绩信息。对应table:records。结构与RedisCachePlayerRecord一致。
- * @typedef {RedisCachePlayerRecord} SequelizedModelRecord
+ * @typedef {RedisCachePlayerRecord} SequelizedModelRecord 数据库中的中的玩家战绩信息。对应table:records。结构与RedisCachePlayerRecord一致。
  */
 
 /**
- * @description Redis中的玩家信息。对应key:rank-topPlayersList。
- * @typedef RedisCacheRankPlayer
+ * @typedef RedisCacheRankPlayer Redis中的玩家信息。对应key:rank-topPlayersList。
  * @type {object}
  * @property {string} nickname - 昵称
  * @property {number} avatar_id - 玩家头像id
  */
 
 /**
- * @description rank种类。
- * @typedef RankType
+ * @typedef RankType rank种类。
  * @type {'level'|'winner'|'loser'|'sum'|'combo'|'highest_rate'|'lowest_rate'|'least_cards'|'most_cards'}
  */
 
 /**
- * @description Rank response中的的rank属性值类型。
- * @typedef ResponseRank
+ * @typedef ResponseRank Rank response中的的rank属性值类型。
  * @type {object}
  * @property {ResponseRankPlayerInfo} playerInfo - 请求玩家的排名信息。
  * @property {ResponseRankTopPlayerInfo[]} rankList - 排行玩家信息列表。
  */
 
 /**
- * @description Rank response中的的rank属性值中的playerInfo属性值类型。
- * @typedef ResponseRankPlayerInfo
+ * @typedef ResponseRankPlayerInfo Rank response中的的rank属性值中的playerInfo属性值类型。
  * @type {object}
  * @property {number} id - 玩家id。
  * @property {number} record - 分数。
@@ -60,8 +54,7 @@
  */
 
 /**
- * @description Rank response中的的rank属性值中的rankList属性值类型。
- * @typedef ResponseRankTopPlayerInfo
+ * @typedef ResponseRankTopPlayerInfo Rank response中的的rank属性值中的rankList属性值类型。
  * @type {object}
  * @property {number} id - 玩家id。
  * @property {number} record - 分数。
@@ -71,8 +64,7 @@
  */
 
 /** 
- * @description checkGetRedisWrapper方法的返回值。
- * @typedef RedisWrapperResult 
+ * @typedef RedisWrapperResult checkGetRedisWrapper方法的返回值。
  * @type {object}
  * @property {boolean} result - 返回结果。
  * @property {string[]} topThreeList - 前三玩家信息的字符串。
