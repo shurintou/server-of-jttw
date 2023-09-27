@@ -10,11 +10,11 @@
  * @type {object}
  * @property {number} id - 游戏id
  * @property {boolean} clockwise - 游戏进行方向：true为顺时针，false为逆时针。
- * @property {GamePlayerSeatIndex} currentPlayer - 现在出牌玩家的座位号：0~7。
+ * @property {GamePlayerSeatIndex | -1} currentPlayer - 现在出牌玩家的座位号：0~7，初始为-1。
  * @property {number[]} currentCard - 现在牌池中的牌。
- * @property {GamePlayerSeatIndex} currentCardPlayer - 打出现在牌池中的牌的玩家的座位号：0~7。
+ * @property {GamePlayerSeatIndex | -1} currentCardPlayer - 打出现在牌池中的牌的玩家的座位号：0~7，初始为-1。
  * @property {number} jokerCard - 现在牌池中的反弹牌。
- * @property {GamePlayerSeatIndex} jokerCardPlayer - 打出现在牌池中的反弹牌的玩家的座位号：0~7。
+ * @property {GamePlayerSeatIndex | -1} jokerCardPlayer - 打出现在牌池中的反弹牌的玩家的座位号：0~7，初始为-1。
  * @property {number} cardNum - 使用牌副数。
  * @property {number} metamorphoseNum - 每副牌中变身牌数量。
  * @property {number} currentCombo - 现在的连击数。
