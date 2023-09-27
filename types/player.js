@@ -2,6 +2,11 @@
  * @typedef {import("./common.js").GamePlayerSeatIndex}
  */
 
+/** 
+ * @typedef {PlayerStatus} 玩家状态. 0:空闲，1: 游戏房间等待中, 2: 游戏中
+ * @type {0 | 1 | 2}
+*/
+
 /**
  * @description Redis中的玩家信息。对应key:player。
  * @typedef RedisCachePlayer
@@ -10,7 +15,7 @@
  * @property {string} username -  玩家用户名
  * @property {string} nickname - 昵称
  * @property {number} player_loc - 玩家所在房间id
- * @property {1|2} player_status - 玩家状态. 1: 空闲, 2: 游戏中
+ * @property {PlayerStatus} player_status - 玩家状态. 0:空闲，1: 游戏房间等待中, 2: 游戏中
  * @property {number} avatar_id - 玩家头像id
  */
 
@@ -89,7 +94,7 @@
  * @type {object} 
  * @property {string} nickname - 发送信息玩家昵称。
  * @property {number} player_loc - 玩家所在房间id
- * @property {1|2} player_status - 玩家状态. 1: 空闲, 2: 游戏中
+ * @property {PlayerStatus} player_status - 玩家状态. 0:空闲，1: 游戏房间等待中, 2: 游戏中
  * @property {number} avatar_id - 玩家头像id
  * @property {string?} action - 请求类型。若不为空，则其余属性应为空。
  */
