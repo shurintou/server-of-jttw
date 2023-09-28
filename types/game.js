@@ -23,7 +23,7 @@
  * @property {number} timer - 计时器ID。
  * @property {GamePlayers} gamePlayer - 游戏中所有玩家状态。
  * @property {number[]} gamePlayerId - 游戏中所有玩家id。
- * @property {number[]} remainCards - 牌堆中余留的牌序号。
+ * @property {number[] | number} remainCards - 在服务器端时为牌堆中余留的牌序号(number[])，发送给客户端时转为该数组长度的数值牌堆中余留的牌数(number)。
  * @property {string[]} messages - 游戏信息。
  */
 
