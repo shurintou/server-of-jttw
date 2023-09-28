@@ -68,8 +68,8 @@
  * @property {GamePlayerSeatIndex?} seatIndex - 发送请求玩家的座位号：0~7。play,discard,shiftOnline时不为空。
  * @property {Poker[]?} playCard - 玩家打出的牌。play时不为空。
  * @property {number[]?} remainCards - 玩家手中余留牌的序号。play时不为空。
- * @property {GamePlayerSeatIndex?} target - 发送游戏内信息玩家的目标玩家座位号。textToPlayer时不为空。
- * @property {number?} targetId - 发送游戏内信息目标玩家的的玩家id。textToPlayer时不为空。
+ * @property {GamePlayerSeatIndex?|-1} target - 发送游戏内信息玩家的目标玩家座位号，-1时向所有玩家发送。textToPlayer时不为空。
+ * @property {number?} targetId - 发送游戏内信息目标玩家的的玩家id，-1时向所有玩家发送。textToPlayer时不为空。
  * @property {GamePlayerSeatIndex?} source - 发送游戏内信息玩家的座位号。textToPlayer时不为空。
  * @property {number?} sourceId - 发送游戏内信息玩家的的玩家id。textToPlayer时不为空。
  * @property {string?} soundSrc - 发送游戏内信息对应的语音文件路径。textToPlayer时不为空。
