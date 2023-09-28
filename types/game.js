@@ -84,7 +84,7 @@
  * @property {string} nickname - 昵称。
  * @property {number} avatar_id - 玩家头像id。
  * @property {number} cards - 收牌数。
- * @property {GamePlayerSeatIndex} seat_index - 座位id，下标0-7。
+ * @property {GamePlayerSeatIndex} seatIndex - 座位id，下标0-7。
  * @property {number} maxCombo - 一次获得最多的牌数。
  * @property {number} wukong - 使用悟空数。
  * @property {number} bajie - 使用八戒数。
