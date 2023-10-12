@@ -268,8 +268,10 @@ module.exports = function (data, wss, ws) {
                         clearTimeout(game.timer)
                         game.gamePlayer[data.seatIndex].remainCards = data.remainCards
                         if (data.playCard.length > 1) {//多牌暴击
+                            const timesComboFromPlayer = Math.min(game.timesCombo * data.playCard.length, game.gamePlayer[game.currentPlayer].cards)
+                            let timesAddCard = data.playCard.length + timesComboFromPlayer //暴击所附加的牌出自玩家的收牌
+                            game.gamePlayer[game.currentPlayer].cards -= timesComboFromPlayer
                             game.timesCombo = game.timesCombo + 1
-                            let timesAddCard = game.timesCombo * data.playCard.length
                             game.timesCard = game.timesCard + timesAddCard
                             game.currentCombo = game.currentCombo + timesAddCard
                             if (game.timesCombo === 1) {
