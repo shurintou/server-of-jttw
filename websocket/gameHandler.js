@@ -322,12 +322,12 @@ module.exports = function (data, wss, ws) {
                                 game.gamePlayer[data.seatIndex].tangseng = game.gamePlayer[data.seatIndex].tangseng + data.playCard.length - numOfBianshen
                             }
                         }
-                        while (game.gamePlayer[data.seatIndex].remainCards.length < 5 && game.remainCards.length > 0) {//补牌
-                            game.gamePlayer[data.seatIndex].remainCards.push(game.remainCards.pop())
-                        }
                         if (game.remainCards.length <= 0 && game.gamePlayer[game.currentPlayer].cards >= 1) { // 无牌补时，连击数+1
                             game.currentCombo += 1
                             game.gamePlayer[game.currentPlayer].cards -= 1
+                        }
+                        while (game.gamePlayer[data.seatIndex].remainCards.length < 5 && game.remainCards.length > 0) {//补牌
+                            game.gamePlayer[data.seatIndex].remainCards.push(game.remainCards.pop())
                         }
                         let hasPlayerPlayCard = false
                         let step = game.clockwise ? -1 : 1
