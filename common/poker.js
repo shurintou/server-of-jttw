@@ -69,9 +69,9 @@ module.exports = {
     cardList: localCardList,
 
     /** 
-     * @description 获取扑克牌的序号
+     * @description 获取扑克牌的信息
      * @param {number} index 序号
-     * @returns {number} 除去可能存在的变身牌+100后的序号
+     * @returns {Poker} 除去可能存在的变身牌+100后的牌信息
      */
     getIndexOfCardList: function (index) {
         if (index < 100) {
