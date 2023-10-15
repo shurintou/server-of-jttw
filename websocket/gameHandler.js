@@ -267,15 +267,15 @@ module.exports = function (data, wss, ws) {
                         game.gamePlayer[game.currentPlayer].offLineTime = 0
                         clearTimeout(game.timer)
                         game.gamePlayer[data.seatIndex].remainCards = data.remainCards
-                        if (data.playCard.length > 1) {//多牌暴击
+                        if (data.playCard.length > 1) {//多牌连击
                             const timesComboFromPlayer = Math.min(game.timesCombo * data.playCard.length, game.gamePlayer[game.currentPlayer].cards)
-                            let timesAddCard = data.playCard.length + timesComboFromPlayer //暴击所附加的牌出自玩家的收牌
+                            let timesAddCard = data.playCard.length + timesComboFromPlayer //连击所附加的牌出自玩家的收牌
                             game.gamePlayer[game.currentPlayer].cards -= timesComboFromPlayer
                             game.timesCombo = game.timesCombo + 1
                             game.timesCard = game.timesCard + timesAddCard
                             game.currentCombo = game.currentCombo + timesAddCard
                             if (game.timesCombo === 1) {
-                                game.timesCombo = data.playCard.length - 1 //2张从2起爆，3张从3开始，依次类推
+                                game.timesCombo = data.playCard.length - 1 //2张从2起，3张从3开始，依次类推
                             }
                             data.playCard.forEach(n => {//记录变身牌，前端会把原形牌变为小于100，变身牌变为大于等于100，所以在此可以通过100来判断
                                 if (n >= 100) {
