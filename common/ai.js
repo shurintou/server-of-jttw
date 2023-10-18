@@ -36,28 +36,28 @@ function permutationOrCombination(allElements, count, isPermutation = true) {
 
 /** 
  * @summary 将排列组合去重。
- * @param {number[][]} allPlaycards 未去重的排列组合。
+ * @param {number[][]} allCombination 未去重的排列组合。
  * @returns {number[][]} 去重后的排列组合结果。
  */
-function deDuplicatedPlayCardsList(allPlaycards) {
+function deDuplicatedCombination(allCombination) {
 
     /** @type {number[][]} */
     const result = []
-    const playCardsStrList = allPlaycards.map(playCards => playCards.toString())
-    const deDuplicatedPlayCardsStrList = Array.from(new Set(playCardsStrList))
-    deDuplicatedPlayCardsStrList.forEach(playCardsStr => { result.push(playCardsStr.split(",").map(str => parseInt(str))) })
+    const combinationsStrList = allCombination.map(combination => combination.toString())
+    const deDuplicatedCombinationsStrList = Array.from(new Set(combinationsStrList))
+    deDuplicatedCombinationsStrList.forEach(combinationStr => { result.push(combinationStr.split(",").map(str => parseInt(str))) })
     return result
 
 }
 
 /** 
- * @summary 获取指定张数时玩家手中牌能打出的所有排列组合(去重)。
+ * @summary 获取指定张数时玩家手中牌能打出的所有排列组合(仅去重和统一牌型，但不考虑牌型是否可管上现在牌池中的牌型)。
  * @description 只要定下了第一张基本牌，后面的牌均为附属牌，
  * 所以对于手中5张牌来说，取下标0,1,2,3,4分别作为基本牌，剩下的4张则作为附属牌来进行组合即可。
  * 所以若现有牌池为2张，玩家手中牌为5张，则所有可打出的组合数为5*C4/2 = 30
- * @param {number[]} allCards 玩家手中所有卡牌
+ * @param {number[]} allCards 玩家手中所有牌
  * @param {number} [count = 1] 需要打出的指定张数(默认为1)
- * @returns {number[][]} 所有可打出的牌组合的结果(去重)
+ * @returns {number[][]} 所有可打出的牌组合的结果(仅去重和统一牌型，但不考虑牌型是否可管上现在牌池中的牌型)
  */
 function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
 
@@ -79,14 +79,14 @@ function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
     allCards.forEach((card, index) => {
         const allCardsExceptCurrentCard = allCards.filter((card, idx) => idx !== index) // 去除1张基本牌，剩下的牌作为附属牌
         const permutationOrCombinationResult = permutationOrCombination(allCardsExceptCurrentCard, count - 1, false) // 剩下的附属牌进行组合
-        permutationOrCombinationResult.forEach(playCards => {
-            playCards.unshift(card) // 将基本牌补回组合中
-            result.push(playCards)
+        permutationOrCombinationResult.forEach(resItem => {
+            resItem.unshift(card) // 将基本牌补回组合中
+            result.push(resItem)
         })
     })
 
     /** @type {number[][]} 玩家手中牌能打出的所有排列组合(去重) */
-    const deDuplicatedResult = [] = deDuplicatedPlayCardsList(result)
+    const deDuplicatedResult = [] = deDuplicatedCombination(result)
 
     return deDuplicatedResult
 
@@ -95,7 +95,7 @@ function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
 
 /** 
  * @param {RedisCacheGame} game
- * @returns {number[][]} 各种能出的牌的组合，值为玩家手中的该牌的序号(0~4)
+ * @returns {number[]} 打出的牌的组合，值为玩家手中的该牌的序号(0~4)
  */
 function aiPlay(game) {
 
