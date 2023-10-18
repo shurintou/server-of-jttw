@@ -59,7 +59,7 @@ function deDuplicatedPlayCardsList(allPlaycards) {
  * @param {number} [count = 1] 需要打出的指定张数(默认为1)
  * @returns {number[][]} 所有可打出的牌组合的结果(去重)
  */
-function getPlayCardsList(allCards, count = 1) {
+function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
 
     /** @type {number[][]} 玩家手中牌能打出的所有排列组合(未去重) */
     const result = []
