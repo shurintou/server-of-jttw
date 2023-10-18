@@ -42,10 +42,21 @@ function permutationOrCombination(allElements, count, isPermutation = true) {
 function deDuplicatedCombination(allCombination) {
 
     /** @type {number[][]} */
-    const result = []
+    const tempResult = []
+
     const combinationsStrList = allCombination.map(combination => combination.toString())
+    // 此阶段去掉的是玩家手中有相同牌时造成的重复组合。如[1,2,2]取两张的情况下，组合[1,2],[2,1],[2,2]均会出现两次。
     const deDuplicatedCombinationsStrList = Array.from(new Set(combinationsStrList))
-    deDuplicatedCombinationsStrList.forEach(combinationStr => { result.push(combinationStr.split(",").map(str => parseInt(str))) })
+    deDuplicatedCombinationsStrList.forEach(combinationStr => { tempResult.push(combinationStr.split(",").map(str => parseInt(str))) })
+
+    // 因为变身牌出现在基本牌或附属牌中意义不同，所以无须去重，直接将有变身牌的组合纳入结果中
+    /** @type {number[][]} */
+    const result = tempResult.filter(resItem => resItem.some(item => item > 100))
+    const orderedStrList = tempResult.filter(resItem => resItem.every(item => item <= 100)).map(resItem => [...resItem].sort().toString())
+    // 此阶段去掉的是牌型上的重复组合。如[1,2,2]取两张的情况下，组合[1,2],[2,1]只取其一即可，但有变身牌的组合则无须去重。
+    const deDuplicatedOrderedStrList = Array.from(new Set(orderedStrList))
+    deDuplicatedOrderedStrList.forEach(orderedStr => { result.push(orderedStr.split(",").map(str => parseInt(str))) })
+
     return result
 
 }
