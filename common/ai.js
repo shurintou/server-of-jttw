@@ -121,6 +121,57 @@ function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
 
 
 /** 
+ * @summary 获取玩家手中牌能打出的所有排列组合(去重统一且可管上现在牌池中的牌型,现在牌池中无牌时则获取所有可能张数牌能打出的所有排列组合)。
+ * @description 与getPlayCardsListBySpecifiedCount的区别是不指定出牌数，而是根据游戏局势来指定。
+ * @param {number[]} currentCard 现在牌池中的牌(>=0)。
+ * @param {number[]} remainCards 玩家手中所有牌(>0)。
+ * @returns {number[][]} 各种能出的牌的组合，值为玩家手中的该牌的序号(0~4)
+ */
+function getHigherPlayCardsList(currentCard, remainCards) {
+    /** @type {number[][]} 各种能出的牌的组合，值为玩家手中的该牌的序号 */
+    let result = []
+    if (currentCard.length === 0) { // 现在牌池中无牌时，不用考虑是否能管上，直接获取玩家手中牌能打出的所有排列组合
+        for (let i = 1; i <= remainCards.length; i++) {
+            const playCards = getPlayCardsListBySpecifiedCount(remainCards, i)
+            playCards.forEach(playCard => result.push(playCard))
+        }
+        return result
+    }
+
+    if (currentCard.length > remainCards.length) { // 现在牌池中的牌张数大于玩家手中所有牌的张数。
+        return result
+    }
+
+    const tempResult = getPlayCardsListBySpecifiedCount(remainCards, currentCard.length)
+    const { num: currentCardNum } = poker.getIndexOfCardList(currentCard[0])
+
+    result = tempResult.filter(tempResItem => {
+        const { num: cardNum } = poker.getIndexOfCardList(tempResItem[0])
+        if (cardNum === 100) { // 反弹牌的话纳入结果
+            return true
+        }
+        if (currentCardNum < 30) { // 现在牌池中的牌为师傅以外的情况
+            if (cardNum < currentCardNum) { // 过滤掉牌面小于牌池的牌组合
+                return false
+            }
+            if (cardNum > currentCardNum) { // 选取牌面大于牌池的牌组合
+                return true
+            }
+        }
+        // 现在牌池中的牌为师傅，选取牌面是妖怪牌的牌组合
+        if (currentCardNum === 31 && cardNum < 20) {
+            return true
+        }
+        // 牌面等于现在牌池中牌面时，选取所有牌花色大于现在牌池中的牌花色的牌组合
+        const compareItem = [...tempResItem].sort((a, b) => poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit)
+        return compareItem.every((card, index) => poker.getIndexOfCardList(card).suit > poker.getIndexOfCardList(currentCard[index]).suit)
+    })
+
+    return result
+}
+
+
+/** 
  * @param {RedisCacheGame} game
  * @returns {number[]} 打出的牌的组合，值为玩家手中的该牌的序号(0~4)
  */
