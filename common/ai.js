@@ -2,7 +2,9 @@ const poker = require('./poker')
 
 /**
 * @typedef {import('../types/game.js').RedisCacheGame}
+* @typedef {import('../types/game.js').GameWebsocketRequestData}
 */
+
 /** 
  * @summary 排列或组合多个元素
  * @param {number[]} allElements 所有元素
@@ -173,11 +175,18 @@ function getHigherPlayCardsList(currentCard, remainCards) {
 
 /** 
  * @param {RedisCacheGame} game
- * @returns {number[]} 打出的牌的组合，值为玩家手中的该牌的序号(0~4)
+ * @returns {GameWebsocketRequestData} 出牌的所有信息，action应为play。
  */
 function aiPlay(game) {
-
-    return []
+    const result = {
+        type: 'game',
+        action: 'play',
+        id: game.id,
+        seatIndex: game.currentPlayer,
+        playCard: [],
+        remainCards: []
+    }
+    return result
 }
 
 module.exports = {
