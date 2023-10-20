@@ -196,18 +196,21 @@ function aiPlay(game) {
             if (poker.getIndexOfCardList(playCard[i]).num === 100) { // 反弹牌的话不作处理
                 continue
             }
-            if (i === 0) {
-                if (playCard[i] >= 100) {
-                    playCard[i] = playCard[i] - 100 //对变身牌处理，大于等于100则减100作为基础牌
+            if (playCard[i] >= 100) {
+                if (i === 0) {
+                    playCard[i] = playCard[i] - 100 //对首张牌进行处理，若为大于等于100的变身牌则减100作为基础牌
+                    continue
                 }
-            }
-            else {
-                if (playCard[i] >= 100) {
-                    //对变身牌处理，小于100则+100，牌面变为与原形牌相同
-                    playCard[i] = playCard[0] + poker.getIndexOfCardList(playCard[0]).suit - poker.getIndexOfCardList(playCard[i]).suit
-                    if (playCard[i] < 100) {
-                        playCard[i] = playCard[i] + 100
+                if (poker.getIndexOfCardList(playCard[0]).num === poker.getIndexOfCardList(playCard[i]).num) {
+                    if (Math.random() > 0.5) {
+                        playCard[i] = playCard[i] - 100 //若附属的变身牌本身就等于基础牌，则有1/2几率作为基础牌，1/2几率作为变身牌
+                        continue
                     }
+                }
+                //对附属的变身牌处理，牌面变为与原形牌相同，再加回100以示为变身牌
+                playCard[i] = playCard[0] + poker.getIndexOfCardList(playCard[0]).suit - poker.getIndexOfCardList(playCard[i]).suit
+                if (playCard[i] < 100) {
+                    playCard[i] = playCard[i] + 100
                 }
             }
         }
