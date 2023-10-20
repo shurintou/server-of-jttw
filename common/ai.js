@@ -3,6 +3,7 @@ const poker = require('./poker')
 /**
 * @typedef {import('../types/game.js').RedisCacheGame}
 * @typedef {import('../types/game.js').GameWebsocketRequestData}
+* @typedef {import('../types/common.js').GamePlayerSeatIndex}
 */
 
 /** 
@@ -178,13 +179,49 @@ function getHigherPlayCardsList(currentCard, remainCards) {
  * @returns {GameWebsocketRequestData} 出牌的所有信息，action应为play。
  */
 function aiPlay(game) {
+
+    /** @type {GamePlayerSeatIndex} */
+    const currentPlayer = game.currentPlayer
+    const remainCards = game.gamePlayer[currentPlayer].remainCards
+    const playCards = getHigherPlayCardsList(game.currentCard, remainCards)
+    const playCard = playCards.length > 0 ? playCards[7] : []
+    if (playCard.length > 0) {
+        for (let i = 0; i < playCard.length; i++) {
+            for (let j = 0; j < remainCards.length; j++) {
+                if (remainCards[j] === playCard[i]) {
+                    remainCards.splice(j, 1) // 把将要打出的牌从玩家手中的牌移除
+                    break
+                }
+            }
+            if (poker.getIndexOfCardList(playCard[i]).num === 100) { // 反弹牌的话不作处理
+                continue
+            }
+            if (i === 0) {
+                if (playCard[i] >= 100) {
+                    playCard[i] = playCard[i] - 100 //对变身牌处理，大于等于100则减100作为基础牌
+                }
+            }
+            else {
+                if (playCard[i] >= 100) {
+                    //对变身牌处理，小于100则+100，牌面变为与原形牌相同
+                    playCard[i] = playCard[0] + poker.getIndexOfCardList(playCard[0]).suit - poker.getIndexOfCardList(playCard[i]).suit
+                    if (playCard[i] < 100) {
+                        playCard[i] = playCard[i] + 100
+                    }
+                }
+            }
+        }
+    }
+    playCard.sort((a, b) => {
+        return poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit
+    })
     const result = {
         type: 'game',
-        action: 'play',
+        action: playCard.length > 0 ? 'play' : 'discard',
         id: game.id,
-        seatIndex: game.currentPlayer,
-        playCard: [],
-        remainCards: []
+        seatIndex: currentPlayer,
+        playCard: playCard,
+        remainCards: remainCards
     }
     return result
 }
