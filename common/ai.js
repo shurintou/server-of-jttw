@@ -54,8 +54,8 @@ function deDuplicatedCombination(allCombination) {
 
     // 因为变身牌出现在基本牌或附属牌中意义不同，所以无须去重，直接将有变身牌的组合纳入结果中
     /** @type {number[][]} */
-    const result = tempResult.filter(resItem => resItem.some(item => item > 100))
-    const orderedStrList = tempResult.filter(resItem => resItem.every(item => item <= 100)).map(resItem => [...resItem].sort().toString())
+    const result = tempResult.filter(resItem => resItem.some(item => item >= 100))
+    const orderedStrList = tempResult.filter(resItem => resItem.every(item => item < 100)).map(resItem => [...resItem].sort().toString())
     // 此阶段去掉的是牌型上的重复组合。如[1,2,2]取两张的情况下，组合[1,2],[2,1]只取其一即可，但有变身牌的组合则无须去重。
     const deDuplicatedOrderedStrList = Array.from(new Set(orderedStrList))
     deDuplicatedOrderedStrList.forEach(orderedStr => { result.push(orderedStr.split(",").map(str => parseInt(str))) })
@@ -75,7 +75,7 @@ function playCardFilter(combination) {
         return true // 所有牌为反弹牌的情况返回TRUE
     }
     // 过滤出所有下标为1以上的牌的牌面等于基本牌的牌面或等于变身牌的牌型
-    return combination.every((card, index) => index === 0 || (poker.getIndexOfCardList(card).num === poker.getIndexOfCardList(combination[0]).num || card > 100))
+    return combination.every((card, index) => index === 0 || (poker.getIndexOfCardList(card).num === poker.getIndexOfCardList(combination[0]).num || card >= 100))
 }
 
 /** 
