@@ -184,7 +184,8 @@ function aiPlay(game) {
     const currentPlayer = game.currentPlayer
     const remainCards = game.gamePlayer[currentPlayer].remainCards
     const playCards = getHigherPlayCardsList(game.currentCard, remainCards)
-    const playCard = playCards.length > 0 ? playCards[7] : []
+    /** @todo 目前暂定从所有能打出的牌组合中随机抽出一种打出(所以是有打必打)，今后再添加策略机制选取最佳的牌组合打出。 */
+    const playCard = playCards.length > 0 ? playCards[Math.floor(Math.random() * playCards.length)] : []
     if (playCard.length > 0) {
         for (let i = 0; i < playCard.length; i++) {
             for (let j = 0; j < remainCards.length; j++) {
