@@ -1,13 +1,12 @@
 /* 扑克牌配置文件 */
-
 /** 
  * @typedef {import("../types/game.js").Pokers}
  */
-
 /** 
  * @type {Pokers}
  */
 const localCardList = [
+    // 牌序数为行数-10, 如红桃妖怪2为第11行，则序数为11-10=1
     { num: 2, suit: 4, src: '2A', name: '妖怪2' },
     { num: 2, suit: 3, src: '2B', name: '妖怪2' },
     { num: 2, suit: 2, src: '2C', name: '妖怪2' },
