@@ -9,6 +9,7 @@ const logger = require('../common/log')
  * @typedef {import('../types/room.js').RoomWebsocketRequestData}
  * @typedef {import('../types/websocket.js').WebSocketServerInfo}
  * @typedef {import('../types/websocket.js').WebSocketInfo}
+ * @typedef {import("../types/common.js").GamePlayerSeatIndex}
  */
 
 /**
@@ -143,17 +144,21 @@ module.exports = function (data, wss, ws) {
                 if (err) { return logger.error('error redis response - ' + err) }
                 try {
                     if (res === null) { return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST) }
+                    /** @type {GamePlayerSeatIndex} */
+                    const seatIndex = data.seatIndex
                     /** @type {RedisCacheRoomInfo} */
                     let room = JSON.parse(res)
-                    let deleteId = room.playerList[data.seatIndex].id
+                    let deleteId = room.playerList[seatIndex].id
                     let remainId = 0
                     /* 删掉离开的玩家 */
-                    room.playerList[data.seatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                    room.playerList[seatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
                     let stillHasPlayer = false
                     for (let i = 0; i < Object.keys(room.playerList).length; i++) {
-                        if (room.playerList[i].id !== 0) {
+                        /** @type {GamePlayerSeatIndex} */
+                        const seatKey = i
+                        if (room.playerList[seatKey].id !== 0) {
                             stillHasPlayer = true
-                            remainId = room.playerList[i].id
+                            remainId = room.playerList[seatKey].id
                             break
                         }
                     }
@@ -263,20 +268,27 @@ module.exports = function (data, wss, ws) {
                     if (err) { return logger.error('error redis response - ' + err) }
                     try {
                         if (res === null) { return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST) }
+                        /** @type {GamePlayerSeatIndex} */
+                        const seatIndex = data.seatIndex
                         /** @type {RedisCacheRoomInfo} */
                         let room = JSON.parse(res)
                         for (let i = 0; i < Object.keys(room.playerList).length; i++) {
-                            if (room.playerList[i].id === ws.userId) {
+                            /** @type {GamePlayerSeatIndex} */
+                            const seatKey = i
+                            if (room.playerList[seatKey].id === ws.userId) {
                                 ws.send(JSON.stringify({ type: 'error', player_loc: 0, text: errors.ALREADY_IN_ROOM.message }))
                                 return
                             }
                         }
+                        /** @type {GamePlayerSeatIndex} */
                         let freeSeatIndex = 0
                         /* 不指定位置 */
-                        if (data.seatIndex === -1) {
+                        if (seatIndex === -1) {
                             freeSeatIndex = -1
                             for (let i = 0; i < Object.keys(room.playerList).length; i++) {
-                                if (room.playerList[i].id === 0) {
+                                /** @type {GamePlayerSeatIndex} */
+                                const seatKey = i
+                                if (room.playerList[seatKey].id === 0) {
                                     freeSeatIndex = i
                                     break
                                 }
@@ -288,8 +300,8 @@ module.exports = function (data, wss, ws) {
                         }
                         /* 指定位置 */
                         else {
-                            if (room.playerList[data.seatIndex].id === 0) {
-                                freeSeatIndex = data.seatIndex
+                            if (room.playerList[seatIndex].id === 0) {
+                                freeSeatIndex = seatIndex
                             }
                             else {
                                 ws.send(JSON.stringify({ type: 'error', player_loc: 0, text: errors.SEAT_FULL.message }))
@@ -350,8 +362,10 @@ module.exports = function (data, wss, ws) {
                         /** @type {RedisCacheRoomInfo} */
                         let room = JSON.parse(res)
                         for (let i = 0; i < Object.keys(room.playerList).length; i++) {
-                            if (room.playerList[i].id === ws.userId) {
-                                room.playerList[i].ready = !room.playerList[i].ready
+                            /** @type {GamePlayerSeatIndex} */
+                            const seatKey = i
+                            if (room.playerList[seatKey].id === ws.userId) {
+                                room.playerList[seatKey].ready = !room.playerList[seatKey].ready
                                 break
                             }
                         }
@@ -453,15 +467,19 @@ module.exports = function (data, wss, ws) {
                             if (res === null) { return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST) }
                             /** @type {RedisCacheRoomInfo} */
                             let room = JSON.parse(res)
+                            /** @type {GamePlayerSeatIndex} */
+                            const sourceSeatIndex = data.sourceSeatIndex
+                            /** @type {GamePlayerSeatIndex} */
+                            const targetSeatIndex = data.targetSeatIndex
                             if (room.status === 1) return
                             /* 确保玩家信息没有发生改变 */
-                            if (room.playerList[data.targetSeatIndex].id !== data.targetId || room.playerList[data.sourceSeatIndex].id !== data.sourceId) {
+                            if (room.playerList[targetSeatIndex].id !== data.targetId || room.playerList[sourceSeatIndex].id !== data.sourceId) {
                                 return
                             }
                             /* 目标位置没有玩家则直接换 */
-                            if (room.playerList[data.targetSeatIndex].id === 0) {
-                                room.playerList[data.targetSeatIndex] = room.playerList[data.sourceSeatIndex]
-                                room.playerList[data.sourceSeatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                            if (room.playerList[targetSeatIndex].id === 0) {
+                                room.playerList[targetSeatIndex] = room.playerList[sourceSeatIndex]
+                                room.playerList[sourceSeatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
                                 redis.set(roomId, JSON.stringify(room), function (err) {
                                     if (err) { return logger.error('error redis response - ' + err) }
                                     redis.keys(allRooms, function (err, list) {
@@ -498,9 +516,9 @@ module.exports = function (data, wss, ws) {
                             /* 有玩家则向该玩家发送请求 */
                             else {
                                 if (data.confirm) {
-                                    let tempPlayerInfo = room.playerList[data.targetSeatIndex]
-                                    room.playerList[data.targetSeatIndex] = room.playerList[data.sourceSeatIndex]
-                                    room.playerList[data.sourceSeatIndex] = tempPlayerInfo
+                                    let tempPlayerInfo = room.playerList[targetSeatIndex]
+                                    room.playerList[targetSeatIndex] = room.playerList[sourceSeatIndex]
+                                    room.playerList[sourceSeatIndex] = tempPlayerInfo
                                     redis.set(roomId, JSON.stringify(room), function (err) {
                                         if (err) { return logger.error('error redis response - ' + err) }
                                         redis.keys(allRooms, function (err, list) {
