@@ -150,6 +150,9 @@ module.exports = function (data, wss, ws) {
                     let room = JSON.parse(res)
                     let deleteId = room.playerList[seatIndex].id
                     let remainId = 0
+                    if (ws.userId !== room.owner && ws.userId !== deleteId) {
+                        return // 如果不是房主踢人或玩家自行离开，则本次请求无效，终止后续处理。
+                    }
                     /* 删掉离开的玩家 */
                     room.playerList[seatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
                     let stillHasPlayer = false
