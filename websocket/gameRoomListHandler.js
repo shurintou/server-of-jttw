@@ -159,7 +159,7 @@ module.exports = function (data, wss, ws) {
                     for (let i = 0; i < Object.keys(room.playerList).length; i++) {
                         /** @type {GamePlayerSeatIndex} */
                         const seatKey = i
-                        if (room.playerList[seatKey].id !== 0) {
+                        if (room.playerList[seatKey].id > 0) {
                             stillHasPlayer = true
                             remainId = room.playerList[seatKey].id
                             break

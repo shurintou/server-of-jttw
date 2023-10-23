@@ -97,9 +97,11 @@ module.exports = function (wss) {
                                                 if (stillAlivePlayerIdList.indexOf(gameRoom.playerList[i].id) !== -1) {
                                                     stillHasPlayer = true
                                                 }
-                                                /* 该位置玩家没有session则把该位置清空 */
+                                                /* 该位置玩家不是机器人且没有session则把该位置清空 */
                                                 else {
-                                                    gameRoom.playerList[i] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                                                    if (gameRoom.playerList[i].id > 0) {
+                                                        gameRoom.playerList[i] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                                                    }
                                                 }
                                             }
                                         }
