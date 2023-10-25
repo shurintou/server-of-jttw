@@ -33,6 +33,7 @@
  * @property {(0|1)?} status - 房间状态 0:等待开始, 1:游戏中。创建房间时不为空。
  * @property {boolean?} needPassword - 是否需要密码。创建房间,edit时不为空。
  * @property {string?} password - 密码。创建房间，须密码enter，edit时不为空。
+ * @property {number?} aiPlayerId - 电脑玩家id。enter时一般玩家为0，加入电脑玩家为负数。
  * @property {number?} cardNum - 使用牌的副数。创建房间,edit时不为空。
  * @property {number?} metamorphoseNum - 每副牌变身牌数量。创建房间,edit时不为空。
  * @property {number?} owner - 房主的玩家id。创建房间时不为空。

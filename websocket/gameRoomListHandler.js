@@ -277,10 +277,11 @@ module.exports = function (data, wss, ws) {
                         const seatIndex = data.seatIndex
                         /** @type {RedisCacheRoomInfo} */
                         let room = JSON.parse(res)
+                        const enterPlayerId = data.aiPlayerId < 0 ? data.aiPlayerId : ws.userId
                         for (let i = 0; i < Object.keys(room.playerList).length; i++) {
                             /** @type {GamePlayerSeatIndex} */
                             const seatKey = i
-                            if (room.playerList[seatKey].id === ws.userId) {
+                            if (room.playerList[seatKey].id === enterPlayerId) {
                                 ws.send(JSON.stringify({ type: 'error', player_loc: 0, text: errors.ALREADY_IN_ROOM.message }))
                                 return
                             }
@@ -313,13 +314,13 @@ module.exports = function (data, wss, ws) {
                                 return
                             }
                         }
-                        if (room.needPassword) {
+                        if (enterPlayerId >= 0 && room.needPassword) { // 一般玩家才需要验证密码
                             if (data.password !== room.password) {
                                 ws.send(JSON.stringify({ type: 'error', player_loc: 0, text: errors.WRONG_PASSWORD.message }))
                                 return
                             }
                         }
-                        room.playerList[freeSeatIndex] = { id: ws.userId, cards: 0, win: 0, loss: 0, ready: false }
+                        room.playerList[freeSeatIndex] = { id: enterPlayerId, cards: 0, win: 0, loss: 0, ready: enterPlayerId < 0 }
                         redis.set(roomId, JSON.stringify(room), function (err) {
                             if (err) { return logger.error('error redis response - ' + err) }
                             redis.keys(allRooms, function (err, list) {
