@@ -482,10 +482,16 @@ module.exports = function (data, wss, ws) {
                             if (room.playerList[targetSeatIndex].id !== data.targetId || room.playerList[sourceSeatIndex].id !== data.sourceId) {
                                 return
                             }
-                            /* 目标位置没有玩家则直接换 */
-                            if (room.playerList[targetSeatIndex].id === 0) {
+                            /* 目标位置没有玩家或是电脑玩家则直接换 */
+                            if (room.playerList[targetSeatIndex].id <= 0) {
+                                const temporaryPlayer = room.playerList[targetSeatIndex]
                                 room.playerList[targetSeatIndex] = room.playerList[sourceSeatIndex]
-                                room.playerList[sourceSeatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                                if (temporaryPlayer.id < 0) { // 目标位置是电脑玩家则将其设置到换位置请求的玩家座位上
+                                    room.playerList[sourceSeatIndex] = temporaryPlayer
+                                }
+                                else {
+                                    room.playerList[sourceSeatIndex] = { id: 0, cards: 0, win: 0, loss: 0, ready: false }
+                                }
                                 redis.set(roomId, JSON.stringify(room), function (err) {
                                     if (err) { return logger.error('error redis response - ' + err) }
                                     redis.keys(allRooms, function (err, list) {
