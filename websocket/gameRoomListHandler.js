@@ -4,6 +4,8 @@ const conf = require('../config/')
 const errors = require('../common/errors')
 const logger = require('../common/log')
 
+/** @todo 返回给前端的房间列表中带有password信息未删除。 */
+
 /**
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}
  * @typedef {import('../types/room.js').RoomWebsocketRequestData}
