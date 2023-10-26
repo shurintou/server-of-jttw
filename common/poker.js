@@ -105,4 +105,8 @@ module.exports = {
     waitTime: 20000,
     /** 玩家托管时等待的时间 */
     offLineWaitTime: 1000,
+    /** 电脑玩家出牌时等待的基础时间 */
+    aiPlayBasicWaitTime: 1500,
+    /** 电脑玩家出牌时等待的附加时间的随机值 */
+    aiPlayerRandomWaitTime: 1000,
 }

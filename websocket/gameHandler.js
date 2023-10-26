@@ -9,6 +9,7 @@ const Game = require('../models/game')
 const sequelize = require('../database/mysql').sequelize
 const { Op } = require("sequelize");
 const logger = require('../common/log')
+const { aiPlay, aiPlayerMetaData } = require('../common/ai')
 /**
  * @typedef {import('../types/record').SequelizedModelRecord}
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}
@@ -26,16 +27,13 @@ const logger = require('../common/log')
  * @typedef {import('../types/player').SequelizedModelPlayer}
  */
 
-
-module.exports = gameHandler
-
 /**
  * @param {GameWebsocketRequestData} data 游戏的前端请求信息。
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
  * @returns {void}
  */
-function gameHandler(data, wss, ws) {
+module.exports = function (data, wss, ws) {
     try {
         let gameRoomKey = conf.redisCache.gameRoomPrefix + data.id
         let gameKey = conf.redisCache.gamePrefix + data.id
@@ -83,7 +81,6 @@ function gameHandler(data, wss, ws) {
                                                         }
                                                         pokers = poker.shuffle(pokers)
                                                     }
-                                                    let timer = setTimeout(function () { intervalCheckCard(wss, this, data.id) }, poker.waitTime)
                                                     let game = {
                                                         id: data.id,
                                                         clockwise: false,
@@ -103,7 +100,7 @@ function gameHandler(data, wss, ws) {
                                                         version: 0, //数据版本
                                                         timesCombo: 0, //多牌连击次数
                                                         timesCard: 0, //多牌得到的额外牌数
-                                                        timer: timer[Symbol.toPrimitive](),
+                                                        timer: null,
                                                         gamePlayer: {
                                                             0: { id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0 },
                                                             1: { id: 0, nickname: '', avatar_id: 0, cards: 0, remainCards: [], maxCombo: 0, online: false, offLineTime: 0, offLinePlayCard: 0, wukong: 0, bajie: 0, shaseng: 0, tangseng: 0, joker: 0, bianshen: 0 },
@@ -129,12 +126,14 @@ function gameHandler(data, wss, ws) {
                                                     for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
                                                         /** @type {GamePlayerSeatIndex} */
                                                         const iSeatIndex = i
-                                                        if (gameRoom.playerList[iSeatIndex].id > 0) {
+                                                        if (gameRoom.playerList[iSeatIndex].id !== 0) {
                                                             game.gamePlayerId.push(gameRoom.playerList[iSeatIndex].id)
                                                             if (game.currentPlayer === -1) {
                                                                 game.currentPlayer = iSeatIndex
                                                             }
                                                             for (let j = 0; j < gamePlayerList.length; j++) {
+                                                                /** 是否该给改玩家发牌 */
+                                                                let shouldDeal = false
                                                                 /** @type {GamePlayerSeatIndex} */
                                                                 const jSeatIndex = j
                                                                 /* 某玩家在房间中，获取该玩家昵称，设置信息，并改变其在玩家列表中的状态 */
@@ -144,20 +143,33 @@ function gameHandler(data, wss, ws) {
                                                                     game.gamePlayer[iSeatIndex].avatar_id = gamePlayerList[jSeatIndex].avatar_id
                                                                     game.gamePlayer[iSeatIndex].online = true
                                                                     gamePlayerList[jSeatIndex].player_status = 2
+                                                                    redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[jSeatIndex].id)
+                                                                    redisMSetStr.push(JSON.stringify(gamePlayerList[jSeatIndex]))
+                                                                    shouldDeal = true
+                                                                }
+                                                                else if (gameRoom.playerList[iSeatIndex].id < 0) { // 电脑玩家
+                                                                    const aiPlayer = aiPlayerMetaData[-1 * (gameRoom.playerList[iSeatIndex].id + 1)]
+                                                                    game.gamePlayer[iSeatIndex].id = aiPlayer.id
+                                                                    game.gamePlayer[iSeatIndex].nickname = aiPlayer.nickname
+                                                                    game.gamePlayer[iSeatIndex].avatar_id = aiPlayer.avatar_id
+                                                                    game.gamePlayer[iSeatIndex].online = true
+                                                                    shouldDeal = true
+                                                                }
+                                                                if (shouldDeal) {
                                                                     /* 发牌 */
                                                                     while (game.gamePlayer[iSeatIndex].remainCards.length < 5) {
                                                                         game.gamePlayer[iSeatIndex].remainCards.push(game.remainCards.pop())
                                                                     }
-                                                                    if (gameRoom.playerList[iSeatIndex].id === gameRoom.lastLoser && gameRoom.lastLoser > 0) {
+                                                                    if (gameRoom.playerList[iSeatIndex].id === gameRoom.lastLoser && gameRoom.lastLoser !== 0) {
                                                                         game.currentPlayer = iSeatIndex
                                                                     }
-                                                                    redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[jSeatIndex].id)
-                                                                    redisMSetStr.push(JSON.stringify(gamePlayerList[jSeatIndex]))
                                                                     break
                                                                 }
                                                             }
                                                         }
                                                     }
+                                                    const timer = getPlayCardTimer(game, game.currentPlayer, wss, poker.waitTime)
+                                                    game.timer = timer[Symbol.toPrimitive]()
                                                     gameRoom.status = 1
                                                     redis.multi()
                                                         .mset(redisMSetStr)
@@ -167,7 +179,7 @@ function gameHandler(data, wss, ws) {
                                                             if (err) { return logger.error('error redis response - ' + err) }
                                                             try {
                                                                 if (results === null) {
-                                                                    ws.send(JSON.stringify({ type: 'message', subType: 'error', player_loc: data.id, text: errors.SET_ONLINE_ERROR.message }))
+                                                                    ws?.send(JSON.stringify({ type: 'message', subType: 'error', player_loc: data.id, text: errors.SET_ONLINE_ERROR.message }))
                                                                 }
                                                                 redis.keys(conf.redisCache.playerPrefix + '*', function (err, list) {
                                                                     if (err) { return logger.error('error redis response - ' + err) }
@@ -356,12 +368,12 @@ function gameHandler(data, wss, ws) {
                             return
                         }
                         game.version = game.version + 1
-                        let timer = setTimeout(function () { intervalCheckCard(wss, this, game.id) }, getWaitTime(game))
+                        const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                         game.timer = timer[Symbol.toPrimitive]()
                         sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                     }
                     else {
-                        ws.send(JSON.stringify({ type: 'error', player_loc: data.id, text: errors.POKER_TIMER_EXPIRED.message }))
+                        ws?.send(JSON.stringify({ type: 'error', player_loc: data.id, text: errors.POKER_TIMER_EXPIRED.message }))
                     }
                 }
                 catch (e) {
@@ -391,12 +403,12 @@ function gameHandler(data, wss, ws) {
                         game.currentCard = []
                         game.currentCardPlayer = -1
                         game.version = game.version + 1
-                        let timer = setTimeout(function () { intervalCheckCard(wss, this, game.id) }, getWaitTime(game))
+                        const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                         game.timer = timer[Symbol.toPrimitive]()
                         sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                     }
                     else {
-                        ws.send(JSON.stringify({ type: 'error', player_loc: data.id, text: errors.POKER_TIMER_EXPIRED.message }))
+                        ws?.send(JSON.stringify({ type: 'error', player_loc: data.id, text: errors.POKER_TIMER_EXPIRED.message }))
                     }
                 }
                 catch (e) {
@@ -569,7 +581,7 @@ function intervalCheckCard(wss, thisTimer, id) {
                         return
                     }
                     game.version = game.version + 1
-                    let timer = setTimeout(function () { intervalCheckCard(wss, this, game.id) }, getWaitTime(game))
+                    const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
                     sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
@@ -587,7 +599,7 @@ function intervalCheckCard(wss, thisTimer, id) {
                     game.currentCard = []
                     game.currentCardPlayer = -1
                     game.version = game.version + 1
-                    let timer = setTimeout(function () { intervalCheckCard(wss, this, game.id) }, getWaitTime(game))
+                    const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
                     sendGameInfo(gameKey, game, wss, 'update', [playCardText])
                 }
@@ -676,7 +688,7 @@ function gameover(gameKey, game, wss) {
             /** @type {GamePlayerSeatIndex} */
             const seatIndex = i
             game.gamePlayer[seatIndex].remainCards = []
-            if (game.gamePlayer[seatIndex].id > 0) {
+            if (game.gamePlayer[seatIndex].id !== 0) {
                 cardsSortList.push(game.gamePlayer[seatIndex])
             }
         }
@@ -1062,4 +1074,28 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
         logger.error(e)
         return 0
     }
+}
+
+/**
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @param {GamePlayerSeatIndex} currentPlayer 出牌玩家的ID。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @param {number} delay 计时器时间
+ * @returns {NodeJS.Timeout}
+ */
+function getPlayCardTimer(game, currentPlayer, wss, delay) {
+    const currentPlayerId = game.gamePlayer[currentPlayer].id
+    if (currentPlayerId > 0) {
+        return setTimeout(function () { intervalCheckCard(wss, this, game.id) }, delay)
+    }
+    else if (currentPlayerId < 0) {
+        return setTimeout(function () {
+            const playCardWebSocketRequestData = aiPlay(game)
+            /** 
+             * module.exports = {@link module}  即调用module导出的function。
+             * */
+            module.exports(playCardWebSocketRequestData, wss, null)
+        }, poker.aiPlayBasicWaitTime + (Math.random() * poker.aiPlayerRandomWaitTime))
+    }
+    return null
 }
