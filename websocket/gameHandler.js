@@ -124,28 +124,32 @@ module.exports = function (data, wss, ws) {
                                                         gamePlayerList.push(player)
                                                     }
                                                     for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
-                                                        if (gameRoom.playerList[i].id > 0) {
-                                                            game.gamePlayerId.push(gameRoom.playerList[i].id)
+                                                        /** @type {GamePlayerSeatIndex} */
+                                                        const iSeatIndex = i
+                                                        if (gameRoom.playerList[iSeatIndex].id > 0) {
+                                                            game.gamePlayerId.push(gameRoom.playerList[iSeatIndex].id)
                                                             if (game.currentPlayer === -1) {
-                                                                game.currentPlayer = i
+                                                                game.currentPlayer = iSeatIndex
                                                             }
                                                             for (let j = 0; j < gamePlayerList.length; j++) {
+                                                                /** @type {GamePlayerSeatIndex} */
+                                                                const jSeatIndex = j
                                                                 /* 某玩家在房间中，获取该玩家昵称，设置信息，并改变其在玩家列表中的状态 */
-                                                                if (gameRoom.playerList[i].id === gamePlayerList[j].id) {
-                                                                    game.gamePlayer[i].id = gamePlayerList[j].id
-                                                                    game.gamePlayer[i].nickname = gamePlayerList[j].nickname
-                                                                    game.gamePlayer[i].avatar_id = gamePlayerList[j].avatar_id
-                                                                    game.gamePlayer[i].online = true
-                                                                    gamePlayerList[j].player_status = 2
+                                                                if (gameRoom.playerList[iSeatIndex].id === gamePlayerList[jSeatIndex].id) {
+                                                                    game.gamePlayer[iSeatIndex].id = gamePlayerList[jSeatIndex].id
+                                                                    game.gamePlayer[iSeatIndex].nickname = gamePlayerList[jSeatIndex].nickname
+                                                                    game.gamePlayer[iSeatIndex].avatar_id = gamePlayerList[jSeatIndex].avatar_id
+                                                                    game.gamePlayer[iSeatIndex].online = true
+                                                                    gamePlayerList[jSeatIndex].player_status = 2
                                                                     /* 发牌 */
-                                                                    while (game.gamePlayer[i].remainCards.length < 5) {
-                                                                        game.gamePlayer[i].remainCards.push(game.remainCards.pop())
+                                                                    while (game.gamePlayer[iSeatIndex].remainCards.length < 5) {
+                                                                        game.gamePlayer[iSeatIndex].remainCards.push(game.remainCards.pop())
                                                                     }
-                                                                    if (gameRoom.playerList[i].id === gameRoom.lastLoser && gameRoom.lastLoser > 0) {
-                                                                        game.currentPlayer = i
+                                                                    if (gameRoom.playerList[iSeatIndex].id === gameRoom.lastLoser && gameRoom.lastLoser > 0) {
+                                                                        game.currentPlayer = iSeatIndex
                                                                     }
-                                                                    redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[j].id)
-                                                                    redisMSetStr.push(JSON.stringify(gamePlayerList[j]))
+                                                                    redisMSetStr.push(conf.redisCache.playerPrefix + gamePlayerList[jSeatIndex].id)
+                                                                    redisMSetStr.push(JSON.stringify(gamePlayerList[jSeatIndex]))
                                                                     break
                                                                 }
                                                             }
@@ -666,9 +670,11 @@ function gameover(gameKey, game, wss) {
         /** @type {RedisCachePlayerInGame[]} */
         let cardsSortList = []
         for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
-            game.gamePlayer[i].remainCards = []
-            if (game.gamePlayer[i].id > 0) {
-                cardsSortList.push(game.gamePlayer[i])
+            /** @type {GamePlayerSeatIndex} */
+            const seatIndex = i
+            game.gamePlayer[seatIndex].remainCards = []
+            if (game.gamePlayer[seatIndex].id > 0) {
+                cardsSortList.push(game.gamePlayer[seatIndex])
             }
         }
         cardsSortList.sort(function (x, y) {//增序排成绩
@@ -742,15 +748,17 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                         let gameRoom = JSON.parse(res)
                         gameRoom.status = 0
                         for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
-                            if (gameRoom.playerList[i].id === game.gamePlayer[i].id) {
-                                gameRoom.playerList[i].ready = false
-                                gameRoom.playerList[i].cards = gameRoom.playerList[i].cards + game.gamePlayer[i].cards
-                                if (gameRoom.playerList[i].id === losePlayer) {
-                                    gameRoom.playerList[i].loss = gameRoom.playerList[i].loss + 1
-                                    gameRoom.lastLoser = gameRoom.playerList[i].id
+                            /** @type {GamePlayerSeatIndex} */
+                            const seatIndex = i
+                            if (gameRoom.playerList[seatIndex].id === game.gamePlayer[seatIndex].id) {
+                                gameRoom.playerList[seatIndex].ready = false
+                                gameRoom.playerList[seatIndex].cards = gameRoom.playerList[seatIndex].cards + game.gamePlayer[seatIndex].cards
+                                if (gameRoom.playerList[seatIndex].id === losePlayer) {
+                                    gameRoom.playerList[seatIndex].loss = gameRoom.playerList[seatIndex].loss + 1
+                                    gameRoom.lastLoser = gameRoom.playerList[seatIndex].id
                                 }
-                                else if (gameRoom.playerList[i].id === winPlayer) {
-                                    gameRoom.playerList[i].win = gameRoom.playerList[i].win + 1
+                                else if (gameRoom.playerList[seatIndex].id === winPlayer) {
+                                    gameRoom.playerList[seatIndex].win = gameRoom.playerList[seatIndex].win + 1
                                 }
                             }
                         }
@@ -860,7 +868,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             let player = game.gamePlayer[i]
             for (let j = 0; j < accounts.length; j++) {
                 if (player.id === accounts[j].id) {
-                    let addExp = await calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
+                    let addExp = calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
                     playerExpList.push({ id: player.id, exp: addExp })
                     insertPlayersInfo.push({
                         nickname: player.nickname,
