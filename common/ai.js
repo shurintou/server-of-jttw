@@ -157,10 +157,9 @@ function getHigherPlayCardsList(currentCard, remainCards) {
             if (cardNum < currentCardNum) { // 过滤掉牌面小于牌池的牌组合
                 return false
             }
-            if (cardNum > currentCardNum && cardNum < 30) { // 选取牌面大于牌池的牌组合
-                return true
+            else if (cardNum > currentCardNum) { // 选取牌面大于牌池的牌组合
+                return cardNum < 30 || currentCardNum > 20 // 牌面双方均不是师傅 或 现在牌池中是徒弟且打出牌面是师傅
             }
-            return false
         }
         // 现在牌池中的牌为师傅，选取牌面是妖怪牌的牌组合
         if (currentCardNum === 31 && cardNum < 20) {
