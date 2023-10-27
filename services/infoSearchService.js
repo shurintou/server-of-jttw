@@ -1,9 +1,12 @@
 const Player = require('../models/player')
 const Record = require('../models/record')
+const AiPlayer = require('../models/aiPlayer')
 const Game = require('../models/game')
 const redis = require('../database/redis')
 const conf = require('../config/')
 const logger = require('../common/log')
+const { aiPlayerMetaData } = require('../common/ai')
+
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/record').BasicRedisCachePlayerRecord}
@@ -11,6 +14,7 @@ const logger = require('../common/log')
  * @typedef {import('../types/game.js').SequelizedModelGame}
  * @typedef {import('../types/game.js').GameResultDto}
  * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAiPlayer}
  */
 
 module.exports = {
@@ -84,6 +88,8 @@ module.exports = {
                 const game = games[0]
                 /** @type {SequelizedModelPlayer[]} */
                 const gamePlayerList = await game.getPlayers()
+                /** @type {SequelizedModelAiPlayer[]} */
+                const gameAiPlayerList = await game.getAiPlayers()
                 /** @type {GameResultDto} */
                 let gameResultDto = {
                     id: game.id,
@@ -102,6 +108,23 @@ module.exports = {
                         id: player.accountId,
                         nickname: player.nickname,
                         avatar_id: player.avatar_id,
+                        cards: player.cards,
+                        seatIndex: player.seat_index,
+                        maxCombo: player.max_combo,
+                        wukong: player.wukong,
+                        bajie: player.bajie,
+                        shaseng: player.shaseng,
+                        tangseng: player.tangseng,
+                        joker: player.joker,
+                        bianshen: player.bianshen
+                    })
+                })
+                gameAiPlayerList.forEach(player => {
+                    const { nickname, avatar_id } = aiPlayerMetaData[-1 * (player.ai_player_id + 1)]
+                    gameResultDto.gameResultList.push({
+                        id: player.ai_player_id,
+                        nickname: nickname,
+                        avatar_id: avatar_id,
                         cards: player.cards,
                         seatIndex: player.seat_index,
                         maxCombo: player.max_combo,

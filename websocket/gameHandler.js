@@ -4,6 +4,7 @@ const conf = require('../config/')
 const poker = require('../common/poker')
 const errors = require('../common/errors')
 const Player = require('../models/player')
+const AiPlayer = require('../models/aiPlayer')
 const Account = require('../models/account')
 const Game = require('../models/game')
 const sequelize = require('../database/mysql').sequelize
@@ -25,6 +26,7 @@ const { aiPlay, aiPlayerMetaData } = require('../common/ai')
  * @typedef {import('../types/player').SequelizedModelAccount}
  * @typedef {import('../types/player').SequelizedModelGame}
  * @typedef {import('../types/player').SequelizedModelPlayer}
+ * @typedef {import('../types/player').SequelizedModelAiPlayer}
  */
 
 /**
@@ -766,7 +768,7 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                             /** @type {GamePlayerSeatIndex} */
                             const seatIndex = i
                             if (gameRoom.playerList[seatIndex].id === game.gamePlayer[seatIndex].id) {
-                                gameRoom.playerList[seatIndex].ready = false
+                                gameRoom.playerList[seatIndex].ready = gameRoom.playerList[seatIndex].id < 0
                                 gameRoom.playerList[seatIndex].cards = gameRoom.playerList[seatIndex].cards + game.gamePlayer[seatIndex].cards
                                 if (gameRoom.playerList[seatIndex].id === losePlayer) {
                                     gameRoom.playerList[seatIndex].loss = gameRoom.playerList[seatIndex].loss + 1
@@ -803,7 +805,7 @@ function deleteGame(game, wss, losePlayer, winPlayer) {
                 })
                 /** @type {string[]} 玩家key的列表字符串，用于mget */
                 let changePlayerList = []
-                game.gamePlayerId.forEach(id => { changePlayerList.push(conf.redisCache.playerPrefix + id) })
+                game.gamePlayerId.forEach(id => { if (id > 0) changePlayerList.push(conf.redisCache.playerPrefix + id) })
                 if (changePlayerList.length === 0) return
                 redis.mget(changePlayerList, function (err, resList) {
                     if (err) { return logger.error('error redis response - ' + err) }
@@ -873,33 +875,56 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
     const t = await sequelize.transaction()
     try {
         /** @type {SequelizedModelPlayer[]} */
-        let insertPlayersInfo = []
+        const insertPlayersInfo = []
+        /** @type {SequelizedModelAiPlayer[]} */
+        const insertAiPlayersInfo = []
         /** @type {PlayerExp[]} */
-        let playerExpList = []
+        const playerExpList = []
+        /** 人类玩家的玩家id数组 */
+        const humanPlayerIdList = game.gamePlayerId.filter(id => id > 0)
         /** @type {SequelizedModelAccount[]} */
-        let accounts = await Account.findAll({ where: { id: { [Op.in]: game.gamePlayerId } } })
+        const accounts = await Account.findAll({ where: { id: { [Op.in]: humanPlayerIdList } } })
         for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
+            /** @type {GamePlayerSeatIndex} */
+            const seatKey = i
             /** @type {RedisCachePlayerInGame} */
-            let player = game.gamePlayer[i]
-            for (let j = 0; j < accounts.length; j++) {
-                if (player.id === accounts[j].id) {
-                    let addExp = calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
-                    playerExpList.push({ id: player.id, exp: addExp })
-                    insertPlayersInfo.push({
-                        nickname: player.nickname,
-                        avatar_id: player.avatar_id,
-                        cards: player.cards,
-                        max_combo: player.maxCombo,
-                        wukong: player.wukong,
-                        bajie: player.bajie,
-                        shaseng: player.shaseng,
-                        tangseng: player.tangseng,
-                        joker: player.joker,
-                        bianshen: player.bianshen,
-                        seat_index: i,
-                        accountId: accounts[j].id,
-                    })
-                    break
+            const player = game.gamePlayer[seatKey]
+            if (player.id < 0) { // 电脑玩家不需增加经验
+                insertAiPlayersInfo.push({
+                    ai_player_id: player.id,
+                    cards: player.cards,
+                    max_combo: player.maxCombo,
+                    wukong: player.wukong,
+                    bajie: player.bajie,
+                    shaseng: player.shaseng,
+                    tangseng: player.tangseng,
+                    joker: player.joker,
+                    bianshen: player.bianshen,
+                    seat_index: seatKey,
+                })
+            }
+            else {
+                for (let j = 0; j < accounts.length; j++) {
+                    if (player.id === accounts[j].id) {
+                        let addExp = calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
+                        console.log(addExp)
+                        playerExpList.push({ id: player.id, exp: addExp })
+                        insertPlayersInfo.push({
+                            nickname: player.nickname,
+                            avatar_id: player.avatar_id,
+                            cards: player.cards,
+                            max_combo: player.maxCombo,
+                            wukong: player.wukong,
+                            bajie: player.bajie,
+                            shaseng: player.shaseng,
+                            tangseng: player.tangseng,
+                            joker: player.joker,
+                            bianshen: player.bianshen,
+                            seat_index: seatKey,
+                            accountId: player.id,
+                        })
+                        break
+                    }
                 }
             }
         }
@@ -912,27 +937,34 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             max_combo: maxCombo,
         }
         /** @type {SequelizedModelPlayer[]} */
-        let insertedPlayers = await Player.bulkCreate(insertPlayersInfo)
+        const insertedPlayers = await Player.bulkCreate(insertPlayersInfo)
+        /** @type {SequelizedModelAiPlayer[]} */
+        const insertedAiPlayers = await AiPlayer.bulkCreate(insertAiPlayersInfo)
         /** @type {SequelizedModelGame} */
-        let insertedGame = await Game.create(gameInfo)
+        const insertedGame = await Game.create(gameInfo)
         insertedGame.addPlayers(insertedPlayers)
+        insertedGame.addAiPlayers(insertedAiPlayers)
         let winPlayerNickname = ''
         let losePlayerNickname = ''
         let maxComboPlayer = ''
-        insertedPlayers.forEach(insertedPlayer => {
+        /** @type {(SequelizedModelPlayer|SequelizedModelAiPlayer)[]} */
+        const allPlayers = insertedPlayers.concat(insertedAiPlayers)
+        allPlayers.forEach(insertedPlayer => {
+            const playerId = insertedPlayer.accountId || insertedPlayer.ai_player_id
+            const nickname = insertedPlayer.nickname || aiPlayerMetaData[-1 * (insertedPlayer.ai_player_id + 1)].nickname
             if (insertedPlayer.max_combo === maxCombo) {
                 if (maxComboPlayer.length > 0) {
-                    maxComboPlayer = maxComboPlayer + ', ' + insertedPlayer.nickname
+                    maxComboPlayer = maxComboPlayer + ', ' + nickname
                 }
                 else {
-                    maxComboPlayer = insertedPlayer.nickname
+                    maxComboPlayer = nickname
                 }
             }
-            if (insertedPlayer.accountId === winPlayer) {
-                winPlayerNickname = insertedPlayer.nickname
+            if (playerId === winPlayer) {
+                winPlayerNickname = nickname
             }
-            else if (insertedPlayer.accountId === losePlayer) {
-                losePlayerNickname = insertedPlayer.nickname
+            else if (playerId === losePlayer) {
+                losePlayerNickname = nickname
             }
         })
         insertedGame.winner = winPlayerNickname
@@ -952,11 +984,14 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             gameResultList: [],
             playerExpList: [],
         }
-        insertPlayersInfo.forEach(player => {
+        allPlayers.forEach(player => {
+            const playerId = player.accountId || player.ai_player_id
+            const nickname = player.nickname || aiPlayerMetaData[-1 * (player.ai_player_id + 1)].nickname
+            const avatarId = player.avatar_id || aiPlayerMetaData[-1 * (player.ai_player_id + 1)].avatar_id
             gameResultDto.gameResultList.push({
-                id: player.accountId,
-                nickname: player.nickname,
-                avatar_id: player.avatar_id,
+                id: playerId,
+                nickname: nickname,
+                avatar_id: avatarId,
                 cards: player.cards,
                 seatIndex: player.seat_index,
                 maxCombo: player.max_combo,
