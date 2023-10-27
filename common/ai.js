@@ -157,7 +157,7 @@ function getHigherPlayCardsList(currentCard, remainCards) {
             if (cardNum < currentCardNum) { // 过滤掉牌面小于牌池的牌组合
                 return false
             }
-            if (cardNum > currentCardNum) { // 选取牌面大于牌池的牌组合
+            if (cardNum > currentCardNum && cardNum < 30) { // 选取牌面大于牌池的牌组合
                 return true
             }
         }
