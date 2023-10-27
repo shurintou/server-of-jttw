@@ -71,8 +71,8 @@ function deDuplicatedCombination(allCombination) {
  * @returns {boolean} 是否是可打出的统一牌型结果。
  */
 function playCardFilter(combination) {
-    if (combination.every(card => poker.getIndexOfCardList(card).num === 100)) {
-        return true // 所有牌为反弹牌的情况返回TRUE
+    if (combination.some(card => poker.getIndexOfCardList(card).num === 100)) {
+        return combination.every(card => poker.getIndexOfCardList(card).num === 100) // 所有牌为反弹牌的情况返回TRUE
     }
     // 过滤出所有下标为1以上的牌的牌面等于基本牌的牌面或等于变身牌的牌型
     return combination.every((card, index) => index === 0 || (poker.getIndexOfCardList(card).num === poker.getIndexOfCardList(combination[0]).num || card >= 100))
