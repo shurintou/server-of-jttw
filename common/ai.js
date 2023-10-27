@@ -160,6 +160,7 @@ function getHigherPlayCardsList(currentCard, remainCards) {
             if (cardNum > currentCardNum && cardNum < 30) { // 选取牌面大于牌池的牌组合
                 return true
             }
+            return false
         }
         // 现在牌池中的牌为师傅，选取牌面是妖怪牌的牌组合
         if (currentCardNum === 31 && cardNum < 20) {
