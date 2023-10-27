@@ -1,7 +1,7 @@
 /* 游戏记录模型 */
 
 const db = require('../database/mysql')
-const Account = require('../common/models').account
+const Account = require('./account')
 
 const Record = db.defineModel('record',
     {

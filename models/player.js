@@ -1,8 +1,8 @@
 /* 玩家模型 */
 
 const db = require('../database/mysql')
-const Account = require('../common/models').account
-const Game = require('../common/models').game
+const Account = require('./account')
+const Game = require('./game')
 
 const Player = db.defineModel('player',
     {
