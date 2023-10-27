@@ -906,8 +906,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
             else {
                 for (let j = 0; j < accounts.length; j++) {
                     if (player.id === accounts[j].id) {
-                        let addExp = calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
-                        console.log(addExp)
+                        let addExp = await calRecord(player, accounts[j], Math.floor((game.cardNum * 54 + game.timesCard) / game.gamePlayerId.length), losePlayer, winPlayer, game.gamePlayerId.length)
                         playerExpList.push({ id: player.id, exp: addExp })
                         insertPlayersInfo.push({
                             nickname: player.nickname,
@@ -1036,7 +1035,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
  * @param {number} losePlayer 拉跨玩家id。
  * @param {number} winPlayer 吃鸡玩家id。
  * @param {number} playerNum 玩家数。
- * @returns {number} 经验值。
+ * @returns {Promise<number>} 经验值。
  */
 async function calRecord(player, playerInstance, averageCard, losePlayer, winPlayer, playerNum) {
     try {
