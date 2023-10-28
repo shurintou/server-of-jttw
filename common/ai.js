@@ -128,7 +128,7 @@ function getPlayCardsListBySpecifiedCount(allCards, count = 1) {
  * @description 与getPlayCardsListBySpecifiedCount的区别是不指定出牌数，而是根据游戏局势来指定。
  * @param {number[]} currentCard 现在牌池中的牌(>=0)。
  * @param {number[]} remainCards 玩家手中所有牌(>0)。
- * @returns {number[][]} 各种能出的牌的组合，值为玩家手中的该牌的序号(0~4)
+ * @returns {number[][]} 各种能出的牌的组合。
  */
 function getHigherPlayCardsList(currentCard, remainCards) {
     /** @type {number[][]} 各种能出的牌的组合，值为玩家手中的该牌的序号 */
@@ -173,6 +173,40 @@ function getHigherPlayCardsList(currentCard, remainCards) {
     return result
 }
 
+/** 
+ * @todo 策略待优化
+ * @summary 出牌策略处理，选出最佳的出牌组合。
+ * @description 牌池中无牌时，按妖怪，徒弟，师傅&反弹的顺序选出出牌的组合。即有可打出的妖怪牌组合时优先打妖怪牌中的随机组合，没有则打徒弟，依次类推。
+ * 牌池中有牌时，则按所有出牌组合中牌面最小，牌序数和最小的组合打出。
+ * @param {RedisCacheGame} game
+ * @param {number[][]} playCards 各种能出的牌的组合。
+ * @returns {number[]} 经过策略推算后打出的牌组合。
+ */
+function strategy(game, playCards) {
+    if (playCards.length === 0) return []
+
+    const currentCard = game.currentCard
+    if (currentCard.length === 0) {
+        const excludeNums = [20, 30, 100]
+        let i = 0
+        while (i < excludeNums.length) { // 妖怪，徒弟，师傅&反弹，的顺序检查是否有可打出的牌组合
+            const excludedPlayCards = playCards.filter(playCard => poker.getIndexOfCardList(playCard[0]).num <= excludeNums[i])
+            if (excludedPlayCards.length > 0) {
+                return excludedPlayCards[Math.floor(Math.random() * excludedPlayCards.length)] // 随机打出该过滤条件下的其中一种组合
+            }
+            i++
+        }
+    }
+    playCards.sort((a, b) => {
+        if (poker.getIndexOfCardList(a[0]).num !== poker.getIndexOfCardList(b[0]).num) { // 牌面不一致，按牌面升序排
+            return poker.getIndexOfCardList(a[0]).num - poker.getIndexOfCardList(b[0]).num
+        }
+        return a.reduce((acr, cur) => acr + cur) - b.reduce((acr, cur) => acr + cur)  // 牌面一致，按牌序数和升序排
+    })
+    /** 目前暂定选出所有能打出的牌中牌面最小，牌序数和最小的组合打出。 */
+    return playCards[0]
+}
+
 
 /** 
  * @param {RedisCacheGame} game
@@ -184,8 +218,7 @@ function aiPlay(game) {
     const currentPlayer = game.currentPlayer
     const remainCards = game.gamePlayer[currentPlayer].remainCards
     const playCards = getHigherPlayCardsList(game.currentCard, remainCards)
-    /** @todo 目前暂定从所有能打出的牌组合中随机抽出一种打出(所以是有打必打)，今后再添加策略机制选取最佳的牌组合打出。 */
-    const playCard = playCards.length > 0 ? playCards[Math.floor(Math.random() * playCards.length)] : []
+    const playCard = strategy(game, playCards)
     if (playCard.length > 0) {
         for (let i = 0; i < playCard.length; i++) {
             for (let j = 0; j < remainCards.length; j++) {
@@ -215,10 +248,10 @@ function aiPlay(game) {
                 }
             }
         }
+        playCard.sort((a, b) => {
+            return poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit
+        })
     }
-    playCard.sort((a, b) => {
-        return poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit
-    })
     const result = {
         type: 'game',
         action: playCard.length > 0 ? 'play' : 'discard',
