@@ -277,7 +277,7 @@ const aiPlayerMetaData = [
     { id: -11, username: '', nickname: '斗战胜佛(AI)', player_loc: 0, player_status: 1, avatar_id: 11 },
     { id: -12, username: '', nickname: '六耳猕猴(AI)', player_loc: 0, player_status: 1, avatar_id: 12 },
     { id: -13, username: '', nickname: '沙和尚(AI)', player_loc: 0, player_status: 1, avatar_id: 13 },
-    { id: -14, username: '', nickname: '南极仙翁(AI)', player_loc: 0, player_status: 1, avatar_id: 14 },
+    { id: -14, username: '', nickname: '月老(AI)', player_loc: 0, player_status: 1, avatar_id: 14 },
     { id: -15, username: '', nickname: '龙王(AI)', player_loc: 0, player_status: 1, avatar_id: 15 },
     { id: -16, username: '', nickname: '观音(AI)', player_loc: 0, player_status: 1, avatar_id: 16 },
     { id: -17, username: '', nickname: '美猴王(AI)', player_loc: 0, player_status: 1, avatar_id: 17 },
