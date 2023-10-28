@@ -365,11 +365,11 @@ module.exports = function (data, wss, ws) {
                             }
                             nextSeatIndex = nextSeatIndex + step
                         }
+                        game.version = game.version + 1
                         if (!hasPlayerPlayCard) {
-                            gameover(gameKey, game, wss)
+                            sendGameInfo(gameKey, game, wss, 'update', [playCardText], gameover)
                             return
                         }
-                        game.version = game.version + 1
                         const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                         game.timer = timer[Symbol.toPrimitive]()
                         sendGameInfo(gameKey, game, wss, 'update', [playCardText])
@@ -578,11 +578,11 @@ function intervalCheckCard(wss, thisTimer, id) {
                         }
                         nextSeatIndex = nextSeatIndex + step
                     }
+                    game.version = game.version + 1
                     if (!hasPlayerPlayCard) {
-                        gameover(gameKey, game, wss)
+                        sendGameInfo(gameKey, game, wss, 'update', [playCardText], gameover)
                         return
                     }
-                    game.version = game.version + 1
                     const timer = getPlayCardTimer(game, game.currentPlayer, wss, getWaitTime(game))
                     game.timer = timer[Symbol.toPrimitive]()
                     sendGameInfo(gameKey, game, wss, 'update', [playCardText])
@@ -622,22 +622,28 @@ function intervalCheckCard(wss, thisTimer, id) {
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @param {string} action 具体操作。
  * @param {string[]} messageList 游戏信息。
+ * @param {Function} [gameoverCallback = null] 游戏结束时调用的回调函数。@see {@link gameover}
  * @returns {void}
  */
-function sendGameInfo(gameKey, game, wss, action, messageList) {
+function sendGameInfo(gameKey, game, wss, action, messageList, gameoverCallback = null) {
     redis.set(gameKey, JSON.stringify(game), function (err) {
         if (err) { return logger.error('error redis response - ' + err) }
         try {
             game.remainCards = game.remainCards.length
             game.messages = []
             messageList.forEach(text => game.messages.push(text))
-            game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
+            if (gameoverCallback === null) game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
             let gameStr = JSON.stringify(game)
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'game', action: action, data: gameStr }))
                 }
             })
+            if (gameoverCallback !== null) {
+                setTimeout(() => {
+                    gameoverCallback(gameKey, game, wss)
+                }, 1000)
+            }
         }
         catch (e) {
             logger.error(e)
