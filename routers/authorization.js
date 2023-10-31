@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const authorizationService = require('../services/authorizationService')
-const sessionHandler = require('../common/session').sessionHandler
+const session = require('../common/session')
 const logger = require('../common/log')
 /** 
  * @typedef {import('../types/http').ClientRequest}
@@ -16,8 +16,10 @@ router.get('/authorization',
     function (req, res) {
         authorizationService.authorization(req)
             .then(result => {
-                sessionHandler(req, result.account)
-                res.status(200).json({ code: result.code, message: result.message, account: result.account })
+                session.then(sessionRes => {
+                    sessionRes.sessionHandler(req, result.account)
+                    res.status(200).json({ code: result.code, message: result.message, account: result.account })
+                })
             })
             .catch(err => {
                 logger.error(err.message)

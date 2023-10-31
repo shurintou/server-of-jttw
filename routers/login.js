@@ -1,7 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const loginService = require('../services/loginService')
-const sessionHandler = require('../common/session').sessionHandler
+const session = require('../common/session')
 const logger = require('../common/log')
 /** 
  * @typedef {import('../types/http').ClientRequest}
@@ -18,8 +18,10 @@ router.post('/login',
             .then(result => {
                 /* code为200则登录成功，设置session */
                 if (result.code === 200) {
-                    sessionHandler(req, result.account)
-                    res.status(200).json({ code: result.code, message: result.message, account: result.account })
+                    session.then(sessionRes => {
+                        sessionRes.sessionHandler(req, result.account)
+                        res.status(200).json({ code: result.code, message: result.message, account: result.account })
+                    })
                 }
                 else if (result.code === 409) {
                     req.session.destroy(() => { })

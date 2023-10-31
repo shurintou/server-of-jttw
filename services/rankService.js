@@ -1,7 +1,6 @@
 const Account = require('../models/account')
 const Record = require('../models/record')
 const logger = require('../common/log')
-const redis = require('../database/redis')
 const conf = require('../config/')
 const { Op } = require("sequelize");
 const errors = require('../common/errors')
@@ -19,27 +18,27 @@ const errors = require('../common/errors')
 module.exports = {
     /** @type {(req: ClientRequest) => Promise<{code:number, message:string, type:RankType, result:ResponseRank}>} */
     getRankInfo: async function (req) {
-        const rankPrefix = conf.redisCache.rankPrefix
-        let order = 1
-        /** @type {RankRequestQuery} */
-        const query = req.query
-        if (query.type === 'lowest_rate' || query.type === 'least_cards') {
-            order = 0
-        }
         try {
+            const rankPrefix = conf.redisCache.rankPrefix
+            let order = 1
+            /** @type {RankRequestQuery} */
+            const query = req.query
+            if (query.type === 'lowest_rate' || query.type === 'least_cards') {
+                order = 0
+            }
+            const redisKey = rankPrefix + query.type
             /** @type {RedisWrapperResult} */
-            let getRedisWrapperResult = await checkGetRedisWrapper(query.type, order, query.id) //判断缓存存在并取得排序结果: 0增序，1减序
-            if (getRedisWrapperResult.result) {
+            let getRankResult = await getRank(redisKey, order, query.id) //判断缓存存在并取得排序结果: 0增序，1减序
+            if (getRankResult.result) {
             }
             else {
                 /** @type {SequelizedModelRecord[]} */
                 const records = await Record.findAll({ where: { num_of_game: { [Op.gte]: 5 } } }) // 寻找游戏场数大于5的玩家
                 if (records.length < 1) {//样本数量不足时
-                    return Promise.resolve({ code: 200, message: '', type: query.type, result: { rankList: [], playerInfo: null } })
+                    return { code: 200, message: '', type: query.type, result: { rankList: [], playerInfo: null } }
                 }
                 /** @type {string[]} 形式是["100","1","105","2"...],即玩家分数,玩家id...交替的形式。 */
                 let zaddList = []
-                let redisKey = rankPrefix + query.type
                 records.forEach(record => {
                     if (query.type === 'level') {
                         zaddList.push(record.experience)
@@ -73,9 +72,9 @@ module.exports = {
                     zaddList.push(record.accountId)
                 })
                 /** @type {RedisWrapperResult} */
-                getRedisWrapperResult = await setGetRedisWrapper(redisKey, zaddList, query.id, order)//添加缓存并取得排序结果
+                getRankResult = await setRank(redisKey, zaddList, query.id, order)//添加缓存并取得排序结果
             }
-            let topThreeList = getRedisWrapperResult.topThreeList
+            let topThreeList = getRankResult.topThreeList
             /** @type {number[]} 玩家id列表。*/
             let idList = []
             /** @type {number[]} 分数列表。*/
@@ -98,79 +97,69 @@ module.exports = {
                     resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: account[0].avatar_id, nickname: account[0].nickname, record: scoreList[i] })
                 }
             }
-            let resList = getRedisWrapperResult.resList
+            let resList = getRankResult.resList
             if (resList === null) {
                 resultDto.playerInfo = null
             }
             else {
                 resultDto.playerInfo.id = resList[0]
                 resultDto.playerInfo.record = resList[1]
-                resultDto.playerInfo.rank = getRedisWrapperResult.resRank + 1
+                resultDto.playerInfo.rank = getRankResult.resRank + 1
             }
-            return Promise.resolve({ code: 200, message: '', type: query.type, result: resultDto })
+            return { code: 200, message: '', type: query.type, result: resultDto }
         }
         catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     }
 }
 
 /** 
- * @param {RankType} keyword - 获取排行的类型。
+ * @param {RankType} redisKey - 获取排行的类型。
  * @param {0|1} order - 0增序1降序
  * @param {number} id - 获取排序的玩家id。
  * @returns {Promise<{result:boolean, topThreeList:string[], resList:string[]|null, resRank:number}>} topThreeList和resList的形式是["1","100","2","105"...],即玩家id,玩家分数...交替的形式。
  */
-function checkGetRedisWrapper(keyword, order, id) {
-    const redisKey = conf.redisCache.rankPrefix + keyword
-    return new Promise((resolve, reject) => {
-        redis.exists(redisKey, function (err, res) {
-            if (err) { return reject({ message: 'error redis response - ' + err }) }
-            /* 有缓存 */
-            if (res === 1) {
-                /* 增序 */
-                if (order === 0) {
-                    /* 前三名，即对应参数中的0~2 */
-                    redis.zrange(redisKey, 0, 2, "WITHSCORES", function (err, topThreeList) {
-                        if (err) { return reject({ message: 'error redis response - ' + err }) }
-                        /* 获得指定玩家的排名 */
-                        redis.zrank(redisKey, id, function (err, res) {
-                            if (err) { return reject({ message: 'error redis response - ' + err }) }
-                            /* 若指定玩家不拥有排名则提前返回结果 */
-                            if (res === null) {
-                                return resolve({ result: true, topThreeList: topThreeList, resList: null, resRank: -1 })
-                            }
-                            /* 获得该排行榜指定玩家排名的信息并返回结果，即对应参数中的res~res */
-                            redis.zrange(redisKey, res, res, "WITHSCORES", function (err, resList) {
-                                if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                return resolve({ result: true, topThreeList: topThreeList, resList: resList, resRank: res })
-                            })
-                        })
-                    })
+async function getRank(redisKey, order, id) {
+    const redis = await require('../database/redis')
+    try {
+        const existRes = await redis.exists(redisKey)
+        /* 有缓存 */
+        if (existRes === 1) {
+            /* 增序 */
+            if (order === 0) {
+                /* 前三名，即对应参数中的0~2 */
+                const topThreeList = await redis.zRangeWithScores(redisKey, 0, 2)
+                /* 获得指定玩家的排名 */
+                const rankRes = await redis.zRank(redisKey, id)
+                /* 若指定玩家不拥有排名则提前返回结果 */
+                if (rankRes === null) {
+                    return { result: true, topThreeList: topThreeList, resList: null, resRank: -1 }
                 }
-                /* 减序 */
-                else {
-                    redis.zrevrange(redisKey, 0, 2, "WITHSCORES", function (err, topThreeList) {
-                        if (err) { return reject({ message: 'error redis response - ' + err }) }
-                        redis.zrevrank(redisKey, id, function (err, res) {
-                            if (err) { return reject({ message: 'error redis response - ' + err }) }
-                            if (res === null) {
-                                return resolve({ result: true, topThreeList: topThreeList, resList: null, resRank: -1 })
-                            }
-                            redis.zrevrange(redisKey, res, res, "WITHSCORES", function (err, resList) {
-                                if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                return resolve({ result: true, topThreeList: topThreeList, resList: resList, resRank: res })
-                            })
-                        })
-                    })
-                }
+                /* 获得该排行榜指定玩家排名的信息并返回结果，即对应参数中的res~res */
+                const resList = await redis.zRangeWithScores(redisKey, rankRes, rankRes)
+                return { result: true, topThreeList: topThreeList, resList: resList, resRank: rankRes }
             }
+            /* 减序 */
             else {
-                return resolve({ result: false })
+                const topThreeList = await redis.zRangeWithScores(redisKey, 0, 2, "REV")
+                const revrankRes = await redis.zRevRank(redisKey, id)
+                if (revrankRes === null) {
+                    return { result: true, topThreeList: topThreeList, resList: null, resRank: -1 }
+                }
+                const resList = await redis.zRangeWithScores(redisKey, revrankRes, revrankRes, "REV")
+                return { result: true, topThreeList: topThreeList, resList: resList, resRank: revrankRes }
             }
-        })
-    })
+        }
+        else {
+            return { result: false }
+        }
+    }
+    catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
 }
 
 /** 
@@ -180,89 +169,69 @@ function checkGetRedisWrapper(keyword, order, id) {
  * @param {number} id - 获取排序的玩家id。
  * @returns {Promise<{result:boolean, topThreeList:string[], resList:string[]|null, resRank:number}>} topThreeList和resList的形式是["1","100","2","105"...],即玩家id,玩家分数...交替的形式。
  */
-function setGetRedisWrapper(redisKey, zaddList, id, order) {
-    return new Promise((resolve, reject) => {
-        redis.watch(redisKey, function (err) {
-            if (err) { return reject({ message: 'error redis response - ' + err }) }
-            redis.multi()
-                .zadd(redisKey, zaddList)
+async function setRank(redisKey, zaddList, id, order) {
+    const redis = await require('../database/redis')
+    try {
+        await redis.executeIsolated(async isolatedRedis => {
+            await isolatedRedis.watch(redisKey)
+            const results = await isolatedRedis.multi()
+                .zAdd(redisKey, zaddList)
                 .expire(redisKey, conf.redisCache.expire)
-                .exec(function (err, results) {
-                    if (err) { return reject({ message: 'error redis response - ' + err }) }
-                    if (results === null) {
-                        return reject({ message: errors.SET_ONLINE_ERROR })
-                    }
-                    if (order === 0) {
-                        redis.zrange(redisKey, 0, 2, "WITHSCORES", function (err, topThreeList) {
-                            if (err) { return reject({ message: 'error redis response - ' + err }) }
-                            redis.zrank(redisKey, id, function (err, res) {
-                                if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                if (res === null) {
-                                    return resolve({ result: true, topThreeList: topThreeList, resList: null, resRank: -1 })
-                                }
-                                redis.zrange(redisKey, res, res, "WITHSCORES", function (err, resList) {
-                                    if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                    return resolve({ result: true, topThreeList: topThreeList, resList: resList, resRank: res })
-                                })
-                            })
-                        })
-                    }
-                    else {
-                        redis.zrevrange(redisKey, 0, 2, "WITHSCORES", function (err, topThreeList) {
-                            if (err) { return reject({ message: 'error redis response - ' + err }) }
-                            redis.zrevrank(redisKey, id, function (err, res) {
-                                if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                if (res === null) {
-                                    return resolve({ result: true, topThreeList: topThreeList, resList: null, resRank: -1 })
-                                }
-                                redis.zrevrange(redisKey, res, res, "WITHSCORES", function (err, resList) {
-                                    if (err) { return reject({ message: 'error redis response - ' + err }) }
-                                    return resolve({ result: true, topThreeList: topThreeList, resList: resList, resRank: res })
-                                })
-                            })
-                        })
-                    }
-                })
+                .exec()
+            if (results.length === 0) {
+                throw new Error({ message: errors.SET_ONLINE_ERROR })
+            }
+            return await getRank(redisKey, order, id)
         })
-    })
+    }
+    catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
 }
 
 /** 
  * @param {number} id - 获取缓存的TOP排序的玩家id。
  * @returns {Promise<{result:boolean, player:RedisCacheRankPlayer}>}
  */
-function getTopPlayer(id) {
-    const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
-    return new Promise((resolve, reject) => {
-        redis.exists(topPlayerKey, function (err, res) {
-            if (err) { return reject({ message: 'error redis response - ' + err }) }
-            if (res === 1) {
-                redis.get(topPlayerKey, function (err, player) {
-                    if (err) { return reject({ message: 'error redis response - ' + err }) }
-                    /** @type {RedisCacheRankPlayer} */
-                    const topPlayer = JSON.parse(player)
-                    return resolve({ result: true, player: topPlayer })
-                })
-            }
-            else {
-                return resolve({ result: false })
-            }
-        })
-    })
+async function getTopPlayer(id) {
+    const redis = await require('../database/redis')
+    try {
+        const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
+        const res = await redis.exists(topPlayerKey)
+        if (res === 1) {
+            const player = await redis.get(topPlayerKey,)
+            /** @type {RedisCacheRankPlayer} */
+            const topPlayer = JSON.parse(player)
+            return { result: true, player: topPlayer }
+        }
+        else {
+            return { result: false }
+        }
+    }
+    catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
 }
 
 /** 
  * @param {string} keyId - 需要缓存的TOP排序的玩家id。
  * @param {number} avatarId - 需要缓存的TOP排序的玩家的头像id。
  * @param {number} nickname - 需要缓存的TOP排序的玩家昵称。
- * @returns {void}
+ * @returns {Promise<void>}
  */
-function setTopPlayer(keyId, avatarId, nickname) {
-    const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
-    redis.multi()
-        .set(topPlayerKey, JSON.stringify({ avatar_id: avatarId, nickname: nickname }))
-        .expire(topPlayerKey, conf.redisCache.expire)
-        .exec(function (err) {
-            if (err) { return logger.error('error redis response - ' + err) }
-        })
+async function setTopPlayer(keyId, avatarId, nickname) {
+    const redis = await require('../database/redis')
+    try {
+        const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
+        await redis.multi()
+            .set(topPlayerKey, JSON.stringify({ avatar_id: avatarId, nickname: nickname }))
+            .expire(topPlayerKey, conf.redisCache.expire)
+            .exec()
+    }
+    catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
 }

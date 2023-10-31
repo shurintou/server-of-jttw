@@ -1,8 +1,6 @@
 const Player = require('../models/player')
 const Record = require('../models/record')
-const AiPlayer = require('../models/aiPlayer')
 const Game = require('../models/game')
-const redis = require('../database/redis')
 const conf = require('../config/')
 const logger = require('../common/log')
 const { aiPlayerMetaData } = require('../common/ai')
@@ -20,35 +18,35 @@ const { aiPlayerMetaData } = require('../common/ai')
 module.exports = {
     /** @type {(req: ClientRequest) => Promise<{code:number, message:string, record:BasicRedisCachePlayerRecord}>} */
     getPlayerRecord: async function (req) {
-        const playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
+        const redis = await require('../database/redis')
         try {
-            const checkResult = await redisWrapper(playerRecordId)
+            const playerRecordId = conf.redisCache.playerRecordPrefix + req.params.id
+            const checkResult = await getRecord(playerRecordId)
             if (checkResult.result) {
                 /* 缓存中有record的话直接读取 */
-                return Promise.resolve({ code: 200, message: '', record: checkResult.record })
+                return { code: 200, message: '', record: checkResult.record }
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
                 /** @type {SequelizedModelRecord[]} */
                 const records = await Record.findAll({ where: { accountId: req.params.id } })
                 const record = records[0]
-                redis.multi()
+                await redis.multi()
                     .set(playerRecordId, JSON.stringify(record, null, 4))
                     .expire(playerRecordId, conf.redisCache.expire)
-                    .exec(function (err) {
-                        if (err) { return logger.error('error redis response - ' + err) }
-                    })
-                return Promise.resolve({ code: 200, message: '', record: record.toJSON() })
+                    .exec()
+                return { code: 200, message: '', record: record.toJSON() }
             }
         }
         catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     },
 
     /** @type {(req: ClientRequest) => Promise<{code:number, message:string, pageNum:number, list:SequelizedModelPlayer[]}>} */
     getGameRecordsList: async function (req) {
+        const redis = await require('../database/redis')
         try {
             const playersRecordNum = await Player.count({
                 where: {
@@ -64,22 +62,23 @@ module.exports = {
                 offset: (req.query.page - 1) * 5,
                 limit: 5
             })
-            return Promise.resolve({ code: 200, message: '', pageNum: playersRecordNum, list: playerRecords })
+            return { code: 200, message: '', pageNum: playersRecordNum, list: playerRecords }
         }
         catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     },
 
     /** @type {(req: ClientRequest) => Promise<{code:number, message:string, gameResult:GameResultDto}>} */
     getGameRecord: async function (req) {
-        const gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
+        const redis = await require('../database/redis')
         try {
-            const checkResult = await redisWrapper(gameRecordId)
+            const gameRecordId = conf.redisCache.gameRecordPrefix + req.params.id
+            const checkResult = await getRecord(gameRecordId)
             if (checkResult.result) {
                 /* 缓存中有record的话直接读取 */
-                return Promise.resolve({ code: 200, message: '', gameResult: checkResult.record })
+                return { code: 200, message: '', gameResult: checkResult.record }
             }
             else {
                 /* 没有record的话从数据库读取数据返回结果，并同时缓存到redis */
@@ -136,18 +135,16 @@ module.exports = {
                         bianshen: player.bianshen
                     })
                 })
-                redis.multi()
+                await redis.multi()
                     .set(gameRecordId, JSON.stringify(gameResultDto))
                     .expire(gameRecordId, conf.redisCache.expire)
-                    .exec(function (err) {
-                        if (err) { return logger.error('error redis response - ' + err) }
-                    })
-                return Promise.resolve({ code: 200, message: '', gameResult: gameResultDto })
+                    .exec()
+                return { code: 200, message: '', gameResult: gameResultDto }
             }
         }
         catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     }
 }
@@ -156,17 +153,20 @@ module.exports = {
  * @param {string} recordId
  * @returns {Promise<{result:boolean, record?: BasicRedisCachePlayerRecord | GameResultDto}>}
  */
-function redisWrapper(recordId) {
-    return new Promise((resolve, reject) => {
+async function getRecord(recordId) {
+    const redis = await require('../database/redis')
+    try {
         /* 查询redis中是否有缓存，并返回结果 */
-        redis.get(recordId, function (err, res) {
-            if (err) { return reject({ message: 'error redis response - ' + err }) }
-            if (res === null) {
-                return resolve({ result: false })
-            }
-            else {
-                return resolve({ result: true, record: JSON.parse(res) })
-            }
-        })
-    })
+        const res = await redis.get(recordId)
+        if (res === null) {
+            return { result: false }
+        }
+        else {
+            return { result: true, record: JSON.parse(res) }
+        }
+    }
+    catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
 }

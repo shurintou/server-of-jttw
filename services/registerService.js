@@ -18,10 +18,10 @@ module.exports = {
             /** @type {SequelizedModelInvitationCode[]} */
             const invitationCodes = await InvitationCode.findAll({ where: { invitation_code: data.invitationCode } })
             if (invitationCodes.length === 0) {
-                return Promise.resolve(errors.INVITATIONCODE_NOT_FOUND)
+                return errors.INVITATIONCODE_NOT_FOUND
             }
             else if (invitationCodes[0].is_used) {
-                return Promise.resolve(errors.INVITATIONCODE_USED)
+                return errors.INVITATIONCODE_USED
             }
             else {
                 /** @type {SequelizedModelAccount[]} */
@@ -34,17 +34,17 @@ module.exports = {
                     invitationCodes[0].player_id = newAccount.id
                     await invitationCodes[0].save({ transaction: t })
                     await t.commit()
-                    return Promise.resolve({ code: 200, message: '' })
+                    return { code: 200, message: '' }
                 }
                 else {
-                    return Promise.resolve(errors.USERNAME_USED)
+                    return errors.USERNAME_USED
                 }
             }
         }
         catch (e) {
             await t.rollback()
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
 
     }

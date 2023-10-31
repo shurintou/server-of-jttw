@@ -15,8 +15,10 @@ module.exports = {
     timezone: '+09:00'
   },
   redis: {
-    host: '127.0.0.1',
-    port: 6379,
+    socket: {
+      host: '127.0.0.1',
+      port: 6379,
+    }
   },
   redisCache: {
     expire: 900,
