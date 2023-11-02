@@ -607,7 +607,6 @@ async function gameover(gameKey, game, wss) {
  * @returns {Promise<void>}
  */
 async function deleteGame(game, wss, losePlayer, winPlayer) {
-
     try {
         const gameRoomKey = conf.redisCache.gameRoomPrefix + game.id
         const gameKey = conf.redisCache.gamePrefix + game.id
@@ -645,7 +644,6 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
                 client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))//更新游戏列表
             }
         })
-
         /** @type {string[]} 玩家key的列表字符串，用于mGet */
         const changePlayerList = []
         game.gamePlayerId.forEach(id => { if (id > 0) changePlayerList.push(conf.redisCache.playerPrefix + id) })
@@ -686,7 +684,6 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
  * @returns {void}
  */
 async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards, maxCombo) {
-
     const t = await sequelize.transaction()
     try {
         /** @type {SequelizedModelPlayer[]} */
@@ -785,7 +782,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
         insertedGame.loser = losePlayerNickname
         insertedGame.max_combo_player = maxComboPlayer
         /** @type {GameResultDto} */
-        let gameResultDto = {
+        const gameResultDto = {
             id: insertedGame.id,
             winnerNickname: winPlayerNickname,
             winnerCards: minCards,
@@ -845,7 +842,6 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
  * @returns {Promise<number>} 经验值。
  */
 async function calRecord(player, playerInstance, averageCard, losePlayer, winPlayer, playerNum) {
-
     try {
         /** @type {SequelizedModelRecord} */
         const playerRecord = await playerInstance.getRecord()
@@ -872,7 +868,6 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
         if (playerRecord.most_cards < player.cards) {
             playerRecord.most_cards = player.cards
         }
-
         /* 最低最高占比 */
         const cardShareAverage = player.cards / averageCard
         const cardSharePoint = Math.floor(50 * cardShareAverage)
