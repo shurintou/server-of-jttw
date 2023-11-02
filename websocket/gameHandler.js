@@ -174,7 +174,7 @@ module.exports = async function (data, wss, ws) {
                 }
             })
             const newGameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
-            const newGameRoomList = await await asyncMget(newGameRoomKeys)
+            const newGameRoomList = await asyncMget(newGameRoomKeys)
             wss.clients.forEach(function each(client) {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'gameRoomList', data: newGameRoomList }))
