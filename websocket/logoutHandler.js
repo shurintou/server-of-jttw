@@ -1,5 +1,5 @@
 const WebSocket = require('ws')
-const { asyncMget, asyncDel, asyncGet } = require('../database/redis')
+const { asyncKeys, asyncMget, asyncDel, asyncGet } = require('../database/redis')
 const errors = require('../common/errors')
 const conf = require('../config/')
 const logger = require('../common/log')
