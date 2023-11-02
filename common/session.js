@@ -2,10 +2,10 @@
 
 const session = require('express-session')
 let RedisStore = require('connect-redis')(session)
-let redisClient = require('../database/redis')
+let { redis } = require('../database/redis')
 const conf = require('../config/')
 const sess = conf.session
-const redisStore = new RedisStore({ client: redisClient })
+const redisStore = new RedisStore({ client: redis })
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/player').SequelizedModelAccount}

@@ -16,11 +16,10 @@ module.exports = {
             const body = req.body
             accounts[0].avatar_id = body.avatar_id
             await accounts[0].save()
-            return Promise.resolve({ code: 200, message: '' })
-        }
-        catch (e) {
+            return { code: 200, message: '' }
+        } catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     },
 
@@ -32,11 +31,10 @@ module.exports = {
             const body = req.body
             accounts[0].nickname = body.nickname
             await accounts[0].save()
-            return Promise.resolve({ code: 200, message: '' })
-        }
-        catch (e) {
+            return { code: 200, message: '' }
+        } catch (e) {
             logger.error(e)
-            return Promise.reject({ message: e })
+            throw new Error({ message: e })
         }
     },
 }

@@ -43,8 +43,9 @@ router.delete('/logout',
      * @param {ClientResponse} res
      */
     function (req, res) {
-        loginService.logout(req)
-        res.status(200).json({ code: 200, message: '' })
+        loginService.logout(req).then(() => {
+            res.status(200).json({ code: 200, message: '' })
+        })
     })
 
 
