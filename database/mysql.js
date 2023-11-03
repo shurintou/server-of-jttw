@@ -29,8 +29,8 @@ module.exports = {
             allowNull: false,
             autoIncrement: true,
         };
-        for (let key in attributes) {
-            let value = attributes[key];
+        for (const key in attributes) {
+            const value = attributes[key];
             if (typeof value === 'object' && value['type']) {
                 value.allowNull = value.allowNull || false;
                 attrs[key] = value;

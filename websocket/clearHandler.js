@@ -67,7 +67,7 @@ async function clearHandler(wss) {
             const gameRoomList = await asyncMget(gameRoomKeys)
             gameRoomList.forEach(async item => {
                 /** @type {RedisCacheRoomInfo} */
-                let gameRoom = JSON.parse(item)
+                const gameRoom = JSON.parse(item)
                 if (gameRoom.status === 1) { return } //房间正在游戏中，不清理
                 let stillHasPlayer = false
                 /* 对房间每个位置进行检查 */

@@ -1,8 +1,8 @@
 /* session配置，通过redis来管理玩家session */
 
 const session = require('express-session')
-let RedisStore = require('connect-redis')(session)
-let { redis } = require('../database/redis')
+const RedisStore = require('connect-redis')(session)
+const { redis } = require('../database/redis')
 const conf = require('../config/')
 const sess = conf.session
 const redisStore = new RedisStore({ client: redis })

@@ -3,9 +3,9 @@ const fs = require('fs')
 const db = require('../database/mysql')
 const logger = require('./log')
 
-let files = fs.readdirSync('./models')
+const files = fs.readdirSync('./models')
 
-let js_files = files.filter((f) => {
+const js_files = files.filter((f) => {
     return f.endsWith('.js')
 }, files)
 
@@ -14,9 +14,9 @@ let js_files = files.filter((f) => {
  */
 module.exports = {};
 
-for (let f of js_files) {
+for (const f of js_files) {
     logger.log(`import model from file ${f}`)
-    let name = f.substring(0, f.length - 3)
+    const name = f.substring(0, f.length - 3)
     module.exports[name] = require('../models/' + f)
 }
 

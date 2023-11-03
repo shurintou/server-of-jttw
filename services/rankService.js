@@ -55,11 +55,11 @@ module.exports = {
                         zaddList.push(record.max_combo)
                     }
                     else if (query.type === 'highest_rate') {
-                        let insertRecord = record.max_card_amount === 0 ? 0 : (record.max_card * 100 / record.max_card_amount).toFixed(1)
+                        const insertRecord = record.max_card_amount === 0 ? 0 : (record.max_card * 100 / record.max_card_amount).toFixed(1)
                         zaddList.push(insertRecord * 10)
                     }
                     else if (query.type === 'lowest_rate') {
-                        let insertRecord = record.min_card_amount === 0 ? 0 : (record.min_card * 100 / record.min_card_amount).toFixed(1)
+                        const insertRecord = record.min_card_amount === 0 ? 0 : (record.min_card * 100 / record.min_card_amount).toFixed(1)
                         zaddList.push(insertRecord * 10)
                     }
                     else if (query.type === 'least_cards') {
@@ -82,10 +82,10 @@ module.exports = {
             const scoreList = topThreeList.filter((item, index) => index % 2 === 1)
             // let accounts = await Account.findAll({where:{ id: {[Op.in]: idList}}}) in条件查找是无序的，故弃用
             for (let i = 0; i < idList.length; i++) {
-                let getRedisWrapperPlayer = await getTopPlayer(idList[i])
+                const topPlayers = await getTopPlayer(idList[i])
                 /* 缓存中是否有前三名玩家的信息 */
-                if (getRedisWrapperPlayer.result) {
-                    resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: getRedisWrapperPlayer.player.avatar_id, nickname: getRedisWrapperPlayer.player.nickname, record: scoreList[i] })
+                if (topPlayers.result) {
+                    resultDto.rankList.push({ id: idList[i], rank: i + 1, avatarId: topPlayers.player.avatar_id, nickname: topPlayers.player.nickname, record: scoreList[i] })
                 }
                 else {
                     /** @type {SequelizedModelAccount[]} */

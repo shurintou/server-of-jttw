@@ -55,13 +55,13 @@ module.exports = async function (data, wss, ws) {
             /** @type {RedisCachePlayerInGame[]} */
             const gamePlayerList = []  //player:列表
             /** @type {number[]} */
-            let pokers = [] //扑克牌数字列表
+            const pokers = [] //扑克牌数字列表
             for (let i = 0; i < gameRoom.cardNum; i++) {
                 for (let j = 0; j < 54; j++) {
                     pokers.push(j)
                 }
             }
-            pokers = poker.shuffle(pokers)
+            poker.shuffle(pokers)
             if (gameRoom.metamorphoseNum > 0) {//插入变身牌
                 let addMetamorphoseNum = 0
                 for (let i = 0; i < pokers.length && addMetamorphoseNum < gameRoom.metamorphoseNum * gameRoom.cardNum; i++) {
@@ -73,7 +73,7 @@ module.exports = async function (data, wss, ws) {
                         addMetamorphoseNum = addMetamorphoseNum + 1
                     }
                 }
-                pokers = poker.shuffle(pokers)
+                poker.shuffle(pokers)
             }
             const game = {
                 id: data.id,
@@ -551,7 +551,7 @@ async function gameover(gameKey, game, wss) {
         let minCards = 0
         let maxCombo = 0
         /** @type {RedisCachePlayerInGame[]} */
-        let cardsSortList = []
+        const cardsSortList = []
         for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
             /** @type {GamePlayerSeatIndex} */
             const seatIndex = i
