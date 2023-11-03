@@ -1,5 +1,5 @@
 const conf = require('../config/')
-const { asyncSet, asyncMget, asyncKeys, asyncDel, asyncTtl } = require('../database/redis')
+const { asyncSet, asyncMget, asyncKeys, asyncDel, asyncTtl, asyncGet } = require('../database/redis')
 const logoutHandler = require('./logoutHandler')
 const WebSocket = require('ws')
 const logger = require('../common/log')
@@ -13,9 +13,9 @@ const logger = require('../common/log')
 /**
  * @summary 定期清除失活的连接，session，player
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
- * @returns {void}
+ * @returns {Promise<void>}
  */
-module.exports = async function (wss) {
+async function clearHandler(wss) {
     try {
         const clearHandlerTimer = setInterval(async function checkConnections() {
             wss.clients.forEach(function each(ws) {
@@ -32,7 +32,7 @@ module.exports = async function (wss) {
                 const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
                 if (gameRoomKeys.length > 0) {
                     logger.warn('clearHandler cleared all game rooms.')
-                    gameRoomKeys.forEach(gameRoomKey => { asyncDel(gameRoomKey) })
+                    gameRoomKeys.forEach(async gameRoomKey => { await clearGameRoom(gameRoomKey) })
                 }
                 const playerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
                 if (playerKeys.length > 0) {
@@ -111,7 +111,7 @@ module.exports = async function (wss) {
                 }
                 /* 否则删除房间 */
                 logger.warn('clearHandler cleared game room' + gameRoom.id)
-                await asyncDel(conf.redisCache.gameRoomPrefix + gameRoom.id)
+                await clearGameRoom(conf.redisCache.gameRoomPrefix + gameRoom.id)
                 const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
                 if (gameRoomKeys.length === 0) {
                     wss.clients.forEach(function each(client) {
@@ -135,4 +135,23 @@ module.exports = async function (wss) {
         logger.error(e)
         throw new Error({ message: e })
     }
+}
+
+/**
+ * @summary 清除游戏房间并删除绑定游戏房间的定时器
+ * @param {string} gameRoomKey 游戏房间ID。
+ * @returns {Promise<void>}
+ */
+async function clearGameRoom(gameRoomKey) {
+    try {
+        await asyncDel(gameRoomKey)
+    } catch (e) {
+        logger.error(e)
+        throw new Error({ message: e })
+    }
+}
+
+module.exports = {
+    clearHandler: clearHandler,
+    clearGameRoom: clearGameRoom,
 }

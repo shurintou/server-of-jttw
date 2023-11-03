@@ -1,8 +1,9 @@
 const WebSocket = require('ws')
-const { asyncGet, asyncSet, asyncDel, asyncKeys, asyncMget } = require('../database/redis')
+const { asyncGet, asyncSet, asyncKeys, asyncMget } = require('../database/redis')
 const conf = require('../config/')
 const errors = require('../common/errors')
 const logger = require('../common/log')
+const { clearGameRoom } = require('../websocket/clearHandler')
 
 /** @todo 返回给前端的房间列表中带有password信息未删除。 */
 
@@ -80,7 +81,7 @@ module.exports = async function (data, wss, ws) {
                     }
                 }
                 if (duplicateOwner) {
-                    await asyncDel(conf.redisCache.gameRoomPrefix + freeIndex)
+                    await clearGameRoom(conf.redisCache.gameRoomPrefix + freeIndex)
                     gameRoomList.pop()
                     wss.clients.forEach(function each(client) {
                         if (client.readyState === WebSocket.OPEN) {
@@ -158,7 +159,7 @@ module.exports = async function (data, wss, ws) {
             }
             /* 否则删除房间并广播 */
             else {
-                await asyncDel(roomId)
+                await clearGameRoom(roomId)
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
                     wss.clients.forEach(function each(client) {

@@ -8,7 +8,7 @@ const errors = require('../common/errors')
 const wss = new WebSocket.Server(conf.ws.config)
 const gameRoomListHandler = require('./gameRoomListHandler')
 const gameHandler = require('./gameHandler')
-const clearHandler = require('./clearHandler')
+const { clearHandler } = require('./clearHandler')
 const logger = require('../common/log')
 /**
  * @typedef {import('../types/websocket.js').WebSocketServerInfo}
