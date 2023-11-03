@@ -29,7 +29,7 @@ wss.on('connection',
         ws.sessionID = req.sessionID
         ws.on('message', async function incoming(data) {
             try {
-                const session = await asyncGet(conf.redisCache.sessionPrefix + req.sessionID)
+                const session = await asyncGet(conf.redisCache.sessionPrefix + ws.sessionID)
                 if (session === null) {
                     ws.close(errors.WEBSOCKET_SESSION_TIMEOUT.code, errors.WEBSOCKET_SESSION_TIMEOUT.message)
                     return
@@ -44,9 +44,9 @@ wss.on('connection',
                     return
                 }
                 /* reset the expire of the session */
-                await asyncPexpire(conf.redisCache.sessionPrefix + req.sessionID, conf.session.cookie.maxAge)
+                await asyncPexpire(conf.redisCache.sessionPrefix + ws.sessionID, conf.session.cookie.maxAge)
                 if (jsText.type === 'playerList') {
-                    playerListHandler(jsText, wss, req, ws)
+                    playerListHandler(jsText, wss, ws)
                 }
                 else if (jsText.type === 'gameRoomList') {
                     gameRoomListHandler(jsText, wss, ws)
@@ -55,7 +55,7 @@ wss.on('connection',
                     gameHandler(jsText, wss, ws)
                 }
                 else if (jsText.type === 'chat') {
-                    chatHandler(jsText, wss, req)
+                    chatHandler(jsText, wss, ws)
                 }
             } catch (e) {
                 logger.error(e)
