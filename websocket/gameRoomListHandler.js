@@ -310,7 +310,7 @@ module.exports = async function (data, wss, ws) {
             }
             /* 换位置 */
             else if (data.action === 'changeSeat') {
-                const roomRes = asyncGet(roomId)
+                const roomRes = await asyncGet(roomId)
                 if (roomRes === null) { return logger.error('gameRoom:' + roomId + errors.CACHE_DOES_NOT_EXIST) }
                 /** @type {RedisCacheRoomInfo} */
                 const room = JSON.parse(roomRes)
