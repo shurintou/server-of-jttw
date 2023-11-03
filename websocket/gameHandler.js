@@ -10,7 +10,7 @@ const Game = require('../models/game')
 const sequelize = require('../database/mysql').sequelize
 const { Op } = require("sequelize");
 const logger = require('../common/log')
-const { aiPlay, aiPlayerMetaData } = require('../common/ai')
+const { aiPlay, aiPlayerMetaData } = require('../ai/playCard')
 /**
  * @typedef {import('../types/record').SequelizedModelRecord}
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}

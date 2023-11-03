@@ -4,7 +4,7 @@ const { asyncGet, asyncMultiExec } = require('../database/redis')
 const Game = require('../models/game')
 const conf = require('../config/')
 const logger = require('../common/log')
-const { aiPlayerMetaData } = require('../common/ai')
+const { aiPlayerMetaData } = require('../ai/playCard')
 
 /** 
  * @typedef {import('../types/http').ClientRequest}
