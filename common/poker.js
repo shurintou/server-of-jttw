@@ -83,7 +83,7 @@ module.exports = {
      * @description 洗牌处理
      * @param {number[]} array 扑克牌序号数组
      * @param {number} size 洗牌后的数组大小，默认为array的长度
-     * @returns {number[]} 洗牌后的扑克牌序号数组
+     * @returns {void}
      */
     shuffle: function (array, size) {
         let index = -1
@@ -92,13 +92,12 @@ module.exports = {
 
         size = size === undefined ? length : size
         while (++index < size) {
-            let rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
+            const rand = index + Math.floor(Math.random() * (lastIndex - index + 1))
             value = array[rand]
             array[rand] = array[index]
             array[index] = value
         }
         array.length = size
-        return array
     },
 
     /** 每一轮出牌等待的时间 */
