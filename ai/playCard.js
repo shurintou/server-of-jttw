@@ -1,5 +1,5 @@
 const poker = require('../common/poker')
-const strategy = require('./strategy')
+const { strategy } = require('./strategy')
 
 /**
 * @typedef {import('../types/game.js').RedisCacheGame}

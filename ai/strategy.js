@@ -9,7 +9,7 @@ const poker = require('../common/poker')
  * @param {number[][]} playCards 各种能出的牌的组合。
  * @returns {number[]} 经过策略推算后打出的牌组合。
  */
-module.exports = function strategy(game, playCards) {
+function strategy(game, playCards) {
     if (playCards.length === 0) return []
 
     const currentCard = game.currentCard
@@ -32,4 +32,8 @@ module.exports = function strategy(game, playCards) {
     })
     /** 目前暂定选出所有能打出的牌中牌面最小，牌序数和最小的组合打出。 */
     return playCards[0]
+}
+
+module.exports = {
+    strategy: strategy,
 }
