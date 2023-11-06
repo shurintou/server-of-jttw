@@ -179,7 +179,7 @@ async function setRank(redisKey, zaddList, id, order) {
  */
 async function getTopPlayer(id) {
     try {
-        const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + id
+        const topPlayerKey = conf.redisCache.rankSubTopPlayersListPrefix + id
         const res = await asyncExists(topPlayerKey)
         if (res === 1) {
             const player = await asyncGet(topPlayerKey,)
@@ -202,7 +202,7 @@ async function getTopPlayer(id) {
  */
 async function setTopPlayer(keyId, avatarId, nickname) {
     try {
-        const topPlayerKey = conf.redisCache.rankPrefix + 'topPlayersList:' + keyId
+        const topPlayerKey = conf.redisCache.rankSubTopPlayersListPrefix + keyId
         const results = await asyncMultiExec([['set', topPlayerKey, JSON.stringify({ avatar_id: avatarId, nickname: nickname })], ['expire', topPlayerKey, conf.redisCache.expire]])()
         if (results === null) {
             throw new Error({ message: errors.SET_ONLINE_ERROR })
