@@ -17,13 +17,13 @@ const errors = require('../common/errors')
  * @param {WebSocketInfo} ws 单一玩家的WebSocket连接(附带玩家信息)。
  * @returns {void}
  */
-module.exports = async function (data, wss, ws) {
+module.exports = function (data, wss, ws) {
     try {
-        const res = await asyncGet(conf.redisCache.playerPrefix + ws.userId)
-        if (res === null) { return logger.error(conf.redisCache.playerPrefix + ws.userId + errors.CACHE_DOES_NOT_EXIST) }
-        /** @type {RedisCachePlayer} */
-        const player = JSON.parse(res)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(async function each(client) {
+            const res = await asyncGet(conf.redisCache.playerPrefix + client.userId)
+            if (res === null) { return logger.error(conf.redisCache.playerPrefix + ws.userId + errors.CACHE_DOES_NOT_EXIST) }
+            /** @type {RedisCachePlayer} */
+            const player = JSON.parse(res)
             /* 与聊天信息的发送源玩家处于同一房间位置，或者就是发送源玩家本人的话，即可接收聊天信息 */
             if ((data.player_loc === player.player_loc || ws.username === client.username) && client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify(data))
