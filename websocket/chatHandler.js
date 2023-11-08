@@ -2,6 +2,8 @@ const WebSocket = require('ws')
 const { asyncGet } = require('../database/redis')
 const conf = require('../config/')
 const logger = require('../common/log')
+const errors = require('../common/errors')
+
 /**
  * @typedef {import('../types/room.js').RoomChatWebsocketRequestData}
  * @typedef {import('../types/websocket.js').WebSocketServerInfo}

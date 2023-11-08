@@ -5,6 +5,7 @@ const Game = require('../models/game')
 const conf = require('../config/')
 const logger = require('../common/log')
 const { aiPlayerMetaData } = require('../ai/playCard')
+const errors = require('../common/errors')
 
 /** 
  * @typedef {import('../types/http').ClientRequest}
