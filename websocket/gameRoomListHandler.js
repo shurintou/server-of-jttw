@@ -4,6 +4,7 @@ const conf = require('../config/')
 const errors = require('../common/errors')
 const logger = require('../common/log')
 const { clearGameRoom } = require('../websocket/clearHandler')
+const { chatIntervalHandler } = require('../ai/chat.js')
 
 /** @todo 返回给前端的房间列表中带有password信息未删除。 */
 
@@ -54,6 +55,7 @@ module.exports = async function (data, wss, ws) {
                 }
                 if (freeIndex === 0) { freeIndex = idOfList.length + 1 }
             }
+            const chatInterval = setInterval(() => chatIntervalHandler(freeIndex, wss), 1000)
             /** @type {RedisCacheRoomInfo} */
             const newRoomData = {
                 id: freeIndex,
@@ -65,6 +67,8 @@ module.exports = async function (data, wss, ws) {
                 metamorphoseNum: data.metamorphoseNum,
                 owner: data.owner,
                 lastLoser: data.lastLoser,
+                lastWinner: data.lastWinner,
+                chatInterval: chatInterval[Symbol.toPrimitive](),
                 playerList: data.playerList
             }
             await asyncSet(conf.redisCache.gameRoomPrefix + freeIndex, JSON.stringify(newRoomData))

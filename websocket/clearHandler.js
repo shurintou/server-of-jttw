@@ -144,6 +144,13 @@ async function clearHandler(wss) {
  */
 async function clearGameRoom(gameRoomKey) {
     try {
+        const res = await asyncGet(gameRoomKey)
+        if (res === null) {
+            return
+        }
+        /** @type {RedisCacheRoomInfo} */
+        const gameRoom = JSON.parse(res)
+        clearInterval(gameRoom.chatInterval)
         await asyncDel(gameRoomKey)
     } catch (e) {
         logger.error(e)

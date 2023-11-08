@@ -23,6 +23,7 @@ module.exports = {
 		playerPrefix: 'player:',
 		sessionPrefix: 'sess:',
 		gameRoomPrefix: 'room:',
+		aiChatPrefix: 'aiChat:',
 		gamePrefix: 'game:',
 		playerRecordPrefix: 'playerRecord:',
 		gameRecordPrefix: 'gameRecord:',

@@ -1,0 +1,148 @@
+const { asyncGet, asyncExists, asyncMultiExec } = require('../database/redis')
+const chatHandler = require('../websocket/chatHandler.js')
+const conf = require('../config/')
+const { aiPlayerMetaData } = require('./playCard.js')
+const logger = require('../common/log')
+
+/** 
+ * @typedef {import('../types/room.js').RedisCacheRoomInfo}
+ * @typedef {import('../types/room.js').RoomChatWebsocketRequestData}
+ * @typedef {import("../types/common.js").GamePlayerSeatIndex}
+ */
+
+/** 
+ * @summary 电脑玩家聊天的处理。
+ * @param {number} id 游戏房间id/游戏id。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {Promise<void>}
+ */
+async function chatIntervalHandler(id, wss) {
+    const gameRes = await asyncGet(conf.redisCache.gamePrefix + id)
+    if (gameRes === null) { // 游戏不存在，则处理在房间中的聊天
+        const gameRoomRes = await asyncGet(conf.redisCache.gameRoomPrefix + id)
+        if (gameRoomRes === null) {
+            return
+        }
+        /** @type {RedisCacheRoomInfo} */
+        const gameRoom = JSON.parse(gameRoomRes)
+        /** @type {number[]} */
+        const aiPlayerIds = []
+        for (let i = 0; i < Object.keys(gameRoom.playerList).length; i++) {
+            /** @type {GamePlayerSeatIndex} */
+            const iSeatIndex = i
+            if (gameRoom.playerList[iSeatIndex].id < 0) {
+                aiPlayerIds.push(gameRoom.playerList[iSeatIndex].id)
+            }
+        }
+        if (aiPlayerIds.length === 0) { // 无电脑玩家存在则结束处理
+            return
+        }
+        aiPlayerIds.forEach(async aiPlayerId => {
+            const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+            const isAiPlayerHasChat = await asyncExists(aiPlayerChatKey)
+            if (isAiPlayerHasChat > 0) { // 该电脑玩家尚有发言在缓存中，则不继续发言
+                return
+            }
+            const aiPlayerIndex = -1 * (aiPlayerId + 1)
+            const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+            if (Math.random() * 50 > aiPlayerChatContent.talkative) { // 若电脑玩家的健谈程度小于随机值则结束处理
+                return
+            }
+            /** @type {string[]} */
+            let chatContents = [].concat(commonChatContent)
+            if (gameRoom.lastLoser === aiPlayerId) { chatContents = chatContents.concat(loserChatContent) }
+            else if (gameRoom.lastWinner === aiPlayerId) { chatContents = chatContents.concat(winnerChatContent) }
+            chatContents = chatContents.concat(aiPlayerChatContent.content)
+            const results = await asyncMultiExec([['set', aiPlayerChatKey, aiPlayerId], ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]])()
+            if (results === null) {
+                logger.error(e)
+            }
+            /** @type {WebSocketRequestRawData & RoomChatWebsocketRequestData} */
+            const chatResponseDto = {
+                type: 'chat',
+                userId: aiPlayerId,
+                nickname: aiPlayerMetaData[aiPlayerIndex].nickname,
+                player_loc: id,
+                text: chatContents[Math.floor(Math.random() * chatContents.length)]
+            }
+            chatHandler(chatResponseDto, wss)
+        })
+    }
+    // 游戏存在，则处理游戏中聊天
+    const game = JSON.parse(gameRes)
+
+}
+
+
+const commonChatContent = [
+    '今天天气不错。',
+    '有时间多来玩玩。',
+    '下次也一起玩吧。',
+]
+
+const winnerChatContent = [
+    '今天手气不错。',
+    '大吉大利，今晚吃鸡。',
+]
+
+const loserChatContent = [
+    '今天真背。',
+    '但愿下把运气能好点。',
+    '下把一定要赢回来。',
+]
+
+/** 
+ * @typedef {object} AiPlayerChatContent
+ * @property {number} id 电脑玩家的id
+ * @property {1|2|3|4|5} talkative 健谈程度,值越高则说话越频繁。
+ * @property {string[]} content 电脑玩家的聊天用语
+*/
+
+/** 
+ * @type {AiPlayerChatContent[]}
+ */
+const aiPlayerChatContents = [
+    { id: -1, talkative: 3, content: ['俺老牛力大无穷。', '别把老牛给惹恼了。'], },
+    { id: -2, talkative: 3, content: ['大师兄，师傅被妖怪抓走了！', '二师兄，师傅被妖怪抓走了！'], },
+    { id: -3, talkative: 1, content: ['我其实是一条龙。', '行李很沉。'], },
+    { id: -4, talkative: 3, content: ['大师兄，师傅被妖怪抓走了！', '此恨绵绵无绝期...'], },
+    { id: -5, talkative: 4, content: ['看马匹真无聊。', '一会去偷两个蟠桃吃。'], },
+    { id: -6, talkative: 2, content: ['阿弥陀佛。', '善哉善哉。'], },
+    { id: -7, talkative: 3, content: ['我能看透一切。', '万物皆逃不过我的法眼。'], },
+    { id: -8, talkative: 2, content: ['阿弥陀佛。', '善哉善哉。'], },
+    { id: -9, talkative: 2, content: ['阿弥陀佛。', '善哉善哉。'], },
+    { id: -10, talkative: 3, content: ['俺老孙来也。', '俺老孙去也。'], },
+    { id: -11, talkative: 2, content: ['放下屠刀，立地成佛。', '阿弥陀佛。', '善哉善哉。'], },
+    { id: -12, talkative: 4, content: ['我才是真的美猴王。', '我才是真的孙悟空。'], },
+    { id: -13, talkative: 3, content: ['我挑着担。', '我牵着马。'], },
+    { id: -14, talkative: 3, content: ['有情人终成眷属。', '但愿人长久，千里共婵娟。'], },
+    { id: -15, talkative: 3, content: ['吾乃东海龙王。', '我才是雨神。'], },
+    { id: -16, talkative: 2, content: ['泼猴，你又闯祸了。', '悟空，休耍嘴贫。'], },
+    { id: -17, talkative: 5, content: ['看我七十二变。', '猴儿们，操练起来。'], },
+    { id: -18, talkative: 2, content: ['你能逃出我的五指山吗。', '阿弥陀佛。', '善哉善哉。'], },
+    { id: -19, talkative: 3, content: ['嫦娥真美呀。', '问世间情为何物...'], },
+    { id: -20, talkative: 2, content: ['阿弥陀佛。', '善哉善哉。'], },
+    { id: -21, talkative: 2, content: ['护持国土。', '慈悲为怀。'], },
+    { id: -22, talkative: 3, content: ['想吃唐僧肉。', '吾乃万兽之王。'], },
+    { id: -23, talkative: 3, content: ['此树是我栽，此地归我管。', '要想从此过，留下买路财。'], },
+    { id: -24, talkative: 3, content: ['道生一，一生二，二生三，三生万物。', '太极生两仪，两仪生四象。'], },
+    { id: -25, talkative: 3, content: ['吾乃玉皇大帝。', '来人。给我捉拿妖猴!', '快去请如来佛祖...'], },
+    { id: -26, talkative: 4, content: ['我命由我不明天。', '是他是他就是他...'], },
+    { id: -27, talkative: 3, content: ['我要娶老婆。', '我怎么变这鬼样子了...'], },
+    { id: -28, talkative: 3, content: ['来人，取我宝塔。', '吾乃托塔天王。'], },
+    { id: -29, talkative: 4, content: ['呔！妖怪，哪里跑！', '吃俺老孙一棒。'], },
+    { id: -30, talkative: 2, content: ['阿弥陀佛。', '善哉善哉。'], },
+    { id: -31, talkative: 3, content: ['那头牛又跑去狐狸精那了。', '我四十米的蒲扇已经架不住了。'], },
+    { id: -32, talkative: 3, content: ['我是牛魔王。', '哞...'], },
+    { id: -33, talkative: 3, content: ['我的意中人会架着七彩祥云来接我。', '我猜中了开头，却猜不中结尾。'], },
+    { id: -34, talkative: 3, content: ['我虽然看不见，但我可不瞎哦。'], },
+    { id: -35, talkative: 3, content: ['问世间情为何物...', '我希望期限是一万年...'], },
+]
+
+module.exports = {
+    chatIntervalHandler: chatIntervalHandler,
+    commonChatContent: commonChatContent,
+    winnerChatContent: winnerChatContent,
+    loserChatContent: loserChatContent,
+    aiPlayerChatContents: aiPlayerChatContents,
+}

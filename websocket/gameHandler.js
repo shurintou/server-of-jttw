@@ -633,6 +633,7 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
                 }
                 else if (gameRoom.playerList[seatIndex].id === winPlayer) {
                     gameRoom.playerList[seatIndex].win = gameRoom.playerList[seatIndex].win + 1
+                    gameRoom.lastWinner = gameRoom.playerList[seatIndex].id
                 }
             }
         }

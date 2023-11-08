@@ -22,6 +22,8 @@
  * @property {number} metamorphoseNum - 每副牌变身牌数量
  * @property {number} owner - 房主的玩家id
  * @property {number} lastLoser - 上局拉跨的玩家id
+ * @property {number} lastWinner - 上局吃鸡的玩家id
+ * @property {number} chatInterval - 控制电脑玩家聊天的定时器
  * @property {RoomPlayers} playerList - 玩家信息列表，下标0~7
  */
 
@@ -38,6 +40,7 @@
  * @property {number?} metamorphoseNum - 每副牌变身牌数量。创建房间,edit时不为空。
  * @property {number?} owner - 房主的玩家id。创建房间时不为空。
  * @property {number?} lastLoser - 上局拉跨的玩家id。创建房间时不为空。
+ * @property {number?} lastWinner - 上局吃鸡的玩家id。创建房间时不为空。
  * @property {RoomPlayers?} playerList - 玩家信息列表，下标0~7。创建房间时不为空。
  * @property {GamePlayerSeatIndex?} seatIndex - 目标座位号，下标0~7。为-1时则不指定位置。enter,离开房间时不为空。
  * @property {'enter'|'ready'|'edit'|'changeSeat'|'disagreeChangeSeat'} action - 对目标房间操作的动作。id>0时不为空。
