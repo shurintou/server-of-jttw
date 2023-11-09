@@ -7,7 +7,8 @@ const logger = require('../common/log')
 /** 
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}
  * @typedef {import('../types/room.js').RoomChatWebsocketRequestData}
- * @typedef {import("../types/common.js").GamePlayerSeatIndex}
+ * @typedef {import('../types/common.js').GamePlayerSeatIndex}
+ * @typedef {import('../types/websocket.js').WebSocketRequestRawData}
  */
 
 /** 
@@ -76,19 +77,41 @@ async function chatIntervalHandler(id, wss) {
 
 const commonChatContent = [
     '今天天气不错。',
+    '今天也是美好的一天。',
     '有时间多来玩玩。',
     '下次也一起玩吧。',
+    '准备好去西天取经了吗？',
+    '来一局愉快的游戏吧！',
+    '我准备好了，你呢？',
+    '放松心情，享受游戏的乐趣。',
+    '准备好被我打败了吗？',
 ]
 
 const winnerChatContent = [
-    '今天手气不错。',
     '大吉大利，今晚吃鸡。',
+    '下一局再来挑战我吧！',
+    '下一局祝你们好运！',
+    '各位不要灰心，再接再厉。',
+    '每一步都重要，谨慎选择。',
+    '想要战胜我？还早得很呢！',
+    '欢迎来挑战我，我可不会手下留情。',
+    '胜利的滋味真是美妙，希望你也能尝到。',
+    '我赢了，你们输了，人生就是这么美妙！',
+    '这就是我的实力。',
+    '今天手气不错。',
+    '今天幸运女神站在了我这边。',
+    '和你玩得很愉快。',
 ]
 
 const loserChatContent = [
-    '今天真背。',
     '但愿下把运气能好点。',
-    '下把一定要赢回来。',
+    '下一局一定要赢回来。',
+    '下一局祝我好运吧！',
+    '胜败乃兵家常事。',
+    '输赢都是游戏的一部分，享受过程才是最重要的。',
+    '今天真背。',
+    '今天幸运女神不在我这边啊。',
+    '现在只是开始，等着看我反击。',
 ]
 
 /** 
@@ -127,7 +150,7 @@ const aiPlayerChatContents = [
     { id: -23, talkative: 3, content: ['此树是我栽，此地归我管。', '要想从此过，留下买路财。'], },
     { id: -24, talkative: 3, content: ['道生一，一生二，二生三，三生万物。', '太极生两仪，两仪生四象。'], },
     { id: -25, talkative: 3, content: ['吾乃玉皇大帝。', '来人。给我捉拿妖猴!', '快去请如来佛祖...'], },
-    { id: -26, talkative: 4, content: ['我命由我不明天。', '是他是他就是他...'], },
+    { id: -26, talkative: 4, content: ['我命由我不由天。', '是他是他就是他...'], },
     { id: -27, talkative: 3, content: ['我要娶老婆。', '我怎么变这鬼样子了...'], },
     { id: -28, talkative: 3, content: ['来人，取我宝塔。', '吾乃托塔天王。'], },
     { id: -29, talkative: 4, content: ['呔！妖怪，哪里跑！', '吃俺老孙一棒。'], },
