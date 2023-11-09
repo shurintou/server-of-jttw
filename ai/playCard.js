@@ -163,8 +163,13 @@ function getHigherPlayCardsList(currentCard, remainCards) {
             }
         }
         // 现在牌池中的牌为师傅，选取牌面是妖怪牌的牌组合
-        if (currentCardNum === 31 && cardNum < 20) {
-            return true
+        if (currentCardNum === 31) {
+            if (cardNum < 20) {
+                return true
+            }
+            else if (cardNum < 30) {
+                return false
+            }
         }
         // 牌面等于现在牌池中牌面时，选取所有牌花色大于现在牌池中的牌花色的牌组合
         const compareItem = [...tempResItem].sort((a, b) => poker.getIndexOfCardList(a).suit - poker.getIndexOfCardList(b).suit)
