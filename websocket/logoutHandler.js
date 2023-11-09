@@ -33,7 +33,7 @@ module.exports = async function (wss, data) {
         const keyList = await asyncKeys(conf.redisCache.playerPrefix + '*')
         if (keyList.length > 0) {
             const playerList = await asyncMget(keyList)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'playerList', data: playerList }))
                     client.send(JSON.stringify({ type: 'system', player_loc: 0, text: '玩家 ' + player.nickname + ' 下线了' }))

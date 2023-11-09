@@ -19,7 +19,7 @@ const errors = require('../common/errors')
  */
 module.exports = function (data, wss, ws) {
     try {
-        wss.clients.forEach(async function each(client) {
+        wss.clients.forEach(async client => {
             const res = await asyncGet(conf.redisCache.playerPrefix + client.userId)
             if (res === null) { return logger.error(conf.redisCache.playerPrefix + client.userId + errors.CACHE_DOES_NOT_EXIST) }
             /** @type {RedisCachePlayer} */

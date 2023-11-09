@@ -168,14 +168,14 @@ module.exports = async function (data, wss, ws) {
             await asyncMultiExec([['mset', ...redisMSetStrList], ['set', gameRoomKey, JSON.stringify(gameRoom)], ['set', gameKey, JSON.stringify(game)]])()
             const newPlayerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
             const newPlayerList = await asyncMget(newPlayerKeys)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'playerList', data: newPlayerList }))
                 }
             })
             const newGameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
             const newGameRoomList = await asyncMget(newGameRoomKeys)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'gameRoomList', data: newGameRoomList }))
                 }
@@ -187,7 +187,7 @@ module.exports = async function (data, wss, ws) {
             messageList.forEach(text => game.messages.push(text))
             game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
             const gameStr = JSON.stringify(game)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'game', action: 'initialize', data: gameStr }))
                 }
@@ -352,7 +352,7 @@ module.exports = async function (data, wss, ws) {
             else {
                 ws.send(JSON.stringify({ type: 'message', subType: 'warning', player_loc: data.id, text: '已托管' }))
             }
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'game', action: 'shiftOnline', seatIndex: data.seatIndex, online: player.online }))
                 }
@@ -362,7 +362,7 @@ module.exports = async function (data, wss, ws) {
             const gameRes = await asyncGet(gameKey)
             /** @type {RedisCacheGame} */
             const game = JSON.parse(gameRes)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'game', action: 'textToPlayer', data: { source: data.source, target: data.target, sourceId: data.sourceId, targetId: data.targetId, text: data.text, soundSrc: data.soundSrc } }))
                 }
@@ -388,7 +388,7 @@ async function intervalCheckCard(wss, thisTimer, id) {
         const game = JSON.parse(gameRes)
         if (thisTimer[Symbol.toPrimitive]() !== game.timer) {
             clearTimeout(game.timer)
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'message', subType: 'error', player_loc: id, text: errors.SERVER_BAD_STATUS.message }))
                 }
@@ -398,7 +398,7 @@ async function intervalCheckCard(wss, thisTimer, id) {
         game.gamePlayer[game.currentPlayer].offLinePlayCard = game.gamePlayer[game.currentPlayer].offLinePlayCard + 1 //玩家托管打出的牌数
         if (game.gamePlayer[game.currentPlayer].offLineTime > 1 && game.gamePlayer[game.currentPlayer].online) {
             game.gamePlayer[game.currentPlayer].online = false //托管
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayer[game.currentPlayer].id === client.userId) {
                     client.send(JSON.stringify({ type: 'message', subType: 'warning', player_loc: id, text: '无操作响应，进入托管状态' }))
                 }
@@ -508,7 +508,7 @@ async function sendGameInfo(gameKey, game, wss, action, messageList) {
         messageList.forEach(text => game.messages.push(text))
         game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
         const gameStr = JSON.stringify(game)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                 client.send(JSON.stringify({ type: 'game', action: action, data: gameStr }))
             }
@@ -582,7 +582,7 @@ async function gameover(gameKey, game, wss) {
         game.messages = ['游戏结束，正在结算...']
         const gameStr = JSON.stringify(game)
         setTimeout(function () {
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                     client.send(JSON.stringify({ type: 'game', action: 'update', data: gameStr }))
                 }
@@ -611,7 +611,7 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         const gameRoomKey = conf.redisCache.gameRoomPrefix + game.id
         const gameKey = conf.redisCache.gamePrefix + game.id
         await asyncDel(gameKey)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                 client.send(JSON.stringify({ type: 'game', action: 'delete' }))//删除游戏
             }
@@ -640,7 +640,7 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         await asyncSet(gameRoomKey, JSON.stringify(gameRoom))
         const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
         const gameRoomList = await asyncMget(gameRoomKeys)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))//更新游戏列表
             }
@@ -664,7 +664,7 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         await asyncMset(redisMSetStrList)
         const playerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
         const playerList = await asyncMget(playerKeys)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
                 client.send(JSON.stringify({ type: 'playerList', data: playerList }))//更新玩家列表
             }
@@ -819,7 +819,7 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
         //各玩家获得的经验值数组
         gameResultDto.playerExpList = playerExpList
         const gameResultWithExpStr = JSON.stringify(gameResultDto)
-        wss.clients.forEach(function each(client) {
+        wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
                 client.send(JSON.stringify({ type: 'game', action: 'result', data: gameResultWithExpStr }))
             }

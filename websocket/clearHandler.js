@@ -18,7 +18,7 @@ const logger = require('../common/log')
 async function clearHandler(wss) {
     try {
         const clearHandlerTimer = setInterval(async function checkConnections() {
-            wss.clients.forEach(function each(ws) {
+            wss.clients.forEach(ws => {
                 if (ws.isAlive === false) {
                     ws.terminate()
                     logger.warn('clearHandler terminated the websocket of user' + ws.userId)
@@ -94,7 +94,7 @@ async function clearHandler(wss) {
                     asyncSet(conf.redisCache.gameRoomPrefix + gameRoom.id, JSON.stringify(gameRoom))
                     const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
                     if (gameRoomKeys.length === 0) {
-                        wss.clients.forEach(function each(client) {
+                        wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                             }
@@ -102,7 +102,7 @@ async function clearHandler(wss) {
                         return
                     }
                     const gameRoomList = await asyncMget(gameRoomKeys)
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                         }
@@ -114,7 +114,7 @@ async function clearHandler(wss) {
                 await clearGameRoom(conf.redisCache.gameRoomPrefix + gameRoom.id)
                 const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -122,7 +122,7 @@ async function clearHandler(wss) {
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }

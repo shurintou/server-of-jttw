@@ -87,7 +87,7 @@ module.exports = async function (data, wss, ws) {
                 if (duplicateOwner) {
                     await clearGameRoom(conf.redisCache.gameRoomPrefix + freeIndex)
                     gameRoomList.pop()
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                         }
@@ -95,7 +95,7 @@ module.exports = async function (data, wss, ws) {
                     return
                 }
             }
-            wss.clients.forEach(function each(client) {
+            wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                 }
@@ -133,7 +133,7 @@ module.exports = async function (data, wss, ws) {
                 if (room.owner === deleteId) {
                     room.owner = remainId
                     const playerList = await asyncGet(conf.redisCache.playerPrefix + remainId)
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN && client !== ws) {
                             if (client.userId === remainId) {
                                 client.send(JSON.stringify({ type: 'system', player_loc: (-1 * data.id), text: '你 成为了房主' }))
@@ -146,7 +146,7 @@ module.exports = async function (data, wss, ws) {
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -155,7 +155,7 @@ module.exports = async function (data, wss, ws) {
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
 
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }
@@ -166,7 +166,7 @@ module.exports = async function (data, wss, ws) {
                 await clearGameRoom(roomId)
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -174,7 +174,7 @@ module.exports = async function (data, wss, ws) {
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }
@@ -240,7 +240,7 @@ module.exports = async function (data, wss, ws) {
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
 
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -248,7 +248,7 @@ module.exports = async function (data, wss, ws) {
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }
@@ -271,7 +271,7 @@ module.exports = async function (data, wss, ws) {
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -279,7 +279,7 @@ module.exports = async function (data, wss, ws) {
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }
@@ -299,7 +299,7 @@ module.exports = async function (data, wss, ws) {
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                         }
@@ -307,7 +307,7 @@ module.exports = async function (data, wss, ws) {
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                     }
@@ -341,7 +341,7 @@ module.exports = async function (data, wss, ws) {
                     await asyncSet(roomId, JSON.stringify(room))
                     const gameRoomKeys = await asyncKeys(gameRoomKey)
                     if (gameRoomKeys.length === 0) {
-                        wss.clients.forEach(function each(client) {
+                        wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                             }
@@ -349,7 +349,7 @@ module.exports = async function (data, wss, ws) {
                         return
                     }
                     const gameRoomList = await asyncMget(gameRoomKeys)
-                    wss.clients.forEach(function each(client) {
+                    wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                         }
@@ -364,7 +364,7 @@ module.exports = async function (data, wss, ws) {
                         await asyncSet(roomId, JSON.stringify(room))
                         const gameRoomKeys = await asyncKeys(gameRoomKey)
                         if (gameRoomKeys.length === 0) {
-                            wss.clients.forEach(function each(client) {
+                            wss.clients.forEach(client => {
                                 if (client.readyState === WebSocket.OPEN) {
                                     client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
                                 }
@@ -372,14 +372,14 @@ module.exports = async function (data, wss, ws) {
                             return
                         }
                         const gameRoomList = await asyncMget(gameRoomKeys)
-                        wss.clients.forEach(function each(client) {
+                        wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
                             }
                         })
                     }
                     else {
-                        wss.clients.forEach(function each(client) {
+                        wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN && client.userId === data.targetId) {
                                 client.send(JSON.stringify({ type: 'askChangeSeat', data: data }))
                             }
@@ -394,7 +394,7 @@ module.exports = async function (data, wss, ws) {
                 /** @type {RedisCacheRoomInfo} */
                 const room = JSON.parse(roomRes)
                 if (room.status === 1) return
-                wss.clients.forEach(function each(client) {
+                wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN && client.userId === data.playerId) {
                         client.send(JSON.stringify({ type: 'system', player_loc: data.id, text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求' }))
                     }
