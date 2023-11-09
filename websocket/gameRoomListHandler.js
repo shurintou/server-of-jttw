@@ -87,17 +87,19 @@ module.exports = async function (data, wss, ws) {
                 if (duplicateOwner) {
                     await clearGameRoom(conf.redisCache.gameRoomPrefix + freeIndex)
                     gameRoomList.pop()
+                    const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                            client.send(gameRoomListStr)
                         }
                     })
                     return
                 }
             }
+            const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                    client.send(gameRoomListStr)
                 }
             })
         }
@@ -132,32 +134,35 @@ module.exports = async function (data, wss, ws) {
                 /* 如果退出的是房主则换房主 */
                 if (room.owner === deleteId) {
                     room.owner = remainId
-                    const playerList = await asyncGet(conf.redisCache.playerPrefix + remainId)
+                    const playerRes = await asyncGet(conf.redisCache.playerPrefix + remainId)
+                    const becomeOwnerStr = JSON.stringify({ type: 'system', player_loc: (-1 * data.id), text: '你 成为了房主' })
+                    const changeOwnerStr = JSON.stringify({ type: 'system', player_loc: (-1 * data.id), text: '玩家 ' + JSON.parse(playerRes).nickname + ' 成为了房主' })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN && client !== ws) {
                             if (client.userId === remainId) {
-                                client.send(JSON.stringify({ type: 'system', player_loc: (-1 * data.id), text: '你 成为了房主' }))
+                                client.send(becomeOwnerStr)
                                 return
                             }
-                            client.send(JSON.stringify({ type: 'system', player_loc: (-1 * data.id), text: '玩家 ' + JSON.parse(playerList).nickname + ' 成为了房主' }))
+                            client.send(changeOwnerStr)
                         }
                     })
                 }
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
+                    const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                            client.send(noDataStr)
                         }
                     })
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
-
+                const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                        client.send(gameRoomListStr)
                     }
                 })
             }
@@ -166,17 +171,19 @@ module.exports = async function (data, wss, ws) {
                 await clearGameRoom(roomId)
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
+                    const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                            client.send(noDataStr)
                         }
                     })
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
+                const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                        client.send(gameRoomListStr)
                     }
                 })
             }
@@ -240,17 +247,19 @@ module.exports = async function (data, wss, ws) {
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
 
                 if (gameRoomKeys.length === 0) {
+                    const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                            client.send(noDataStr)
                         }
                     })
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
+                const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                        client.send(gameRoomListStr)
                     }
                 })
             }
@@ -271,17 +280,19 @@ module.exports = async function (data, wss, ws) {
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
+                    const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                            client.send(noDataStr)
                         }
                     })
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
+                const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                        client.send(gameRoomListStr)
                     }
                 })
             }
@@ -299,17 +310,19 @@ module.exports = async function (data, wss, ws) {
                 await asyncSet(roomId, JSON.stringify(room))
                 const gameRoomKeys = await asyncKeys(gameRoomKey)
                 if (gameRoomKeys.length === 0) {
+                    const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                            client.send(noDataStr)
                         }
                     })
                     return
                 }
                 const gameRoomList = await asyncMget(gameRoomKeys)
+                const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                        client.send(gameRoomListStr)
                     }
                 })
             }
@@ -341,17 +354,19 @@ module.exports = async function (data, wss, ws) {
                     await asyncSet(roomId, JSON.stringify(room))
                     const gameRoomKeys = await asyncKeys(gameRoomKey)
                     if (gameRoomKeys.length === 0) {
+                        const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                         wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                                client.send(noDataStr)
                             }
                         })
                         return
                     }
                     const gameRoomList = await asyncMget(gameRoomKeys)
+                    const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                            client.send(gameRoomListStr)
                         }
                     })
                 }
@@ -364,24 +379,27 @@ module.exports = async function (data, wss, ws) {
                         await asyncSet(roomId, JSON.stringify(room))
                         const gameRoomKeys = await asyncKeys(gameRoomKey)
                         if (gameRoomKeys.length === 0) {
+                            const noDataStr = JSON.stringify({ type: 'gameRoomList', data: [] })
                             wss.clients.forEach(client => {
                                 if (client.readyState === WebSocket.OPEN) {
-                                    client.send(JSON.stringify({ type: 'gameRoomList', data: [] }))
+                                    client.send(noDataStr)
                                 }
                             })
                             return
                         }
                         const gameRoomList = await asyncMget(gameRoomKeys)
+                        const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
                         wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))
+                                client.send(gameRoomListStr)
                             }
                         })
                     }
                     else {
+                        const changeSeatDataStr = JSON.stringify({ type: 'askChangeSeat', data: data })
                         wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN && client.userId === data.targetId) {
-                                client.send(JSON.stringify({ type: 'askChangeSeat', data: data }))
+                                client.send(changeSeatDataStr)
                             }
                         })
                     }
@@ -394,9 +412,10 @@ module.exports = async function (data, wss, ws) {
                 /** @type {RedisCacheRoomInfo} */
                 const room = JSON.parse(roomRes)
                 if (room.status === 1) return
+                const disagreeChangeSeatStr = JSON.stringify({ type: 'system', player_loc: data.id, text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求' })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN && client.userId === data.playerId) {
-                        client.send(JSON.stringify({ type: 'system', player_loc: data.id, text: '玩家 ' + data.refusePlayerNickname + ' 拒绝了你的请求' }))
+                        client.send(disagreeChangeSeatStr)
                     }
                 })
             }

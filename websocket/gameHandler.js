@@ -168,16 +168,14 @@ module.exports = async function (data, wss, ws) {
             await asyncMultiExec([['mset', ...redisMSetStrList], ['set', gameRoomKey, JSON.stringify(gameRoom)], ['set', gameKey, JSON.stringify(game)]])()
             const newPlayerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
             const newPlayerList = await asyncMget(newPlayerKeys)
-            wss.clients.forEach(client => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'playerList', data: newPlayerList }))
-                }
-            })
             const newGameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
             const newGameRoomList = await asyncMget(newGameRoomKeys)
+            const newPlayerListStr = JSON.stringify({ type: 'playerList', data: newPlayerList })
+            const newGameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: newGameRoomList })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'gameRoomList', data: newGameRoomList }))
+                    client.send(newPlayerListStr)
+                    client.send(newGameRoomListStr)
                 }
             })
             game.remainCards = game.remainCards.length
@@ -187,9 +185,10 @@ module.exports = async function (data, wss, ws) {
             messageList.forEach(text => game.messages.push(text))
             game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
             const gameStr = JSON.stringify(game)
+            const initializeGameStr = JSON.stringify({ type: 'game', action: 'initialize', data: gameStr })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({ type: 'game', action: 'initialize', data: gameStr }))
+                    client.send(initializeGameStr)
                 }
             })
         }
@@ -352,9 +351,10 @@ module.exports = async function (data, wss, ws) {
             else {
                 ws.send(JSON.stringify({ type: 'message', subType: 'warning', player_loc: data.id, text: '已托管' }))
             }
+            const shiftOnlineStr = JSON.stringify({ type: 'game', action: 'shiftOnline', seatIndex: data.seatIndex, online: player.online })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({ type: 'game', action: 'shiftOnline', seatIndex: data.seatIndex, online: player.online }))
+                    client.send(shiftOnlineStr)
                 }
             })
         }
@@ -362,9 +362,10 @@ module.exports = async function (data, wss, ws) {
             const gameRes = await asyncGet(gameKey)
             /** @type {RedisCacheGame} */
             const game = JSON.parse(gameRes)
+            const textToPlayerStr = JSON.stringify({ type: 'game', action: 'textToPlayer', data: { source: data.source, target: data.target, sourceId: data.sourceId, targetId: data.targetId, text: data.text, soundSrc: data.soundSrc } })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({ type: 'game', action: 'textToPlayer', data: { source: data.source, target: data.target, sourceId: data.sourceId, targetId: data.targetId, text: data.text, soundSrc: data.soundSrc } }))
+                    client.send(textToPlayerStr)
                 }
             })
         }
@@ -388,9 +389,10 @@ async function intervalCheckCard(wss, thisTimer, id) {
         const game = JSON.parse(gameRes)
         if (thisTimer[Symbol.toPrimitive]() !== game.timer) {
             clearTimeout(game.timer)
+            const messageStr = JSON.stringify({ type: 'message', subType: 'error', player_loc: id, text: errors.SERVER_BAD_STATUS.message })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({ type: 'message', subType: 'error', player_loc: id, text: errors.SERVER_BAD_STATUS.message }))
+                    client.send(messageStr)
                 }
             })
         }
@@ -398,9 +400,10 @@ async function intervalCheckCard(wss, thisTimer, id) {
         game.gamePlayer[game.currentPlayer].offLinePlayCard = game.gamePlayer[game.currentPlayer].offLinePlayCard + 1 //玩家托管打出的牌数
         if (game.gamePlayer[game.currentPlayer].offLineTime > 1 && game.gamePlayer[game.currentPlayer].online) {
             game.gamePlayer[game.currentPlayer].online = false //托管
+            const messageStr = JSON.stringify({ type: 'message', subType: 'warning', player_loc: id, text: '无操作响应，进入托管状态' })
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayer[game.currentPlayer].id === client.userId) {
-                    client.send(JSON.stringify({ type: 'message', subType: 'warning', player_loc: id, text: '无操作响应，进入托管状态' }))
+                    client.send(messageStr)
                 }
             })
         }
@@ -508,9 +511,10 @@ async function sendGameInfo(gameKey, game, wss, action, messageList) {
         messageList.forEach(text => game.messages.push(text))
         game.messages.push('等待 ' + game.gamePlayer[game.currentPlayer].nickname + ' 出牌...')
         const gameStr = JSON.stringify(game)
+        const gameInfoStr = JSON.stringify({ type: 'game', action: action, data: gameStr })
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                client.send(JSON.stringify({ type: 'game', action: action, data: gameStr }))
+                client.send(gameInfoStr)
             }
         })
     } catch (e) {
@@ -581,10 +585,11 @@ async function gameover(gameKey, game, wss) {
         game.remainCards = 0
         game.messages = ['游戏结束，正在结算...']
         const gameStr = JSON.stringify(game)
+        const updateGameInfoStr = JSON.stringify({ type: 'game', action: 'update', data: gameStr })
         setTimeout(function () {
             wss.clients.forEach(client => {
                 if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                    client.send(JSON.stringify({ type: 'game', action: 'update', data: gameStr }))
+                    client.send(updateGameInfoStr)
                 }
             })
         }, 1000)
@@ -611,9 +616,10 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         const gameRoomKey = conf.redisCache.gameRoomPrefix + game.id
         const gameKey = conf.redisCache.gamePrefix + game.id
         await asyncDel(gameKey)
+        const deleteGameStr = JSON.stringify({ type: 'game', action: 'delete' })
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                client.send(JSON.stringify({ type: 'game', action: 'delete' }))//删除游戏
+                client.send(deleteGameStr)//删除游戏
             }
         })
         const gameRoomRes = await asyncGet(gameRoomKey)
@@ -640,9 +646,10 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         await asyncSet(gameRoomKey, JSON.stringify(gameRoom))
         const gameRoomKeys = await asyncKeys(conf.redisCache.gameRoomPrefix + '*')
         const gameRoomList = await asyncMget(gameRoomKeys)
+        const gameRoomListStr = JSON.stringify({ type: 'gameRoomList', data: gameRoomList })
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'gameRoomList', data: gameRoomList }))//更新游戏列表
+                client.send(gameRoomListStr)//更新游戏列表
             }
         })
         /** @type {string[]} 玩家key的列表字符串，用于mGet */
@@ -664,9 +671,10 @@ async function deleteGame(game, wss, losePlayer, winPlayer) {
         await asyncMset(redisMSetStrList)
         const playerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
         const playerList = await asyncMget(playerKeys)
+        const playerListStr = JSON.stringify({ type: 'playerList', data: playerList })
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'playerList', data: playerList }))//更新玩家列表
+                client.send(playerListStr)//更新玩家列表
             }
         })
     } catch (e) {
@@ -819,9 +827,10 @@ async function saveGameData(game, wss, losePlayer, winPlayer, minCards, maxCards
         //各玩家获得的经验值数组
         gameResultDto.playerExpList = playerExpList
         const gameResultWithExpStr = JSON.stringify(gameResultDto)
+        const resultStr = JSON.stringify({ type: 'game', action: 'result', data: gameResultWithExpStr })
         wss.clients.forEach(client => {
             if (client.readyState === WebSocket.OPEN && game.gamePlayerId.includes(client.userId)) {
-                client.send(JSON.stringify({ type: 'game', action: 'result', data: gameResultWithExpStr }))
+                client.send(resultStr)
             }
         })
         await insertedGame.save()

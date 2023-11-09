@@ -19,6 +19,7 @@ const errors = require('../common/errors')
  */
 module.exports = function (data, wss, ws) {
     try {
+        const dataStr = JSON.stringify(data)
         wss.clients.forEach(async client => {
             const res = await asyncGet(conf.redisCache.playerPrefix + client.userId)
             if (res === null) { return logger.error(conf.redisCache.playerPrefix + client.userId + errors.CACHE_DOES_NOT_EXIST) }
@@ -26,7 +27,7 @@ module.exports = function (data, wss, ws) {
             const player = JSON.parse(res)
             /* 与聊天信息的发送源玩家处于同一房间位置，或者就是发送源玩家本人的话，即可接收聊天信息 */
             if ((data.player_loc === player.player_loc || ws?.username === client.username) && client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify(data))
+                client.send(dataStr)
             }
         })
     } catch (e) {

@@ -37,9 +37,10 @@ module.exports = async function (data, wss, ws) {
                 }))
             /* 2，检查该key是否存在，不存在则是新上线，否则是刷新信息 */
             if (res === null) {
+                const onlineStr = JSON.stringify({ type: 'system', player_loc: 0, text: '玩家 ' + data.nickname + ' 上线了' })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN && client.username !== ws.username) {
-                        client.send(JSON.stringify({ type: 'system', player_loc: 0, text: '玩家 ' + data.nickname + ' 上线了' }))
+                        client.send(onlineStr)
                     }
                 })
             }
@@ -49,16 +50,18 @@ module.exports = async function (data, wss, ws) {
                 const oldPlayer = JSON.parse(res)
                 if (data.player_loc !== oldPlayer.player_loc) {
                     if (data.player_loc > 0) {
+                        const enterRoomStr = JSON.stringify({ type: 'system', player_loc: data.player_loc, text: '玩家 ' + data.nickname + ' 进入了房间' })
                         wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN && client.userId !== ws.userId) {
-                                client.send(JSON.stringify({ type: 'system', player_loc: data.player_loc, text: '玩家 ' + data.nickname + ' 进入了房间' }))
+                                client.send(enterRoomStr)
                             }
                         })
                     }
                     else {
+                        const exitRoomStr = JSON.stringify({ type: 'system', player_loc: oldPlayer.player_loc, text: '玩家 ' + data.nickname + ' 离开了房间' })
                         wss.clients.forEach(client => {
                             if (client.readyState === WebSocket.OPEN && client.userId !== ws.userId) {
-                                client.send(JSON.stringify({ type: 'system', player_loc: oldPlayer.player_loc, text: '玩家 ' + data.nickname + ' 离开了房间' }))
+                                client.send(exitRoomStr)
                             }
                         })
                     }
@@ -68,9 +71,10 @@ module.exports = async function (data, wss, ws) {
             const playerKeys = await asyncKeys(conf.redisCache.playerPrefix + '*')
             if (playerKeys.length > 0) {
                 const playerList = await asyncMget(playerKeys)
+                const playerListStr = JSON.stringify({ type: 'playerList', data: playerList })
                 wss.clients.forEach(client => {
                     if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'playerList', data: playerList }))
+                        client.send(playerListStr)
                     }
                 })
             }
