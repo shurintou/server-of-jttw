@@ -190,7 +190,7 @@ function aiPlay(game) {
     const currentPlayer = game.currentPlayer
     const remainCards = game.gamePlayer[currentPlayer].remainCards
     const playCards = getHigherPlayCardsList(game.currentCard, remainCards)
-    const playCard = strategy(game, playCards)
+    const playCard = strategy(game, playCards, remainCards)
     if (playCard.length > 0) {
         for (let i = 0; i < playCard.length; i++) {
             for (let j = 0; j < remainCards.length; j++) {
