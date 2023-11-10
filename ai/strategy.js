@@ -23,7 +23,11 @@ function strategy(game, playCards, remainCards) {
                 if (excludeNums[i] <= 20) { // 妖怪牌时，妖怪牌越多则打多牌机率越大
                     const cardStatus = getCardStatus(remainCards)
                     if (Math.floor(Math.random() * cardStatus.yaoguaiNum) >= 1) {
-                        const multiplePlayCards = excludedPlayCards.filter(playCard => playCard.length > 1) // 选取多牌的组合
+                        /** @type {number[][]} */
+                        let multiplePlayCards = []
+                        for (let j = 1; j < cardStatus.yaoguaiNum; j++) {
+                            multiplePlayCards = multiplePlayCards.concat(excludedPlayCards.filter(playCard => playCard.length > j)) // 选取多牌的组合，张数越多的组合所占比重越大
+                        }
                         if (multiplePlayCards.length > 0) {
                             const excludedNotYaoguaiPlayCards = multiplePlayCards.filter(playCard => playCard.every(card => card < 136)) // 剔除掉用非妖怪牌变身来组成多牌的组合
                             if (excludedNotYaoguaiPlayCards.length > 0) {
