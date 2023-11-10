@@ -37,6 +37,18 @@ function strategy(game, playCards, remainCards) {
                         }
                     }
                 }
+                else { // 徒弟或师傅牌时，则不打反弹牌或带变身牌的多牌,及尽量少打多牌
+                    const morphoseAndJokerExcludedPlayCards = excludedPlayCards.filter(playCard => playCard.length === 1 ? poker.getIndexOfCardList(playCard[0]).num !== 100 : playCard.every(card => card < 100))
+                    const multipleExcludedPlayCards = morphoseAndJokerExcludedPlayCards.filter(playCard => {
+                        if (playCard.length === 1) { return true } // 出单张OK
+                        const cardNumCount = getSpecifiedCardNumCount(remainCards, poker.getIndexOfCardList(playCard[0]).num) // 获取玩家手中该牌面的张数
+                        const pureCount = cardNumCount - playCard.length // 玩家手中该牌面的张数减去当前出牌组合要打出的张数
+                        return getRandom(0, pureCount) > 0 // 期望值希望玩家至少保留1张该牌面的牌
+                    })
+                    if (multipleExcludedPlayCards.length > 0) {
+                        return multipleExcludedPlayCards[Math.floor(Math.random() * multipleExcludedPlayCards.length)]
+                    }
+                }
                 return excludedPlayCards[Math.floor(Math.random() * excludedPlayCards.length)] // 随机打出该过滤条件下的其中一种组合
             }
             i++
@@ -90,6 +102,35 @@ function getCardStatus(cards) {
         else { result.yaoguaiNum += 1 }
     })
     return result
+}
+
+/** 
+ * @summary 获取玩家手中牌的指定牌面的数量。
+ * @param {number[]} remainCards 玩家手中的牌。
+ * @param {number} cardNum 牌面。
+ * @returns {number} 指定牌面的数量。
+ */
+function getSpecifiedCardNumCount(remainCards, cardNum) {
+    return remainCards.filter(card => poker.getIndexOfCardList(card).num === cardNum).length
+}
+
+/** 
+ * @summary 获取给定范围中的随机整数。
+ * @param {number} min 最小值
+ * @param {number} max 最大值
+ * @returns {number} 最小值与最大值之间闭区间的整数值。
+ */
+function getRandom(min, max) {
+    const floatRandom = Math.random()
+
+    const difference = max - min
+
+    // 介于 0 和差值之间的随机数
+    const random = Math.round(difference * floatRandom)
+
+    const randomWithinRange = random + min
+
+    return randomWithinRange
 }
 
 module.exports = {
