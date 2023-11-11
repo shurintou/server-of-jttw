@@ -3,8 +3,14 @@ const poker = require('../common/poker')
 /** 
  * @todo 策略待优化
  * @summary 出牌策略处理，选出最佳的出牌组合。
- * @description 牌池中无牌时，按妖怪，徒弟，师傅&反弹的顺序选出出牌的组合。即有可打出的妖怪牌组合时优先打妖怪牌中的随机组合，没有则打徒弟，依次类推。
- * 牌池中有牌时，则按所有出牌组合中牌面最小，牌序数和最小的组合打出。
+ * @description 
+ * 牌池中无牌时，按妖怪，徒弟，师傅&反弹的顺序选出出牌的组合。即有可打出的妖怪牌组合时优先打妖怪牌中的随机组合，没有则打徒弟，依次类推。且，
+ *   1.当考虑妖怪牌的出牌策略时，玩家手中的妖怪牌越多，越倾向于出多牌组合。
+ *   2.当考虑非妖怪牌的出牌策略时，不打反弹牌或带变身牌的多牌,及尽量少打多牌。
+ * 牌池中为单牌，连击数低，且满足以下条件之一时，弃牌不出。
+ *   1.玩家手中无徒弟，或妖怪牌多
+ *   2.玩家只能打出徒弟牌管上现在牌池牌面，且玩家手中妖怪牌多
+ * 其余情况则按所有出牌组合中牌面最小，牌序数和最小的组合打出。
  * @param {RedisCacheGame} game
  * @param {number[][]} playCards 各种能出的牌的组合。
  * @param {number[]} remainCards 玩家现在手中的牌。
@@ -52,6 +58,18 @@ function strategy(game, playCards, remainCards) {
                 return excludedPlayCards[Math.floor(Math.random() * excludedPlayCards.length)] // 随机打出该过滤条件下的其中一种组合
             }
             i++
+        }
+    }
+    else if (currentCard.length === 1) { // 牌池是单牌时
+        if (game.currentCombo < 5 && getRandom(0, game.currentCombo) === 0) { // 连击数越低越倾向执行后续处理
+            const cardStatus = getCardStatus(remainCards)
+            if ((cardStatus.shasengNum + cardStatus.bajieNum + cardStatus.wukongNum) === 0 || getRandom(0, cardStatus.yaoguaiNum) > 2) { // 玩家手中无徒弟，或妖怪牌越多时越倾向于弃牌
+                return []
+            }
+            const yaoguaiPlayCards = playCards.filter(playCard => playCard.every(card => poker.getIndexOfCardList(card).num < 20))
+            if (yaoguaiPlayCards.length === 0 && getRandom(0, cardStatus.yaoguaiNum) > 0) { // 玩家只能打出徒弟牌管上现在牌面时，玩家手中妖怪牌越多时越倾向于弃牌
+                return []
+            }
         }
     }
     playCards.sort((a, b) => {
