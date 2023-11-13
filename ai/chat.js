@@ -39,16 +39,10 @@ async function chatIntervalHandler(id, wss) {
             return
         }
         aiPlayerIds.forEach(async aiPlayerId => {
+            if (await aiPlayerChatCooldown(id, aiPlayerId) === false) return
             const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
-            const isAiPlayerHasChat = await asyncExists(aiPlayerChatKey)
-            if (isAiPlayerHasChat > 0) { // 该电脑玩家尚有发言在缓存中，则不继续发言
-                return
-            }
             const aiPlayerIndex = -1 * (aiPlayerId + 1)
             const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
-            if (Math.random() * 50 > aiPlayerChatContent.talkative) { // 若电脑玩家的健谈程度小于随机值则结束处理
-                return
-            }
             /** @type {string[]} */
             let chatContents = [].concat(commonChatContent)
             if (gameRoom.lastLoser === aiPlayerId) { chatContents = chatContents.concat(loserChatContent) }
@@ -74,6 +68,27 @@ async function chatIntervalHandler(id, wss) {
 
 }
 
+
+/** 
+ * @summary 获得电脑玩家是否可聊天的boolean。
+ * @param {number} id 游戏房间id/游戏id。
+ * @param {number} aiPlayerId 电脑玩家id。
+ * @returns {Promise<boolean>}
+ */
+async function aiPlayerChatCooldown(id, aiPlayerId) {
+    if (id === 0 || aiPlayerId >= 0) return false
+    const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+    const isAiPlayerHasChat = await asyncExists(aiPlayerChatKey)
+    if (isAiPlayerHasChat > 0) { // 该电脑玩家尚有发言在缓存中，则不继续发言
+        return false
+    }
+    const aiPlayerIndex = -1 * (aiPlayerId + 1)
+    const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+    if (Math.random() * 50 > aiPlayerChatContent.talkative) { // 若电脑玩家的健谈程度小于随机值则结束处理
+        return false
+    }
+    return true
+}
 
 const commonChatContent = [
     '今天天气不错。',
