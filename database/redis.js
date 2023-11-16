@@ -5,7 +5,7 @@ const redis = require("redis")
 const conf = require('../config/')
 const { promisify } = require("util")
 const client = redis.createClient(conf.redis)
-const { get, set, getset, mget, mset, keys, ttl, del, exists, zrange, zrank, zrevrange, zrevrank, expire, pexpire, watch } = client
+const { get, set, getset, mget, mset, keys, ttl, pttl, del, exists, zrange, zrank, zrevrange, zrevrank, expire, pexpire, watch } = client
 /** @type {(key: string) => Promise<string | null>} */
 const asyncGet = promisify(get).bind(client)
 /** @type {(key: string, value: string) => Promise<void>} */
@@ -20,6 +20,8 @@ const asyncMset = promisify(mset).bind(client)
 const asyncKeys = promisify(keys).bind(client)
 /** @type {(arg1: string) => Promise<number>} */
 const asyncTtl = promisify(ttl).bind(client)
+/** @type {(arg1: string) => Promise<number>} */
+const asyncPttl = promisify(pttl).bind(client)
 /** @type {(arg: string | string[]) => Promise<void>} */
 const asyncDel = promisify(del).bind(client)
 /** @type {(arg: string | string[]) => Promise<number>} */
@@ -52,6 +54,7 @@ module.exports = {
     asyncMset: asyncMset,
     asyncKeys: asyncKeys,
     asyncTtl: asyncTtl,
+    asyncPttl: asyncPttl,
     asyncDel: asyncDel,
     asyncExists: asyncExists,
     asyncZrange: asyncZrange,
