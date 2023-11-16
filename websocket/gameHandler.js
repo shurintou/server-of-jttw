@@ -912,7 +912,7 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
  * @param {RedisCacheGame} game Redis中的游戏信息。
  * @param {GamePlayerSeatIndex} currentPlayer 出牌玩家的ID。
  * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
- * @param {number} delay 计时器时间
+ * @param {number} delay 计时器时间(ms)
  * @returns {NodeJS.Timeout}
  */
 function getPlayCardTimer(game, currentPlayer, wss, delay) {
