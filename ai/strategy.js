@@ -154,4 +154,5 @@ function getRandom(min, max) {
 module.exports = {
     strategy: strategy,
     getCardStatus: getCardStatus,
+    getRandom: getRandom,
 }
