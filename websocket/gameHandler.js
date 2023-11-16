@@ -917,10 +917,13 @@ async function calRecord(player, playerInstance, averageCard, losePlayer, winPla
  */
 function getPlayCardTimer(game, currentPlayer, wss, delay) {
     const currentPlayerId = game.gamePlayer[currentPlayer].id
+    const playCardTimerKey = conf.redisCache.aiChatPrefix + game.id + ':' + conf.redisCache.playCardTimerKeyStr
     if (currentPlayerId > 0) {
+        asyncMultiExec([['set', playCardTimerKey, 0], ['pexpire', playCardTimerKey, game.gamePlayer[currentPlayer].online ? delay : 99999]])() // 此处不必等回调，所以没有加await, 玩家在线时才催促，托管时无须催促
         return setTimeout(async function () { await intervalCheckCard(wss, this, game.id) }, delay)
     }
     else if (currentPlayerId < 0) {
+        asyncMultiExec([['set', playCardTimerKey, 0], ['pexpire', playCardTimerKey, 99999]])() // 电脑玩家不必催促所以仅设定一个较长时间
         return setTimeout(function () {
             const playCardWebSocketRequestData = aiPlay(game)
             /** 

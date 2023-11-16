@@ -24,6 +24,7 @@ module.exports = {
 		sessionPrefix: 'sess:',
 		gameRoomPrefix: 'room:',
 		aiChatPrefix: 'aiChat:',
+		playCardTimerKeyStr: 'playCardTimer',
 		gamePrefix: 'game:',
 		playerRecordPrefix: 'playerRecord:',
 		gameRecordPrefix: 'gameRecord:',

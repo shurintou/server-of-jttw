@@ -1,10 +1,14 @@
-const { asyncGet, asyncExists, asyncMultiExec } = require('../database/redis')
+const { asyncGet, asyncExists, asyncMultiExec, asyncPttl, asyncSet } = require('../database/redis')
 const chatHandler = require('../websocket/chatHandler.js')
 const conf = require('../config/')
 const { aiPlayerMetaData } = require('./playCard.js')
 const logger = require('../common/log')
+const poker = require('../common/poker.js')
+const { getRandom } = require('./strategy.js')
+const gameHandler = require('../websocket/gameHandler')
 
 /** 
+ * @typedef {import('../types/game.js').RedisCacheGame}
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}
  * @typedef {import('../types/room.js').RoomChatWebsocketRequestData}
  * @typedef {import('../types/common.js').GamePlayerSeatIndex}
@@ -62,10 +66,55 @@ async function chatIntervalHandler(id, wss) {
             }
             chatHandler(chatResponseDto, wss)
         })
+        return
     }
     // 游戏存在，则处理游戏中聊天
+    /** @type {RedisCacheGame} */
     const game = JSON.parse(gameRes)
-
+    /** @type {[ {aiPlayerId: number, seatIndex: GamePlayerSeatIndex} ]} */
+    const aiPlayerIdSeatIndexList = []
+    for (let i = 0; i < Object.keys(game.gamePlayer).length; i++) {
+        /** @type {GamePlayerSeatIndex} */
+        const iSeatIndex = i
+        if (game.gamePlayer[iSeatIndex].id < 0) {
+            aiPlayerIdSeatIndexList.push({ aiPlayerId: game.gamePlayer[iSeatIndex].id, seatIndex: iSeatIndex })
+        }
+    }
+    if (aiPlayerIdSeatIndexList.length === 0) { // 无电脑玩家存在则结束处理
+        return
+    }
+    const playCardTimerkey = conf.redisCache.aiChatPrefix + id + ':' + conf.redisCache.playCardTimerKeyStr
+    const playCardTimerPExpire = await asyncPttl(playCardTimerkey)
+    if (playCardTimerPExpire > 0 && playCardTimerPExpire < (poker.waitTime * 0.6)) {
+        const pushTimes = parseInt(await asyncGet(playCardTimerkey) || 0) // 催促次数，不超过电脑玩家的健谈程度
+        aiPlayerIdSeatIndexList.forEach(async ({ aiPlayerId, seatIndex }) => {
+            if (await aiPlayerChatCooldown(id, aiPlayerId) === false || game.currentPlayer === seatIndex) return
+            const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+            const aiPlayerIndex = -1 * (aiPlayerId + 1)
+            const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+            const playCardTimerExpire = playCardTimerPExpire / 1000
+            if (getRandom(0, playCardTimerExpire) <= aiPlayerChatContent.talkative && pushTimes < aiPlayerChatContent.talkative) { // 所剩时间越少，电脑玩家越倾向于催促
+                const data = {
+                    type: "game",
+                    userId: aiPlayerId,
+                    action: "textToPlayer",
+                    id: id,
+                    source: seatIndex,
+                    target: game.currentPlayer,
+                    targetId: game.gamePlayer[game.currentPlayer].id,
+                    sourceId: aiPlayerId,
+                    text: aiPlayerGameMessages[1].text,
+                    soundSrc: aiPlayerGameMessages[1].music,
+                }
+                gameHandler(data, wss)
+                await asyncSet(playCardTimerkey, pushTimes + 1)
+                const results = await asyncMultiExec([['set', aiPlayerChatKey, aiPlayerId], ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]])()
+                if (results === null) {
+                    logger.error(e)
+                }
+            }
+        })
+    }
 }
 
 
@@ -175,6 +224,32 @@ const aiPlayerChatContents = [
     { id: -33, talkative: 3, content: ['我的意中人会架着七彩祥云来接我。', '我猜中了开头，却猜不中结尾。'], },
     { id: -34, talkative: 3, content: ['我虽然看不见，但我可不瞎哦。'], },
     { id: -35, talkative: 3, content: ['问世间情为何物...', '我希望期限是一万年...'], },
+]
+
+/** 
+ * @typedef {object} AiPlayerGameMessage
+ * @property {number} id 电脑玩家的id
+ * @property {string} music 播放的音频文件名。
+ * @property {string} text 播放的音频对应的文本内容。
+*/
+
+/** 
+ * @type {AiPlayerGameMessage[]} 配置参考前端'src\components\chatRoom\tabs\SettingModule.vue' messageGroups
+ */
+const aiPlayerGameMessages = [
+    { id: 1, music: "1", text: "你的牌打得太好了" },
+    { id: 2, music: "2", text: "我等得花儿都谢了" },
+    { id: 3, music: "3", text: "合作愉快" },
+    { id: 4, music: "4", text: "都别走，大战到天亮" },
+    { id: 5, music: "5", text: "小小小" },
+    { id: 6, music: "6", text: "大大大" },
+    { id: 7, music: "7", text: "求师傅" },
+    { id: 8, music: "8", text: "求拉满" },
+    { id: 9, music: "9", text: "求转向" },
+    { id: 10, music: "10", text: "收" },
+    { id: 11, music: "11", text: "我太难了" },
+    { id: 12, music: "12", text: "我人没了" },
+    { id: 13, music: "13", text: "战略性收牌" }
 ]
 
 module.exports = {
