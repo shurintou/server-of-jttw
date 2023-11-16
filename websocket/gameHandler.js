@@ -335,7 +335,7 @@ module.exports = async function (data, wss, ws) {
 
         }
         else if (data.action === 'shiftOnline') {
-            await asyncWatch(redisKey)
+            await asyncWatch(gameKey)
             const gameRes = await asyncGet(gameKey)
             /** @type {RedisCacheGame} */
             const game = JSON.parse(gameRes)
