@@ -94,26 +94,42 @@ async function chatIntervalHandler(id, wss) {
             const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
             const playCardTimerExpire = playCardTimerPExpire / 1000
             if (getRandom(0, playCardTimerExpire) <= aiPlayerChatContent.talkative && pushTimes < aiPlayerChatContent.talkative) { // 所剩时间越少，电脑玩家越倾向于催促
-                const data = {
-                    type: "game",
-                    userId: aiPlayerId,
-                    action: "textToPlayer",
-                    id: id,
-                    source: seatIndex,
-                    target: game.currentPlayer,
-                    targetId: game.gamePlayer[game.currentPlayer].id,
-                    sourceId: aiPlayerId,
-                    text: aiPlayerGameMessages[1].text,
-                    soundSrc: aiPlayerGameMessages[1].music,
-                }
-                gameHandler(data, wss)
+                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[1], seatIndex, game.currentPlayer, aiPlayerChatKey, wss)
                 await asyncSet(playCardTimerkey, pushTimes + 1)
-                const results = await asyncMultiExec([['set', aiPlayerChatKey, aiPlayerId], ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]])()
-                if (results === null) {
-                    logger.error(e)
-                }
             }
         })
+    }
+}
+
+
+/** 
+ * @summary 在游戏中发送聊天语音信息。
+ * @param {RedisCacheGame} game 游戏。
+ * @param {AiPlayerChatContent} aiPlayerChatContent 电脑玩家聊天属性。
+ * @param {AiPlayerGameMessage} aiPlayerGameMessage 电脑玩家聊天信息。
+ * @param {GamePlayerSeatIndex} sourceSeatIndex 发出信息电脑玩家座位。
+ * @param {GamePlayerSeatIndex | -1} [targetSeatIndex = -1] 接收信息玩家座位，默认-1。
+ * @param {string} aiPlayerChatKey 储存在redis中的电脑玩家key。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {Promise<void>}
+ */
+async function textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessage, sourceSeatIndex, targetSeatIndex, aiPlayerChatKey, wss) {
+    const data = {
+        type: "game",
+        userId: aiPlayerChatContent.id,
+        action: "textToPlayer",
+        id: game.id,
+        source: sourceSeatIndex,
+        target: targetSeatIndex,
+        targetId: game.gamePlayer[targetSeatIndex]?.id || 0,
+        sourceId: aiPlayerChatContent.id,
+        text: aiPlayerGameMessage.text,
+        soundSrc: aiPlayerGameMessage.music,
+    }
+    gameHandler(data, wss)
+    const results = await asyncMultiExec([['set', aiPlayerChatKey, aiPlayerChatContent.id], ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]])()
+    if (results === null) {
+        logger.error(e)
     }
 }
 
