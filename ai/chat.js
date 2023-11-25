@@ -9,6 +9,7 @@ const gameHandler = require('../websocket/gameHandler')
 
 /** 
  * @typedef {import('../types/game.js').RedisCacheGame}
+ * @typedef {import('../types/game.js').GameWebsocketRequestData}
  * @typedef {import('../types/room.js').RedisCacheRoomInfo}
  * @typedef {import('../types/room.js').RoomChatWebsocketRequestData}
  * @typedef {import('../types/common.js').GamePlayerSeatIndex}
@@ -114,6 +115,7 @@ async function chatIntervalHandler(id, wss) {
  * @returns {Promise<void>}
  */
 async function textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessage, sourceSeatIndex, targetSeatIndex, aiPlayerChatKey, wss) {
+    /** @type {GameWebsocketRequestData & WebSocketRequestRawData} */
     const data = {
         type: "game",
         userId: aiPlayerChatContent.id,

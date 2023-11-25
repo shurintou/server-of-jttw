@@ -73,6 +73,7 @@
  * @property {GamePlayerSeatIndex?} source - 发送游戏内信息玩家的座位号。textToPlayer时不为空。
  * @property {number?} sourceId - 发送游戏内信息玩家的的玩家id。textToPlayer时不为空。
  * @property {string?} soundSrc - 发送游戏内信息对应的语音文件路径。textToPlayer时不为空。
+ * @property {string?} text - 发送游戏内信息对应的信息。textToPlayer时不为空。
  * @property {'get'|'play'|'discard'|'shiftOnline'|'initialize'|'textToPlayer'} action - 请求类型。
  */
 
