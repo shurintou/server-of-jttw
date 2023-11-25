@@ -100,6 +100,17 @@ async function chatIntervalHandler(id, wss) {
             }
         })
     }
+    if (game.remainCards.length === 0) {
+        aiPlayerIdSeatIndexList.forEach(async ({ aiPlayerId, seatIndex }) => {
+            if (await aiPlayerChatCooldown(id, aiPlayerId) === false) return
+            const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+            const aiPlayerIndex = -1 * (aiPlayerId + 1)
+            const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+            if (game.gamePlayer[seatIndex].remainCards.length <= aiPlayerChatContent.talkative && getRandom(0, 50) <= aiPlayerChatContent.talkative) { // 电脑玩家牌越少越倾向于再来一局
+                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[3], seatIndex, game.currentPlayer, aiPlayerChatKey, wss)
+            }
+        })
+    }
 }
 
 
