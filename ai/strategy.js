@@ -8,7 +8,7 @@ const poker = require('../common/poker')
  *   1.当考虑妖怪牌的出牌策略时，玩家手中的妖怪牌越多，越倾向于出多牌组合。
  *   2.当考虑非妖怪牌的出牌策略时，不打反弹牌或带变身牌的多牌,及尽量少打多牌。
  * 牌池中为单牌，连击数低，且满足以下条件之一时，弃牌不出。
- *   1.玩家手中无徒弟且不能打出的妖怪牌多
+ *   1.玩家手中不能打出的妖怪牌多
  *   2.玩家只能打出徒弟牌管上现在牌池牌面，且玩家手中妖怪牌多
  * 其余情况则按所有出牌组合中牌面最小，牌序数和最小的组合打出。
  * @param {RedisCacheGame} game
@@ -63,7 +63,7 @@ function strategy(game, playCards, remainCards) {
     else if (currentCard.length === 1) { // 牌池是单牌时
         if (game.currentCombo < 5 && getRandom(0, game.currentCombo) === 0) { // 连击数越低越倾向执行后续处理
             const cardStatus = getCardStatus(remainCards)
-            if ((cardStatus.shasengNum + cardStatus.bajieNum + cardStatus.wukongNum) === 0 && getRandom(0, cardStatus.yaoguaiNum - playCards.length) > 0) { // 玩家手中无徒弟且手中不能打出的小妖怪牌越多时越倾向于弃牌
+            if (getRandom(0, cardStatus.yaoguaiNum - playCards.length) > 0) { // 玩家手中不能打出的妖怪牌越多时越倾向于弃牌
                 return []
             }
             const yaoguaiPlayCards = playCards.filter(playCard => playCard.every(card => poker.getIndexOfCardList(card).num < 20))
