@@ -107,7 +107,7 @@ async function chatIntervalHandler(id, wss) {
             const aiPlayerIndex = -1 * (aiPlayerId + 1)
             const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
             if (game.gamePlayer[seatIndex].remainCards.length <= aiPlayerChatContent.talkative && getRandom(0, 50) <= aiPlayerChatContent.talkative) { // 电脑玩家牌越少越倾向于再来一局
-                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[3], seatIndex, game.currentPlayer, aiPlayerChatKey, wss)
+                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[3], seatIndex, -1, aiPlayerChatKey, wss)
             }
         })
     }
