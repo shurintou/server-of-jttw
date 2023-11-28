@@ -1,4 +1,5 @@
 const poker = require('../common/poker')
+const { getRandom } = poker
 
 /** 
  * @todo 策略待优化
@@ -132,27 +133,7 @@ function getSpecifiedCardNumCount(remainCards, cardNum) {
     return remainCards.filter(card => poker.getIndexOfCardList(card).num === cardNum).length
 }
 
-/** 
- * @summary 获取给定范围中的随机整数。
- * @param {number} min 最小值
- * @param {number} max 最大值
- * @returns {number} 最小值与最大值之间闭区间的整数值。
- */
-function getRandom(min, max) {
-    const floatRandom = Math.random()
-
-    const difference = max - min
-
-    // 介于 0 和差值之间的随机数
-    const random = Math.round(difference * floatRandom)
-
-    const randomWithinRange = random + min
-
-    return randomWithinRange
-}
-
 module.exports = {
     strategy: strategy,
     getCardStatus: getCardStatus,
-    getRandom: getRandom,
 }

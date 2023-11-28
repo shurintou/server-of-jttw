@@ -4,7 +4,7 @@ const conf = require('../config/')
 const { aiPlayerMetaData } = require('./playCard.js')
 const logger = require('../common/log')
 const poker = require('../common/poker.js')
-const { getRandom } = require('./strategy.js')
+const { getRandom } = poker
 const gameHandler = require('../websocket/gameHandler')
 
 /** 
