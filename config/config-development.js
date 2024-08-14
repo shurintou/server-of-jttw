@@ -40,7 +40,7 @@ module.exports = {
 		}
 	},
 	port: 3000,
-	frontOrigin: 'http://192.168.11.10:8080',
+	frontOrigin: 'http://localhost:8080',
 	APIRoot: '/rest/v1',
 	session: {
 		name: 'journey_to_the_west',
