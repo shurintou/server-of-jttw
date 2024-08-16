@@ -23,8 +23,15 @@ module.exports = {
 		playerPrefix: 'player:',
 		sessionPrefix: 'sess:',
 		gameRoomPrefix: 'room:',
+		/** 
+		 * @description 该路径下
+		 * 游戏id:playCardTimer 保存出牌倒数计时开始经过的时间，
+		 * 游戏id:AI玩家id 保存该电脑玩家聊天冷却
+		 * 游戏id:chatMessage_时间戳 保存电脑玩家将要发的言
+		 */
 		aiChatPrefix: 'aiChat:',
 		playCardTimerKeyStr: 'playCardTimer',
+		aiMessageKeyStr: 'chatMessage_',
 		gamePrefix: 'game:',
 		playerRecordPrefix: 'playerRecord:',
 		gameRecordPrefix: 'gameRecord:',

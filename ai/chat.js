@@ -1,4 +1,4 @@
-const { asyncGet, asyncExists, asyncMultiExec, asyncPttl, asyncSet } = require('../database/redis')
+const { asyncGet, asyncExists, asyncMultiExec, asyncPttl, asyncSet, asyncKeys, asyncMget, asyncDel } = require('../database/redis')
 const chatHandler = require('../websocket/chatHandler.js')
 const conf = require('../config/')
 const { aiPlayerMetaData } = require('./playCard.js')
@@ -95,7 +95,7 @@ async function chatIntervalHandler(id, wss) {
             const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
             const playCardTimerExpire = playCardTimerPExpire / 1000
             if (getRandom(0, playCardTimerExpire) <= aiPlayerChatContent.talkative && pushTimes < aiPlayerChatContent.talkative) { // 所剩时间越少，电脑玩家越倾向于催促
-                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[1], seatIndex, game.currentPlayer, aiPlayerChatKey, wss)
+                addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[1], seatIndex, game.currentPlayer, aiPlayerChatKey)
                 await asyncSet(playCardTimerkey, pushTimes + 1)
             }
         })
@@ -107,20 +107,20 @@ async function chatIntervalHandler(id, wss) {
             const aiPlayerIndex = -1 * (aiPlayerId + 1)
             const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
             if (game.gamePlayer[seatIndex].remainCards.length <= aiPlayerChatContent.talkative && getRandom(0, 50) <= aiPlayerChatContent.talkative) { // 电脑玩家牌越少越倾向于再来一局
-                textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[3], seatIndex, -1, aiPlayerChatKey, wss)
+                addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[3], seatIndex, -1, aiPlayerChatKey)
             }
         })
     }
+    sendChatMessages(game, wss)
 }
 
 /** 
  * @summary 电脑玩家弃牌时聊天的处理，弃牌玩家为game.currentPlayer座位的玩家。
  * @param {boolean} isPositive 是否是主动弃牌。
  * @param {RedisCacheGame} game Redis中的游戏信息。
- * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @returns {Promise<void>}
  */
-function discardChatHandler(isPositive, game, wss) {
+function discardChatHandler(isPositive, game) {
     const id = game.id
     /** @type {GamePlayerSeatIndex} */
     const seatIndex = game.currentPlayer
@@ -130,27 +130,26 @@ function discardChatHandler(isPositive, game, wss) {
     const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
     if (isPositive) {
         if (getRandom(0, 5) <= aiPlayerChatContent.talkative) {
-            textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[12], seatIndex, -1, aiPlayerChatKey, wss)
+            addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[12], seatIndex, -1, aiPlayerChatKey)
         }
         return
     }
     if (getRandom(0, 20) <= game.currentCombo) { // 连击数越大越倾向于发言
-        textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[getRandom(0, 1) === 0 ? 10 : 11], seatIndex, -1, aiPlayerChatKey, wss)
+        addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[getRandom(0, 1) === 0 ? 10 : 11], seatIndex, -1, aiPlayerChatKey)
     }
 }
 
 /** 
- * @summary 在游戏中发送聊天语音信息。
+ * @summary 将聊天语音信息加入缓存。 
  * @param {RedisCacheGame} game 游戏。
  * @param {AiPlayerChatContent} aiPlayerChatContent 电脑玩家聊天属性。
  * @param {AiPlayerGameMessage} aiPlayerGameMessage 电脑玩家聊天信息。
  * @param {GamePlayerSeatIndex} sourceSeatIndex 发出信息电脑玩家座位。
  * @param {GamePlayerSeatIndex | -1} [targetSeatIndex = -1] 接收信息玩家座位，默认-1。
  * @param {string} aiPlayerChatKey 储存在redis中的电脑玩家key。
- * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
  * @returns {Promise<void>}
  */
-async function textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessage, sourceSeatIndex, targetSeatIndex, aiPlayerChatKey, wss) {
+async function addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessage, sourceSeatIndex, targetSeatIndex, aiPlayerChatKey) {
     /** @type {GameWebsocketRequestData & WebSocketRequestRawData} */
     const data = {
         type: "game",
@@ -164,10 +163,34 @@ async function textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessage
         text: aiPlayerGameMessage.text,
         soundSrc: aiPlayerGameMessage.music,
     }
-    gameHandler(data, wss)
-    const results = await asyncMultiExec([['set', aiPlayerChatKey, aiPlayerChatContent.id], ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]])()
+    const chatMessageKey = conf.redisCache.aiChatPrefix + game.id + ':' + conf.redisCache.aiMessageKeyStr + new Date().getTime()
+    // 将聊天语音信息加入缓存中并设置电脑玩家的聊天冷却
+    const results = await asyncMultiExec([
+        ['set', chatMessageKey, JSON.stringify(data)],
+        ['pexpire', chatMessageKey, 2 * conf.ai.chatIntervalDelay],
+        ['set', aiPlayerChatKey, aiPlayerChatContent.id],
+        ['expire', aiPlayerChatKey, 10 - aiPlayerChatContent.talkative]
+    ])()
     if (results === null) {
         logger.error(e)
+    }
+}
+/** 
+ * @summary 从缓存中取出并发送聊天语音信息。
+ * @param {RedisCacheGame} game 游戏。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {Promise<void>}
+ */
+async function sendChatMessages(game, wss) {
+    const keys = await asyncKeys(conf.redisCache.aiChatPrefix + game.id + ':' + conf.redisCache.aiMessageKeyStr + '*')
+    if (keys.length > 0) {
+        const chatMessages = await asyncMget(keys)
+        keys.forEach(key => asyncDel(key))
+        chatMessages.forEach(chatMessage => {
+            /** @type {GameWebsocketRequestData & WebSocketRequestRawData} */
+            const data = JSON.parse(chatMessage)
+            gameHandler(data, wss)
+        })
     }
 }
 
