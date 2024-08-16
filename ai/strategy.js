@@ -18,7 +18,12 @@ const { getRandom } = poker
  * @returns {number[]} 经过策略推算后打出的牌组合。
  */
 function strategy(game, playCards, remainCards) {
-    if (playCards.length === 0) return []
+    /** @description 只有把该函数的引用写在这里才不会引起circular dependency错误 */
+    const { discardChatHandler } = require('../ai/chat')
+    if (playCards.length === 0) {
+        discardChatHandler(false, game)
+        return []
+    }
 
     const currentCard = game.currentCard
     if (currentCard.length === 0) {
@@ -65,10 +70,12 @@ function strategy(game, playCards, remainCards) {
         if (game.currentCombo < 5 && getRandom(0, game.currentCombo) === 0) { // 连击数越低越倾向执行后续处理
             const cardStatus = getCardStatus(remainCards)
             if (getRandom(0, cardStatus.yaoguaiNum - playCards.length) > 0) { // 玩家手中不能打出的妖怪牌越多时越倾向于弃牌
+                discardChatHandler(true, game)
                 return []
             }
             const yaoguaiPlayCards = playCards.filter(playCard => playCard.every(card => poker.getIndexOfCardList(card).num < 20))
             if (yaoguaiPlayCards.length === 0 && getRandom(0, cardStatus.yaoguaiNum) > 0) { // 玩家只能打出徒弟牌管上现在牌面时，玩家手中妖怪牌越多时越倾向于弃牌
+                discardChatHandler(true, game)
                 return []
             }
         }
