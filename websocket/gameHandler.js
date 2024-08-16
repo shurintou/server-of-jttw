@@ -306,9 +306,11 @@ module.exports = async function (data, wss, ws) {
             }
         }
         else if (data.action === 'discard') {
+            const { cheerChatHandler } = require('../ai/chat.js')
             const gameRes = await asyncGet(gameKey)
             /** @type {RedisCacheGame} */
             const game = JSON.parse(gameRes)
+            cheerChatHandler(game)
             if (game.currentPlayer === data.seatIndex) {
                 game.gamePlayer[game.currentPlayer].online = true
                 game.gamePlayer[game.currentPlayer].offLineTime = 0

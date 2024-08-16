@@ -140,6 +140,32 @@ function discardChatHandler(isPositive, game) {
 }
 
 /** 
+ * @summary 电脑玩家弃牌时其他玩家对最后出牌玩家庆祝的发言处理，最后出牌玩家为game.currentCardPlayer或jokerCardPlayer座位的玩家。
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @returns {Promise<void>}
+ */
+function cheerChatHandler(game) {
+    const id = game.id
+    /** @type {GamePlayerSeatIndex} */
+    const seatIndex = game.currentCardPlayer === -1 ? game.jokerCardPlayer : game.currentCardPlayer
+    if (seatIndex === -1) return
+    const cheerPlayerSeatIndexes = [0, 1, 2, 3, 4, 5, 6, 7].filter(index => index !== seatIndex && index !== game.currentPlayer)
+    cheerPlayerSeatIndexes.forEach(cheerPlayerSeatIndex => {
+        if (getRandom(5, 50) <= game.currentCombo) { // 连击数越大越倾向于庆祝发言
+            setTimeout(() => {
+                const aiPlayerId = game.gamePlayer[cheerPlayerSeatIndex].id
+                const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+                const aiPlayerIndex = -1 * (aiPlayerId + 1)
+                const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+                if (aiPlayerChatContent) {
+                    addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[getRandom(0, 1) === 0 ? 0 : 2], cheerPlayerSeatIndex, seatIndex, aiPlayerChatKey)
+                }
+            }, Math.random() * 3000)
+        }
+    })
+}
+
+/** 
  * @summary 将聊天语音信息加入缓存。 
  * @param {RedisCacheGame} game 游戏。
  * @param {AiPlayerChatContent} aiPlayerChatContent 电脑玩家聊天属性。
@@ -334,4 +360,5 @@ const aiPlayerGameMessages = [
 module.exports = {
     chatIntervalHandler: chatIntervalHandler,
     discardChatHandler: discardChatHandler,
+    cheerChatHandler: cheerChatHandler,
 }
