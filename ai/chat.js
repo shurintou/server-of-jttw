@@ -113,6 +113,31 @@ async function chatIntervalHandler(id, wss) {
     }
 }
 
+/** 
+ * @summary 电脑玩家弃牌时聊天的处理，弃牌玩家为game.currentPlayer座位的玩家。
+ * @param {boolean} isPositive 是否是主动弃牌。
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @param {WebSocketServerInfo} wss WebSocketServer信息，包含所有玩家的WebSocket连接。
+ * @returns {Promise<void>}
+ */
+function discardChatHandler(isPositive, game, wss) {
+    const id = game.id
+    /** @type {GamePlayerSeatIndex} */
+    const seatIndex = game.currentPlayer
+    const aiPlayerId = game.gamePlayer[seatIndex].id
+    const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+    const aiPlayerIndex = -1 * (aiPlayerId + 1)
+    const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+    if (isPositive) {
+        if (getRandom(0, 5) <= aiPlayerChatContent.talkative) {
+            textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[12], seatIndex, -1, aiPlayerChatKey, wss)
+        }
+        return
+    }
+    if (getRandom(0, 20) <= game.currentCombo) { // 连击数越大越倾向于发言
+        textToPlayerInGame(game, aiPlayerChatContent, aiPlayerGameMessages[getRandom(0, 1) === 0 ? 10 : 11], seatIndex, -1, aiPlayerChatKey, wss)
+    }
+}
 
 /** 
  * @summary 在游戏中发送聊天语音信息。
@@ -283,8 +308,5 @@ const aiPlayerGameMessages = [
 
 module.exports = {
     chatIntervalHandler: chatIntervalHandler,
-    commonChatContent: commonChatContent,
-    winnerChatContent: winnerChatContent,
-    loserChatContent: loserChatContent,
-    aiPlayerChatContents: aiPlayerChatContents,
+    discardChatHandler: discardChatHandler,
 }
