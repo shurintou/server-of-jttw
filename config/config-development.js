@@ -82,7 +82,7 @@ module.exports = {
 			}
 		},
 	},
-	chat: {
+	ai: {
 		chatIntervalDelay: 1000,
 	}
 }
