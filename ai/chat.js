@@ -130,7 +130,7 @@ function discardChatHandler(isPositive, game) {
     const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
     if (isPositive) {
         if (getRandom(0, 5) <= aiPlayerChatContent.talkative) {
-            addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[12], seatIndex, -1, aiPlayerChatKey)
+            addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[getRandom(0, 1) === 0 ? 9 : 12], seatIndex, -1, aiPlayerChatKey)
         }
         return
     }
