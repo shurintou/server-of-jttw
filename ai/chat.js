@@ -189,7 +189,9 @@ async function sendChatMessages(game, wss) {
         chatMessages.forEach(chatMessage => {
             /** @type {GameWebsocketRequestData & WebSocketRequestRawData} */
             const data = JSON.parse(chatMessage)
-            gameHandler(data, wss)
+            if (aiPlayerChatCooldown(data.id, data.sourceId)) {
+                gameHandler(data, wss)
+            }
         })
     }
 }
