@@ -55,7 +55,7 @@ module.exports = async function (data, wss, ws) {
                 }
                 if (freeIndex === 0) { freeIndex = idOfList.length + 1 }
             }
-            const chatInterval = setInterval(() => chatIntervalHandler(freeIndex, wss), 1000)
+            const chatInterval = setInterval(() => chatIntervalHandler(freeIndex, wss), conf.chat.chatIntervalDelay)
             /** @type {RedisCacheRoomInfo} */
             const newRoomData = {
                 id: freeIndex,

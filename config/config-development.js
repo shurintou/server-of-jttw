@@ -81,6 +81,9 @@ module.exports = {
 				threshold: 1024,
 			}
 		},
+	},
+	chat: {
+		chatIntervalDelay: 1000,
 	}
 }
 
