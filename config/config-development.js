@@ -47,7 +47,9 @@ module.exports = {
 		}
 	},
 	port: 3000,
-	frontOrigin: 'http://localhost:8080',
+	frontPort: 8080,
+	// 在开发环境下frontOrigin会自动更新
+	frontOrigin: '',
 	APIRoot: '/rest/v1',
 	session: {
 		name: 'journey_to_the_west',

@@ -39,12 +39,12 @@ npm install
 
 
 ### 启动项目
-打开配置文件`config-development.js`，将其中的`port`, `frontOrigin`和`APIRoot`的对应字段改为与你的前端配置对应的内容。
+打开配置文件`config-development.js`，将其中的`port`,`frontPort`和`APIRoot`的值改为与你的前端配置对应的内容。
 改好后输入以下命令启动项目。
 ```
 npm run dev
 ```
-
+注意：开发环境下，`frontOrigin`会自动更新为`本地IP地址 + frontPort`(如:http://xxx.xxx.xx.xx:8080)，以此匹配前端项目的origin。
 之后便可以在本地提供接口给前端项目了。
 
 

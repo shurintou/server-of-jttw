@@ -21,8 +21,9 @@
     "nodemon": "^3.0.1"
   },
   "scripts": {
+    "update-conf": "node updateConfig.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon cross-env NODE_ENV=development node app.js",
+    "dev": "npm run update-conf && nodemon cross-env NODE_ENV=development node app.js",
     "start": "node app.js"
   },
   "author": "",
