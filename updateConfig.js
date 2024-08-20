@@ -37,7 +37,7 @@ function updateConfig(ipAddress) {
     let fileContent = fs.readFileSync(configFilePath, 'utf8')
 
     // 使用正则表达式替换 frontOrigin 的值
-    const updatedContent = fileContent.replace(/(frontOrigin:\s*')(http:\/\/[^']+)/, `$1http://${ipAddress}:${frontPort}`)
+    const updatedContent = fileContent.replace(/frontOrigin: '.*?'/, `frontOrigin: 'http://${ipAddress}:${frontPort}'`)
 
     // 写回 config 文件
     fs.writeFileSync(configFilePath, updatedContent, 'utf8')
