@@ -215,6 +215,7 @@ function helpeeChatHandler(game) {
  * @returns {Promise<void>}
  */
 async function addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessage, sourceSeatIndex, targetSeatIndex, aiPlayerChatKey) {
+    if (await asyncExists(conf.redisCache.aiChatPrefix + game.id + ':' + aiPlayerChatContent.id)) return // 该电脑玩家存在发言时则不继续添加
     /** @type {GameWebsocketRequestData & WebSocketRequestRawData} */
     const data = {
         type: "game",
