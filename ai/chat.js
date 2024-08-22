@@ -166,6 +166,41 @@ function cheerChatHandler(game) {
 }
 
 /** 
+ * @summary 电脑玩家打牌时求牌的发言处理。
+ * @param {RedisCacheGame} game Redis中的游戏信息。
+ * @returns {Promise<void>}
+ */
+function helpeeChatHandler(game) {
+    const id = game.id
+    const helpeePlayerSeatIndexes = [0, 1, 2, 3, 4, 5, 6, 7].filter(index => {
+        /** @type {GamePlayerSeatIndex} */
+        const seatIndex = index
+        return game.gamePlayer[seatIndex].id < 0
+    })
+    helpeePlayerSeatIndexes.forEach(helpeePlayerSeatIndex => {
+        if (getRandom(0, 100) <= game.currentCombo) { // 连击数越大越倾向于求牌发言
+            let gameMessageIndex = 0
+            if (game.currentCombo < 5) {
+                gameMessageIndex = getRandom(0, 1) === 0 ? 5 : 7
+            }
+            else {
+                const randomInt = getRandom(0, 2)
+                gameMessageIndex = randomInt === 0 ? 4 : (randomInt === 1 ? 6 : 8)
+            }
+            setTimeout(() => {
+                const aiPlayerId = game.gamePlayer[helpeePlayerSeatIndex].id
+                const aiPlayerChatKey = conf.redisCache.aiChatPrefix + id + ':' + aiPlayerId // 发言前缀:房间id:电脑玩家id
+                const aiPlayerIndex = -1 * (aiPlayerId + 1)
+                const aiPlayerChatContent = aiPlayerChatContents[aiPlayerIndex]
+                if (aiPlayerChatContent) {
+                    addTextToChatMessages(game, aiPlayerChatContent, aiPlayerGameMessages[gameMessageIndex], helpeePlayerSeatIndex, -1, aiPlayerChatKey)
+                }
+            }, Math.random() * 3000)
+        }
+    })
+}
+
+/** 
  * @summary 将聊天语音信息加入缓存。 
  * @param {RedisCacheGame} game 游戏。
  * @param {AiPlayerChatContent} aiPlayerChatContent 电脑玩家聊天属性。
@@ -361,4 +396,5 @@ module.exports = {
     chatIntervalHandler: chatIntervalHandler,
     discardChatHandler: discardChatHandler,
     cheerChatHandler: cheerChatHandler,
+    helpeeChatHandler: helpeeChatHandler,
 }

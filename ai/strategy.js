@@ -19,7 +19,8 @@ const { getRandom } = poker
  */
 function strategy(game, playCards, remainCards) {
     /** @description 只有把该函数的引用写在这里才不会引起circular dependency错误 */
-    const { discardChatHandler } = require('../ai/chat')
+    const { discardChatHandler, helpeeChatHandler } = require('../ai/chat')
+    helpeeChatHandler(game)
     if (playCards.length === 0) {
         discardChatHandler(false, game)
         return []
