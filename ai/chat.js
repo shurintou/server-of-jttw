@@ -149,7 +149,11 @@ function cheerChatHandler(game) {
     /** @type {GamePlayerSeatIndex} */
     const seatIndex = game.currentCardPlayer === -1 ? game.jokerCardPlayer : game.currentCardPlayer
     if (seatIndex === -1) return
-    const cheerPlayerSeatIndexes = [0, 1, 2, 3, 4, 5, 6, 7].filter(index => index !== seatIndex && index !== game.currentPlayer)
+    const cheerPlayerSeatIndexes = [0, 1, 2, 3, 4, 5, 6, 7].filter(index => {
+        /** @type {GamePlayerSeatIndex} */
+        const currentIndex = index
+        index !== seatIndex && index !== game.currentPlayer && game.gamePlayer[currentIndex].id < 0
+    })
     cheerPlayerSeatIndexes.forEach(cheerPlayerSeatIndex => {
         if (getRandom(5, 50) <= game.currentCombo) { // 连击数越大越倾向于庆祝发言
             setTimeout(() => {
