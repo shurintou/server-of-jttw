@@ -8,9 +8,26 @@
 
 西游记是一款网页联机式的纸牌类游戏，该项目是西游记的后端部分。前端部分请参考 [https://github.com/shurintou/journey-to-the-west](https://github.com/shurintou/journey-to-the-west)。
 
-该指南假设你已完成前端项目的启动。
+## 游戏截图
+
+### 登录/login
+![](https://github.com/shurintou/journey-to-the-west/blob/master/docs/login.gif)
+
+### 创建游戏/create game
+![](https://github.com/shurintou/journey-to-the-west/blob/master/docs/create_game.gif)
+
+### 加入游戏/join game
+![](https://github.com/shurintou/journey-to-the-west/blob/master/docs/join_game.gif)
+
+### 进行游戏/play game
+![](https://github.com/shurintou/journey-to-the-west/blob/master/docs/play_game.gif)
+
+### 游戏结算/game result
+![](https://github.com/shurintou/journey-to-the-west/blob/master/docs/game_result.gif)
 
 ## 开发环境
+
+该指南假设你已完成前端项目的启动。
 
 ### 安装数据库
 该项目的持久化框架使用了 [Sequelize]((https://github.com/sequelize/sequelize)),所以你可以使用 [Postgres](https://en.wikipedia.org/wiki/PostgreSQL), [MySQL](https://en.wikipedia.org/wiki/MySQL), [MariaDB](https://en.wikipedia.org/wiki/MariaDB), [SQLite](https://en.wikipedia.org/wiki/SQLite) 以及 [Microsoft SQL Server](https://en.wikipedia.org/wiki/Microsoft_SQL_Server)中任意一种数据库系统来持久化保存数据。
