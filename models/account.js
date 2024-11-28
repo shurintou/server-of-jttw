@@ -11,7 +11,7 @@ module.exports = db.defineModel('account',
         },
         password:
         {
-            type: db.dataTypes.STRING(20),
+            type: db.dataTypes.STRING(80),
         },
         nickname:
         {

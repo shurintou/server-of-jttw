@@ -5,6 +5,7 @@ const logoutHandler = require('../websocket/logoutHandler')
 const wss = require('../websocket/')
 const logger = require('../common/log')
 const Account = require('../models/account')
+const { getHash, compare } = require('../common/bcrypt')
 /** 
  * @typedef {import('../types/http').ClientRequest}
  * @typedef {import('../types/http').RegisterRequestBody}
@@ -23,7 +24,7 @@ module.exports = {
             if (accounts.length === 0) {
                 return errors.USERNAME_NOT_FOUND
             }
-            if (accounts[0].password === body.password) {
+            if (compare(body.password, accounts[0].password)) {
                 return await getSession(req, accounts[0])
             }
             return errors.WRONG_PASSWORD
